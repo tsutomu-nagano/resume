@@ -28,6 +28,4 @@ jobs:
           working-directory: "./worker"
 
       - name: Run R script
-          run: |
-            Rscript ./worker/getter.R $APP_ID $ROOT_DIR
-            echo "TEST"
+        run:  Rscript ./worker/getter.R $APP_ID $ROOT_DIR
