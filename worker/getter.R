@@ -160,9 +160,10 @@ meta_output <- function(statcode, src, name, type, selection){
 
 }
 
+args <- commandArgs(trailingOnly = T)
 
-appid <- Sys.getenv("APPID")
-root_dir <- Sys.getenv("ROOT_DIR")
+appid <- args[1]
+root_dir <- args[2]
 
 
 # 統計一覧の内容でループ
