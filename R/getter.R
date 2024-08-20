@@ -165,6 +165,7 @@ args <- commandArgs(trailingOnly = T)
 appid <- args[1]
 root_dir <- args[2]
 
+print(args)
 
 # 統計一覧の内容でループ
 statlist <- read_csv(glue("{root_dir}/statlist.csv"), col_types = cols(.default = "c"))
