@@ -15,8 +15,12 @@ jobs:
 
     env:
       APPID: ${{ secrets.APPID_ESTATAPI }}
-      PG_DATABASE_URL: ${{ secrets.PG_DATABASE_URL }}
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
       ROOT_DIR: ./resource
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
