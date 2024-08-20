@@ -223,3 +223,5 @@ purrr::map(function(statcode){
 })
 
 # db登録
+
+print(list.files(path = Sys.getenv("ROOT_DIR")))
