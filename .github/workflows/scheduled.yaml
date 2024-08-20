@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APPID: ${{ secrets.APPID_ESTATAPI }}
+      PG_DATABSE_URL: ${{ secrets.PG_DATABSE_URL }}
       ROOT_DIR: ./resource
     steps:
       - name: Checkout repository
@@ -25,5 +26,8 @@ jobs:
       - name: Install packages
         uses: r-lib/actions/setup-renv@v2
 
-      - name: Run R script
-        run:  Rscript ./R/getter.R $APPID $ROOT_DIR
+      - name: Run R script for Get e-Stat Data
+        run:  Rscript ./R/getter.R $ROOT_DIR
+
+      - name: Run R script for Reigter DB
+        run:  Rscript ./R/register.R $ROOT_DIR
