@@ -1,5 +1,8 @@
 
 
+print(.libPaths())
+  
+
 library(httr)
 library(readr)
 library(dplyr)
