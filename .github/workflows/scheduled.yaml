@@ -26,4 +26,4 @@ jobs:
         uses: r-lib/actions/setup-renv@v2
 
       - name: Run R script
-        run:  Rscript ./worker/getter.R $APP_ID $ROOT_DIR
+        run:  Rscript ./R/getter.R $APP_ID $ROOT_DIR
