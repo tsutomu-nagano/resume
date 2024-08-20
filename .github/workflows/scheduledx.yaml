@@ -1,4 +1,4 @@
-name: Get e-Stat Data
+name: Register Postgres
 
 on:
   schedule:
