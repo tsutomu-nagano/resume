@@ -1,7 +1,8 @@
 
 
 print(.libPaths())
-  
+
+installed.packages()
 
 library(httr)
 library(readr)
