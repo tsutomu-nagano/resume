@@ -224,4 +224,4 @@ purrr::map(function(statcode){
 
 # db登録
 
-print(list.files(path = Sys.getenv("ROOT_DIR")))
+print(list.files(path = Sys.getenv("ROOT_DIR"), recursive = TRUE))
