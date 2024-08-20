@@ -1,8 +1,5 @@
 
 
-print(.libPaths())
-  
-
 library(httr)
 library(readr)
 library(dplyr)
@@ -165,8 +162,8 @@ meta_output <- function(statcode, src, name, type, selection){
 
 args <- commandArgs(trailingOnly = T)
 
-appid <- args[1]
-root_dir <- args[2]
+appid <- Sys.getenv("APPID")
+root_dir <- args[1]
 
 
 # 統計一覧の内容でループ
@@ -226,3 +223,5 @@ purrr::map(function(statcode){
 })
 
 # db登録
+
+print(list.files(path = Sys.getenv("ROOT_DIR"), recursive = TRUE))

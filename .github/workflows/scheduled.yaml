@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APPID: ${{ secrets.APPID_ESTATAPI }}
+      PG_DATABSE_URL: ${{ secrets.PG_DATABSE_URL }}
       ROOT_DIR: ./resource
     steps:
       - name: Checkout repository
@@ -24,8 +25,27 @@ jobs:
 
       - name: Install packages
         uses: r-lib/actions/setup-renv@v2
-        with:
-          working-directory: "./worker"
 
-      - name: Run R script
-        run:  Rscript ./worker/getter.R $APP_ID $ROOT_DIR
+      - name: Run R script for Get e-Stat Data
+        run:  Rscript ./R/getter.R $ROOT_DIR
+
+
+      - name: Run R script for Get e-Stat Data
+        run:  ls ./resource -R -all
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add $ROOT_DIR
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to commit"
+          else
+            git commit -m "resource update [bot] "
+          fi
+  
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main      
