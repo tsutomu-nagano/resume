@@ -1,5 +1,5 @@
 
-renv::restore()
+
 
 library(arrow)
 library(dplyr)
@@ -26,28 +26,45 @@ rename_lower <- function(df){
 args <- commandArgs(trailingOnly = T)
 
 # 環境変数から個別に接続パラメータを取得
-con_str <- Sys.getenv("PG_DATABASE_URL")
-# db_port <- Sys.getenv("DB_PORT")
-# db_user <- Sys.getenv("DB_USER")
-# db_password <- Sys.getenv("DB_PASSWORD")
-# db_name <- Sys.getenv("DB_NAME")
-
-root_dir <- "./resource"
-# root_dir <- args[1]
+db_host <- Sys.getenv("DB_HOST")
+db_user <- Sys.getenv("DB_USER")
+db_password <- Sys.getenv("DB_PASSWORD")
+db_name <- Sys.getenv("DB_NAME")
 
 
-# postgres:postgrespassword@postgres:5432/postgres
+root_dir <- args[1]
 
-con <- dbConnect(RPostgres::Postgres(), con_str)
 
-# con <- dbConnect(
-#     RPostgres::Postgres(),
-#     dbname = db_name,
-#     host = db_host,
-#     port = db_port,
-#     user = db_user,
-#     password = db_password
-# )
+con <- dbConnect(
+    RPostgres::Postgres(),
+    dbname = db_name,
+    host = db_host,
+    user = db_user,
+    password = db_password
+)
+
+
+
+# list.files("hasura/migrations", recursive = TRUE, full.names = TRUE) %>%
+# str_subset("up\\.sql") %>%
+# tibble(path = .) %>%
+# arrange(path) %>%
+# pull %>%
+# purrr::map(function(path){
+
+#     readLines(path) %>%
+#     paste(collapse = "\n") %>%
+#     str_split(";") %>%
+#     unlist %>%
+#     purrr::map(function(sql){
+#         if (str_trim(sql) != ""){
+#             dbExecute(con, sql)
+#         }
+#     })
+
+# })
+
+
 
 
 # register
