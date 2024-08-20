@@ -29,6 +29,10 @@ jobs:
       - name: Run R script for Get e-Stat Data
         run:  Rscript ./R/getter.R $ROOT_DIR
 
+
+      - name: Run R script for Get e-Stat Data
+        run:  ls ./resource -R -all
+
       - name: Commit changes
         run: |
           git config --global user.name "github-actions[bot]"
