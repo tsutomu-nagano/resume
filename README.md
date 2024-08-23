@@ -6,7 +6,7 @@
 - 全ての情報が必要ではないため検索に有用と思われる情報を取捨選択
 - 機械的なメタデータの付与
 
-- https://resume-tsutomu-naganos-projects.vercel.app/
+- https://resume-rho-five.vercel.app
 
 
 
@@ -19,3 +19,12 @@
 
 ## System Configuration
 
+| 要素 | 技術やサービスなど | 
+| ----- | --------------- | 
+| Frontend | Nextjs + TypeScript |
+| CSS | daisyUI + Tailwind | 
+| Backend | HasuraCloud(graphQL) + Neon(postgres) | 
+| Worker | R + github Action |
+| deploy | Vercel |
+
+- 基本的にクラウドサービスはどれも無料プランです。
