@@ -27,6 +27,10 @@ export default function TableCard({ key, statcode, cycle, survey_date, title, ta
               <span>{statcode}</span>
           </div>
           <div className="flex flex-row items-center gap-2">
+              <BiHash />
+              <span>{key}</span>
+          </div>
+          <div className="flex flex-row items-center gap-2">
               <RiLoopLeftFill />
               <span>{cycle}</span>
           </div>
