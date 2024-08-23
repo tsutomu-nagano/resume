@@ -8,6 +8,7 @@ interface SearchItemContextType {
   itemSet: Map<string, string>;
   addItem: (itemName:string, kind:string) => void;
   removeItem: (itemName:string) => void;
+  searchQuery: string;
 }
 
 // コンテキストの作成

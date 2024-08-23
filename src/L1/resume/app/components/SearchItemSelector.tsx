@@ -18,10 +18,12 @@ interface SearchItemsProps {
 interface SearchItemSelectorProps {
   labelja: string;
   labelen: string;
-
+  resource_name: string;
+  resource_field: string;
+  kind: string
 }
 
-export default function SearchItemSelector({ labelja, labelen = "" }: SearchItemSelectorProps) {
+export default function SearchItemSelector({ labelja, labelen = "", resource_name, resource_field, kind}: SearchItemSelectorProps) {
 
   const { itemSet } = useSearchItem();
 
@@ -36,9 +38,9 @@ export default function SearchItemSelector({ labelja, labelen = "" }: SearchItem
     try {
       const { data } = await client.query({
         query: gql`
-          query GetMeasures {
-            table_measure(distinct_on: name, where: { name: { _ilike: "%${searchTerm}%" }} ) {
-              name
+          query GetMetaData {
+            items: ${resource_name}(distinct_on: ${resource_field}, where: { ${resource_field}: { _ilike: "%${searchTerm}%" }} ) {
+              name: ${resource_field}
             }
           }
         `
@@ -104,9 +106,9 @@ export default function SearchItemSelector({ labelja, labelen = "" }: SearchItem
             </svg>
           </label>
           <div className="flex flex-wrap">
-            {data?.table_measure.map(
-              (measure: {name: string;}) => (
-                <Tag key={measure.name} name={measure.name} kind="measure" />
+            {data?.items.map(
+              (item: {name: string;}) => (
+                <Tag key={item.name} name={item.name} kind={kind} />
               )
             )}
           </div>
