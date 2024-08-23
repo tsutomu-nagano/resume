@@ -4,6 +4,8 @@
 import { BiHash } from "react-icons/bi";
 import { RiLoopLeftFill } from "react-icons/ri";
 import { RiTimeLine } from "react-icons/ri";
+import { TbDatabaseShare } from "react-icons/tb";
+
 import Tag from './Tag';
 
 interface TableCardProps {
@@ -20,7 +22,9 @@ interface TableCardProps {
 
 export default function TableCard({ key, statdispid, statcode, cycle, survey_date, title, tags, measures }: TableCardProps) {
 
-  console.log(key);
+  const handleClick = () => {
+    window.open(`https://www.e-stat.go.jp/dbview?sid=${statdispid}`, '_blank');
+  };
 
   return (
     <div className="card bg-base-100 w-200 shadow-xl">
@@ -53,9 +57,8 @@ export default function TableCard({ key, statdispid, statcode, cycle, survey_dat
           ))}
         </div>
 
-
-        <div className="card-actions justify-end">
-          <button className="btn btn-primary">Buy Now</button>
+        <div className="card-actions justify-end mt-5">
+          <button className="btn btn-primary btn-outline ml-auto" onClick={handleClick}><TbDatabaseShare />e-Statで表示する</button>
         </div>
       </div>
     </div>
