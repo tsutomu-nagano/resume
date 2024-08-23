@@ -9,11 +9,12 @@ import { useState, useEffect } from 'react'
 
 
 interface TagProps {
+  key: string;
   name: string;
   kind: string;
 }
 
-export default function Tag({ name, kind }: TagProps) {
+export default function Tag({ key, name, kind }: TagProps) {
 
   const {itemSet, addItem, removeItem } = useSearchItem();
 

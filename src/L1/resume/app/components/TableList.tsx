@@ -95,6 +95,7 @@ export default function TableList() {
           table_measures: { name: string }[];
         }) => (
           <TableCard
+            key={tbl.statdispid}
             title={tbl.title}
             cycle={tbl.cycle}
             statcode={tbl.statcode}

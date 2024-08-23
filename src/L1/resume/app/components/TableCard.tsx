@@ -7,6 +7,7 @@ import { RiTimeLine } from "react-icons/ri";
 import Tag from './Tag';
 
 interface TableCardProps {
+  key: string;
   statcode: string;
   cycle: string;
   survey_date: string;
@@ -16,7 +17,7 @@ interface TableCardProps {
 
 }
 
-export default function TableCard({ statcode, cycle, survey_date, title, tags, measures }: TableCardProps) {
+export default function TableCard({ key, statcode, cycle, survey_date, title, tags, measures }: TableCardProps) {
   return (
     <div className="card bg-base-100 w-200 shadow-xl">
       <div className="card-body">
@@ -37,10 +38,10 @@ export default function TableCard({ statcode, cycle, survey_date, title, tags, m
         <h2 className="card-title mb-5">{title}</h2>
         <div className="flex flex-wrap flex-row gap-3">
           {tags.map((tag: { tag_name: string;}) => (
-            <Tag name={tag.tag_name} kind="thema" />
+            <Tag key={tag.tag_name} name={tag.tag_name} kind="thema" />
           ))}
           {measures.map((measure: { name: string;}) => (
-            <Tag name={measure.name} kind="measure" />
+            <Tag key={measure.name} name={measure.name} kind="measure" />
           ))}
         </div>
 
