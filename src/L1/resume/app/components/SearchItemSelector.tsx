@@ -106,7 +106,7 @@ export default function SearchItemSelector({ labelja, labelen = "" }: SearchItem
           <div className="flex flex-wrap">
             {data?.table_measure.map(
               (measure: {name: string;}) => (
-                <Tag name={measure.name} kind="measure" />
+                <Tag key={measure.name} name={measure.name} kind="measure" />
               )
             )}
           </div>
