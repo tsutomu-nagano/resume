@@ -6,6 +6,10 @@
 - 全ての情報が必要ではないため検索に有用と思われる情報を取捨選択
 - 機械的なメタデータの付与
 
+- https://resume-tsutomu-naganos-projects.vercel.app/
+
+
+
 ## Layer 2 (Future)
 - Layer 1 で整理したメタデータに対して人による整理を追加する
 - RDF化してより機械判読性を向上
