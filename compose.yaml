@@ -1,0 +1,45 @@
+services:
+  workr:
+    build: 
+      context: ./R
+      dockerfile: dockerfile
+    image: resume-worker
+    container_name: resume-worker
+
+    stdin_open: true
+    tty: true
+
+    env_file:
+      - .env
+      - .env.local
+
+    volumes:
+      - .:/home
+
+    working_dir: /home
+
+    command: "/bin/bash"
+   
+
+  app:
+    image: node:18.18
+    container_name: resume-L1
+
+    stdin_open: true
+    tty: true
+
+    env_file:
+      - .env
+      - .env.local
+
+    ports:
+      - 3005:3000
+
+    volumes:
+      - .:/home
+
+    working_dir: /home
+
+    command: "/bin/bash"
+
+    

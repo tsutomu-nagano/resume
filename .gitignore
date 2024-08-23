@@ -1,2 +1,6 @@
 docs/
 hasura/
+
+# local env files
+.env*.local
+
