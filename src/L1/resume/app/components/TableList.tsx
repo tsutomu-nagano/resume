@@ -40,7 +40,7 @@ export default function TableList() {
     fetchData();
   }, [client]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <span className="loading loading-spinner text-primary"></span>
   if (error) return <p>Error: {error.message}</p>;
 
 

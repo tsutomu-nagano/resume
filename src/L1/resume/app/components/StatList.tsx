@@ -48,7 +48,7 @@ export default function StatList() {
     fetchData();
   }, [client]);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <span className="loading loading-dots loading-lg"></span>;
   if (error) return <p>Error: {error.message}</p>;
 
 
