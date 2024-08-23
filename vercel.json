@@ -1,0 +1,8 @@
+{
+    "builds": [
+      {
+        "src": "src/L1/resume/**",
+        "use": "@vercel/next"
+      }
+    ]
+}
