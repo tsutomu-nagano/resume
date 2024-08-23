@@ -33,13 +33,26 @@ export default function Tag({ key, name, kind }: TagProps) {
   };
 
 
+  const renderIconByKind = (kind: string) => {
+    switch (kind) {
+      case 'stat':
+        return <BsTag />; 
+      case 'measure':
+        return <BsTag />;
+      case 'thema':
+        return <BsTag />;
+      default:
+        return <BsTag />;
+    }
+  };
+
   return (
     <div className="dropdown">
       <div tabIndex={0} role="button"
       onClick={handleButtonClick}
       className={`btn m-1 ${isSelected ? 'btn-primary' : 'btn-outline'}`}
       >
-        <BsTag />{name}
+        {renderIconByKind(kind)}{name}
       </div>
       {/* <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-1 shadow">
         <li><a>Item 1</a></li>
