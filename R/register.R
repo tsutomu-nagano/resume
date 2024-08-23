@@ -73,6 +73,7 @@ con <- dbConnect(
 
 
 # init (order desc)
+dbExecute(con, "DELETE FROM table_measure")
 dbExecute(con, "DELETE FROM table_tag")
 dbExecute(con, "DELETE FROM taglist")
 dbExecute(con, "DELETE FROM tablelist")
@@ -99,17 +100,20 @@ purrr::map(function(path){
 
     base <- read_csv(path, col_types = cols(.default = "c")) %>%
     mutate(statcode = statcode_) %>%
+    mutate(across(everything(), ~replace_na(.x, ""))) %>%
     relocate(statcode) %>%
     rename_lower %>%
     return
 
 }) %>% bind_rows() %>%
+distinct() %>%
 dbWriteTable(con, "tablelist", ., append = TRUE, row.names = FALSE)
 
 ## 4. taglist
 list.files(glue("{root_dir}/tags"), full.names = TRUE) %>%
 purrr::map(function(path){
     read_csv(path, col_types = cols(.default = "c")) %>%
+    mutate(across(everything(), ~replace_na(.x, ""))) %>%
     rename_lower %>%
     return
 }) %>% bind_rows() %>%
@@ -120,11 +124,23 @@ dbWriteTable(con, "taglist", ., append = TRUE, row.names = FALSE)
 list.files(glue("{root_dir}/table_tag"), full.names = TRUE) %>%
 purrr::map(function(path){
     read_csv(path, col_types = cols(.default = "c")) %>%
+    mutate(across(everything(), ~replace_na(.x, ""))) %>%
     rename_lower %>%
     return
 }) %>% bind_rows() %>%
 distinct() %>%
 dbWriteTable(con, "table_tag", ., append = TRUE, row.names = FALSE)
+
+## 6. measure
+list.files(glue("{root_dir}/table_measure"), full.names = TRUE) %>%
+purrr::map(function(path){
+    read_csv(path, col_types = cols(.default = "c")) %>%
+    mutate(across(everything(), ~replace_na(.x, ""))) %>%
+    rename_lower %>%
+    return
+}) %>% bind_rows() %>%
+distinct() %>%
+dbWriteTable(con, "table_measure", ., append = TRUE, row.names = FALSE)
 
 
 dbDisconnect(con)
