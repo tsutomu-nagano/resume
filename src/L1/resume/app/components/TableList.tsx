@@ -43,6 +43,9 @@ export default function TableList() {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
+
+  console.log(data.tablelist);
+
   return (
       <div className="flex flex-col gap-y-10">
         {data?.tablelist.map(
@@ -57,6 +60,7 @@ export default function TableList() {
           }) => (
             <TableCard
               key={tbl.statdispid}
+              statdispid={tbl.statdispid}
               title={tbl.title}
               cycle={tbl.cycle}
               statcode={tbl.statcode}

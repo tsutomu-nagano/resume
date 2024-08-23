@@ -8,6 +8,7 @@ import Tag from './Tag';
 
 interface TableCardProps {
   key: string;
+  statdispid: string;
   statcode: string;
   cycle: string;
   survey_date: string;
@@ -17,7 +18,10 @@ interface TableCardProps {
 
 }
 
-export default function TableCard({ key, statcode, cycle, survey_date, title, tags, measures }: TableCardProps) {
+export default function TableCard({ key, statdispid, statcode, cycle, survey_date, title, tags, measures }: TableCardProps) {
+
+  console.log(key);
+
   return (
     <div className="card bg-base-100 w-200 shadow-xl">
       <div className="card-body">
@@ -28,7 +32,7 @@ export default function TableCard({ key, statcode, cycle, survey_date, title, ta
           </div>
           <div className="flex flex-row items-center gap-2">
               <BiHash />
-              <span>{key}</span>
+              <span>{statdispid}</span>
           </div>
           <div className="flex flex-row items-center gap-2">
               <RiLoopLeftFill />
