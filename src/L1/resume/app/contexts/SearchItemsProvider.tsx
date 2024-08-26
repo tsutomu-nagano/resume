@@ -1,65 +1,60 @@
 "use client"; // このファイルはクライアントサイドでのみ実行される
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import {SearchItemContext} from './SearchItemsContext';
+import { SearchItemContext } from './SearchItemsContext';
+import { BuilderCondition } from "./BuilderCondition"
+
 
 interface SearchItemProviderProps {
   children: ReactNode;
 }
 
 export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
-  const [itemSet, setItemSet] = useState<Map<string, string>>(new Map<string,string>());
-  const [query, setQuery] = useState<string>("");
+  const [items, setItemSet] = useState<Map<string, Set<string>>>(new Map<string,Set<string>>());
 
   // 値を追加する関数
-  const addItem = (itemName: string, kind:string) => {
-    setItemSet(prevSet => new Map(prevSet).set(itemName, kind));
-  };
-
-  // 値を削除する関数
-  const removeItem = (user: string) => {
+  const addItem = (kind: string, itemName: string) => {
     setItemSet(prevSet => {
       const newSet = new Map(prevSet);
-      newSet.delete(user);
+      const currentItems = newSet.get(kind) || new Set<string>();
+      currentItems.add(itemName); // Set にアイテムを追加
+      newSet.set(kind, currentItems);
       return newSet;
     });
   };
 
-  let statsCondition = "";
-  let measuresCondition = "";
-  let themasCondition = "";
+  // 値を削除する関数
+  const removeItem = (kind: string, itemName: string) => {
+    setItemSet(prevSet => {
+      const newSet = new Map(prevSet);
+      const currentItems = newSet.get(kind) || new Set<string>();
+      currentItems.delete(itemName); // Set からアイテムを削除
+      if (currentItems.size === 0) {
+        newSet.delete(kind); // Set が空になった場合、Map からも削除
+      } else {
+        newSet.set(kind, currentItems); // 更新された Set を Map に保存
+      }
+      return newSet;
+    });
+  };
 
-  if (itemSet.size !== 0) {
-    const measuresArray = Array.from(itemSet)
-      .filter(item => item[1] === "measure")
-      .map(item => `"${item[0]}"`);
+  // 値の存在を確認する確認
+  const findItem = (kind: string, itemName: string) => {
+    return(items.has(kind) && items.get(kind)?.has(itemName) || false)
+  };
 
-    if (measuresArray.length > 0) {
-      measuresCondition = `table_measures: { name: { _in: [${measuresArray.join(",")}] } } `;
-    }
+  // 検索アイテムを配列で返す関数
+  const getItemsArray = (): { kind: string, itemName: string }[] => {
+    return Array.from(items.entries()).flatMap(([kind, names]) => 
+      Array.from(names).map(itemName => ({ kind, itemName }))
+    );
+  };
 
-    const themasArray = Array.from(itemSet)
-      .filter(item => item[1] === "thema")
-      .map(item => `"${item[0]}"`);
-
-    if (themasArray.length > 0) {
-      themasCondition = `table_tags: { tag_name: { _in: [${themasArray.join(",")}] } } `;
-    }
-
-    const statsArray = Array.from(itemSet)
-    .filter(item => item[1] === "stat")
-    .map(item => `"${item[0]}"`);
-
-    if (statsArray.length > 0) {
-      statsCondition = `statlist: { statname: { _in: [${statsArray.join(",")}] } } `;
-    }
-
-
-  }
+  const searchCondition = BuilderCondition(items);  
   
   const searchQuery = `
     query GetTableList {
-      tablelist(where:{${measuresCondition} ${themasCondition} ${statsCondition}}, limit: 10) {
+      tablelist(where:{${searchCondition}}, limit: 10) {
         statdispid
         cycle
         statcode
@@ -71,13 +66,16 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         table_measures {
           name
         }
+        table_dimensions {
+          class_name
+        }
       }
     }
   `;
 
 
   return (
-    <SearchItemContext.Provider value={{ itemSet, addItem, removeItem, searchQuery }}>
+    <SearchItemContext.Provider value={{items, getItemsArray, findItem, addItem, removeItem, searchQuery }}>
       {children}
     </SearchItemContext.Provider>
   );

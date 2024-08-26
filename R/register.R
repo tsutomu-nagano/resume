@@ -142,6 +142,18 @@ purrr::map(function(path){
 distinct() %>%
 dbWriteTable(con, "table_measure", ., append = TRUE, row.names = FALSE)
 
+## 7. dimension
+list.files(glue("{root_dir}/table_dimension"), full.names = TRUE) %>%
+purrr::map(function(path){
+    read_csv(path, col_types = cols(.default = "c")) %>%
+    mutate(across(everything(), ~replace_na(.x, ""))) %>%
+    mutate(across(everything(), ~str_replace(.x, "\\.", "_"))) %>%
+    rename_lower %>%
+    return
+}) %>% bind_rows() %>%
+distinct() %>%
+dbWriteTable(con, "table_dimension", ., append = TRUE, row.names = FALSE)
+
 
 dbDisconnect(con)
 

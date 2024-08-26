@@ -11,7 +11,7 @@ export default function TableList() {
 
   const client = createApolloClient();
 
-  const { itemSet, searchQuery } = useSearchItem();
+  const { items, searchQuery } = useSearchItem();
 
   // データを管理する状態
   const [data, setData] = useState<any>(null);
@@ -57,6 +57,7 @@ export default function TableList() {
             title: string;
             table_tags: { tag_name: string }[];
             table_measures: { name: string }[];
+            table_dimensions: { class_name: string }[];
           }) => (
             <TableCard
               key={tbl.statdispid}
@@ -67,6 +68,7 @@ export default function TableList() {
               survey_date={tbl.survey_date}
               tags={tbl.table_tags}
               measures={tbl.table_measures}
+              dimensions={tbl.table_dimensions}
             />
           )
         )}

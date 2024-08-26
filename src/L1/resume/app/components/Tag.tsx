@@ -2,6 +2,9 @@
 "use client";
 
 import { BsTag } from "react-icons/bs";
+import { SlNote } from "react-icons/sl";
+import { FaRegFolder } from "react-icons/fa";
+import { TbSum } from "react-icons/tb";
 import { useSearchItem } from '../contexts/SearchItemsProvider'; 
 
 import { useState, useEffect } from 'react'
@@ -16,19 +19,19 @@ interface TagProps {
 
 export default function Tag({ key, name, kind }: TagProps) {
 
-  const {itemSet, addItem, removeItem } = useSearchItem();
+  const {items, findItem, addItem, removeItem } = useSearchItem();
 
   // ボタンが選択されているかどうかを管理する状態
-  const [isSelected, setIsSelected] = useState(itemSet.has(name));
+  const [isSelected, setIsSelected] = useState(findItem(kind, name));
 
   // itemSet が変更されたときに isSelected を更新
-  useEffect(() => {
-    setIsSelected(itemSet.has(name));
-  }, [itemSet, name]);
+  // useEffect(() => {
+  //   setIsSelected(findItem(kind,name));
+  // }, [itemSet, name]);
 
     // ボタンクリック時に選択状態をトグルするハンドラ
   const handleButtonClick = () => {
-    isSelected ? removeItem(name) : addItem(name, kind);
+    isSelected ? removeItem(kind, name) : addItem(kind, name);
     setIsSelected(!isSelected);
   };
 
@@ -36,11 +39,11 @@ export default function Tag({ key, name, kind }: TagProps) {
   const renderIconByKind = (kind: string) => {
     switch (kind) {
       case 'stat':
-        return <BsTag />; 
+        return <SlNote />; 
       case 'measure':
-        return <BsTag />;
+        return <TbSum />;
       case 'thema':
-        return <BsTag />;
+        return <FaRegFolder />;
       default:
         return <BsTag />;
     }

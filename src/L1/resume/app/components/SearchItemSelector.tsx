@@ -25,7 +25,10 @@ interface SearchItemSelectorProps {
 
 export default function SearchItemSelector({ labelja, labelen = "", resource_name, resource_field, kind}: SearchItemSelectorProps) {
 
-  const { itemSet } = useSearchItem();
+  const { items, getItemsArray } = useSearchItem();
+
+  const itemsArray = getItemsArray(); 
+
 
   const [searchTerm, setSearchTerm] = useState('');
   const [data, setData] = useState<any>(null);
@@ -72,12 +75,12 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
         className="dropdown-content card card-compact bg-base-100 z-[1] w-[700px] p-2 shadow">
         <div className="card-body">
 
-          {itemSet.size > 0 && (
+          {itemsArray && itemsArray.length > 0 && (
             <>
               <div className="divider divider-start divider-primary">現在選択している{labelja}</div>
               <div className="flex flex-row flex-wrap">
-                {Array.from(itemSet).map(item => (
-                  <Tag key={item[0]} name={item[0]} kind={item[1]} />
+                {itemsArray.map(({kind, itemName}) => (
+                  <Tag key={itemName} name={itemName} kind={kind} />
                 ))}
               </div>
             </>

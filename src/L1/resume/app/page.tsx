@@ -17,6 +17,7 @@ export default async function HomePage() {
       <a className="btn btn-ghost text-xl">ReSUME L1</a>
       <SearchItemSelector labelja = "統計調査" labelen = "" resource_name= 'statlist' resource_field='statname' kind="stat" />
       <SearchItemSelector labelja = "集計事項" labelen = "" resource_name= 'table_measure' resource_field='name' kind="measure"  />
+      <SearchItemSelector labelja = "分類事項" labelen = "" resource_name= 'table_dimension' resource_field='class_name' kind="dimension"  />
       </div>
     <div className="flex flex-col gap-10">
           <SearchItems names={["TEST","HOGE"]} />

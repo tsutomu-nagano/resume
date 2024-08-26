@@ -11,7 +11,7 @@ interface SearchItemsProps {
 
 export default function SearchItems({ names }: SearchItemsProps) {
 
-  const { itemSet, searchQuery } = useSearchItem();
+  const { items, searchQuery } = useSearchItem();
 
   const handleClick = () => {
     const modal = document.getElementById('view_graphQL');
@@ -25,8 +25,10 @@ export default function SearchItems({ names }: SearchItemsProps) {
   return (
     <div className="bg-base-100 w-full p-4 shadow-xl flex flex-row gap-2 items-center">
       <span>検索条件</span>
-      {Array.from(itemSet).map(item => (
-        <Tag key={item[0]} name={item[0]} kind={item[1]} />
+      {Array.from(items.entries()).map(([kind, names])  => (
+        Array.from(names).map(name => (
+          <Tag key={name} name={name} kind={kind} />
+        ))
       ))}
       {/* Open the modal using document.getElementById('ID').showModal() method */}
       <button className="btn btn-outline items-center ml-auto" onClick={handleClick}><GrGraphQl />graphQLを表示</button>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Noto_Sans_JP} from "next/font/google";
 import "./globals.css";
-import ClientProvider from './ClientProvider'; // 先ほど作成したClientProviderをインポート
+import ClientProvider from '../lib/ClientProvider'; // 先ほど作成したClientProviderをインポート
 import {SearchItemProvider} from './contexts/SearchItemsProvider';
 
 
