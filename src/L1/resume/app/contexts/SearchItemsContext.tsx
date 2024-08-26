@@ -11,6 +11,9 @@ interface SearchItemContextType {
   addItem: (kind:string, itemName:string) => void;
   removeItem: (kind:string, itemName:string) => void;
   searchQuery: string;
+  searchQuery_Inf: string;
+  offset: number;
+  setOffset: (offset:number) => void;
 }
 
 // コンテキストの作成

@@ -5,9 +5,8 @@ import { createApolloClient } from '@/lib/apolloClient';
 import SearchItems from './components/SearchItems';
 import SearchCondition from './components/SearchCondition';
 import StatList from './components/StatList';
-import TableList from './components/TableList';
+import TableList from './components/TableList'
 import SearchItemSelector from './components/SearchItemSelector';
-
 
 export default async function HomePage() {
 
@@ -20,7 +19,7 @@ export default async function HomePage() {
       <SearchItemSelector labelja = "分類事項" labelen = "" resource_name= 'table_dimension' resource_field='class_name' kind="dimension"  />
       </div>
     <div className="flex flex-col gap-10">
-          <SearchItems names={["TEST","HOGE"]} />
+          <SearchItems names={[""]} />
           {/* <SearchCondition /> */}
           <div className="flex flex-row gap-10">
               <StatList />

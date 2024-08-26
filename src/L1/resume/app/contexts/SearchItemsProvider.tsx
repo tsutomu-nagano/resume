@@ -11,7 +11,8 @@ interface SearchItemProviderProps {
 
 export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const [items, setItemSet] = useState<Map<string, Set<string>>>(new Map<string,Set<string>>());
-
+  const [offset, setOffset] = useState<number>(0);
+  
   // 値を追加する関数
   const addItem = (kind: string, itemName: string) => {
     setItemSet(prevSet => {
@@ -52,9 +53,39 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
   const searchCondition = BuilderCondition(items);  
   
+  const searchQuery_Inf = `
+    query GetTableList(
+      $limit_number: Int
+      $offset_number: Int
+    ) {
+      tablelist(
+        where:{${searchCondition}}
+        limit: $limit_number
+        offset: $offset_number
+        order_by: { statdispid: asc }        
+        ) {
+        statdispid
+        cycle
+        statcode
+        survey_date
+        title
+        table_tags {
+          tag_name
+        }
+        table_measures {
+          name
+        }
+        table_dimensions {
+          class_name
+        }
+      }
+    }
+  `;
+
+
   const searchQuery = `
     query GetTableList {
-      tablelist(where:{${searchCondition}}, limit: 10) {
+      tablelist(where:{${searchCondition}}, limit: 200) {
         statdispid
         cycle
         statcode
@@ -75,7 +106,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
 
   return (
-    <SearchItemContext.Provider value={{items, getItemsArray, findItem, addItem, removeItem, searchQuery }}>
+    <SearchItemContext.Provider value={{items, getItemsArray, findItem, addItem, removeItem, searchQuery, searchQuery_Inf, offset, setOffset  }}>
       {children}
     </SearchItemContext.Provider>
   );

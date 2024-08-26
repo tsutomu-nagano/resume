@@ -10,6 +10,7 @@ import Tag from './Tag';
 
 import { useSearchItem } from '../contexts/SearchItemsProvider';
 
+
 interface SearchItemsProps {
   names: string[];
 }
@@ -23,11 +24,11 @@ interface SearchItemSelectorProps {
   kind: string
 }
 
-export default function SearchItemSelector({ labelja, labelen = "", resource_name, resource_field, kind}: SearchItemSelectorProps) {
+export default function SearchItemSelector({ labelja, labelen = "", resource_name, resource_field, kind }: SearchItemSelectorProps) {
 
   const { items, getItemsArray } = useSearchItem();
 
-  const itemsArray = getItemsArray(); 
+  const itemsArray = getItemsArray();
 
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,6 +40,7 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
 
   const handleSearch = async () => {
     try {
+
       const { data } = await client.query({
         query: gql`
           query GetMetaData {
@@ -57,7 +59,7 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
       setLoading(false);
     }
 
-    };
+  };
 
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -79,15 +81,14 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
             <>
               <div className="divider divider-start divider-primary">現在選択している{labelja}</div>
               <div className="flex flex-row flex-wrap">
-                {itemsArray.map(({kind, itemName}) => (
+                {itemsArray.map(({ kind, itemName }) => (
                   <Tag key={itemName} name={itemName} kind={kind} />
                 ))}
               </div>
             </>
           )}
 
-          <div className="divider divider-start divider-primary">キーワードで   検索</div>
-
+          <div className="divider divider-start divider-primary">キーワードで検索</div>
           <label className="input input-bordered flex items-center gap-2">
             <input
               type="text"
@@ -110,7 +111,7 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
           </label>
           <div className="flex flex-wrap">
             {data?.items.map(
-              (item: {name: string;}) => (
+              (item: { name: string; }) => (
                 <Tag key={item.name} name={item.name} kind={kind} />
               )
             )}
