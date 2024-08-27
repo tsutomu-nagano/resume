@@ -28,7 +28,7 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
 
   const { items, getItemsArray } = useSearchItem();
 
-  const itemsArray = getItemsArray();
+  const itemsArray = getItemsArray(kind);
 
 
   const [searchTerm, setSearchTerm] = useState('');

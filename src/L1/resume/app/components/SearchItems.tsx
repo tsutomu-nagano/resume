@@ -2,6 +2,7 @@
 "use client";
 
 import Tag from './Tag';
+import { print } from 'graphql';
 import { GrGraphQl } from "react-icons/gr";
 import { useSearchItem } from '../contexts/SearchItemsProvider';
 
@@ -11,7 +12,7 @@ interface SearchItemsProps {
 
 export default function SearchItems({ names }: SearchItemsProps) {
 
-  const { items, searchQuery,searchQuery_Inf } = useSearchItem();
+  const { items, searchQuery } = useSearchItem();
 
   const handleClick = () => {
     const modal = document.getElementById('view_graphQL');
@@ -34,7 +35,7 @@ export default function SearchItems({ names }: SearchItemsProps) {
       <button className="btn btn-outline items-center ml-auto" onClick={handleClick}><GrGraphQl />graphQLを表示</button>
       <dialog id="view_graphQL" className="modal">
         <div className="modal-box">
-        {searchQuery_Inf}
+        {print(searchQuery)}
         </div>
         <form method="dialog" className="modal-backdrop">
           <button>close</button>

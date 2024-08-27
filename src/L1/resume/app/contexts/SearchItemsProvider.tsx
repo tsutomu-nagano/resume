@@ -1,8 +1,10 @@
 "use client"; // このファイルはクライアントサイドでのみ実行される
-
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { useContext, useState, ReactNode, useMemo } from 'react';
 import { SearchItemContext } from './SearchItemsContext';
 import { BuilderCondition } from "./BuilderCondition"
+
+import { gql, useQuery } from "@apollo/client";
+import { createApolloClient } from "@/lib/apolloClient";
 
 
 interface SearchItemProviderProps {
@@ -10,11 +12,29 @@ interface SearchItemProviderProps {
 }
 
 export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
-  const [items, setItemSet] = useState<Map<string, Set<string>>>(new Map<string,Set<string>>());
+
   const [offset, setOffset] = useState<number>(0);
+  const [isLast, setIsLast] = useState(false);
+  const [searchResult, setSearchResult] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const [items, setItemSet] = useState<Map<string, Set<string>>>(new Map<string,Set<string>>());
+  const limit: number = 5;
+
+  const client = createApolloClient();
+
+
+  const resetSearch = () => {
+    setSearchResult([]);
+    setOffset(0);
+    setIsLast(false);
+  };
   
+
   // 値を追加する関数
   const addItem = (kind: string, itemName: string) => {
+    resetSearch()
     setItemSet(prevSet => {
       const newSet = new Map(prevSet);
       const currentItems = newSet.get(kind) || new Set<string>();
@@ -26,6 +46,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
   // 値を削除する関数
   const removeItem = (kind: string, itemName: string) => {
+    resetSearch()
     setItemSet(prevSet => {
       const newSet = new Map(prevSet);
       const currentItems = newSet.get(kind) || new Set<string>();
@@ -45,25 +66,35 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   };
 
   // 検索アイテムを配列で返す関数
-  const getItemsArray = (): { kind: string, itemName: string }[] => {
-    return Array.from(items.entries()).flatMap(([kind, names]) => 
-      Array.from(names).map(itemName => ({ kind, itemName }))
-    );
+  const getItemsArray = (kind: string = "") : { kind: string, itemName: string }[] => {
+
+    let result: { kind: string, itemName: string }[] = []
+
+    if (kind === ""){
+      result = Array.from(items.entries()).flatMap(([kind_, names]) => 
+        Array.from(names).map(itemName => ({ kind: kind_, itemName })))
+ 
+    } else {
+      const items_of_kind = items.get(kind);
+
+      if (items_of_kind){
+        result = Array.from(items_of_kind).map(itemName => ({ kind, itemName }))
+      }
+
+    }
+    return(result)
   };
 
   const searchCondition = BuilderCondition(items);  
   
-  const searchQuery_Inf = `
-    query GetTableList(
-      $limit_number: Int
-      $offset_number: Int
-    ) {
+  const searchQuery = useMemo(() => gql`
+    query GetTableList($limit_number: Int, $offset_number: Int) {
       tablelist(
         where:{${searchCondition}}
         limit: $limit_number
         offset: $offset_number
-        order_by: { statdispid: asc }        
-        ) {
+        order_by: { statdispid: asc }
+      ) {
         statdispid
         cycle
         statcode
@@ -80,43 +111,73 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         }
       }
     }
-  `;
+  `, [searchCondition]);
+
+  const fetchMore = async () => {
+
+    // if (loading) return; // すでに読み込み中の場合は処理を中断
+
+    try {
+
+        let newOffSet = 0;
+        if (searchResult.length != 0){
+          newOffSet = offset + limit;
+        };
+
+        console.log(`limit:${limit}`)
+        console.log(`offset:${newOffSet}`)
+
+        const query = gql`${searchQuery}`;
+        const result = await client.query({
+            query,
+            variables: { limit_number: limit, offset_number: newOffSet },
+        });
 
 
-  const searchQuery = `
-    query GetTableList {
-      tablelist(where:{${searchCondition}}, limit: 200) {
-        statdispid
-        cycle
-        statcode
-        survey_date
-        title
-        table_tags {
-          tag_name
+        if (result.data.tablelist.length != 0){
+          setSearchResult(prevData => [...prevData, ...result.data.tablelist]);
+          setOffset(newOffSet)
+        } else {
+          setIsLast(true)
         }
-        table_measures {
-          name
-        }
-        table_dimensions {
-          class_name
-        }
-      }
+
+    } catch (err) {
+    setError(err as Error);
+    } finally {
+    setLoading(false);
     }
-  `;
+};
 
 
   return (
-    <SearchItemContext.Provider value={{items, getItemsArray, findItem, addItem, removeItem, searchQuery, searchQuery_Inf, offset, setOffset  }}>
+    <SearchItemContext.Provider
+      value={{
+        items, 
+        getItemsArray, 
+        findItem, 
+        addItem, 
+        removeItem, 
+        searchQuery, 
+        offset, 
+        setOffset,
+        searchResult,
+        loading,
+        error,
+        fetchMore,
+        isLast
+          }}
+      >
       {children}
     </SearchItemContext.Provider>
   );
 };
 
+
 // Contextを利用するカスタムフック
 export const useSearchItem = () => {
   const context = useContext(SearchItemContext);
   if (context === undefined) {
-    throw new Error('useUser must be used within a UserProvider');
+    throw new Error('useSearchItem must be used within a SearchItemProvider');
   }
   return context;
 };

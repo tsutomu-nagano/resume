@@ -17,39 +17,39 @@ export default function StatList() {
   const [error, setError] = useState<Error | null>(null);
 
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
 
-        const query = gql`
-          query GetStatList {
-            statlist {
-              statcode
-              statname
-              govlist {
-                govname
-              }
-            }
-          }
-        `;
+  //       const query = gql`
+  //         query GetStatList {
+  //           statlist {
+  //             statcode
+  //             statname
+  //             govlist {
+  //               govname
+  //             }
+  //           }
+  //         }
+  //       `;
   
-        const result = await client.query({
-          query,
-        });
+  //       const result = await client.query({
+  //         query,
+  //       });
 
-        setData(result.data);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  //       setData(result.data);
+  //     } catch (err) {
+  //       setError(err as Error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchData();
-  }, [client]);
+  //   fetchData();
+  // }, [client]);
 
-  if (loading) return <span className="loading loading-spinner text-primary"></span>
-  if (error) return <p>Error: {error.message}</p>;
+  // if (loading) return <span className="loading loading-spinner text-primary"></span>
+  // if (error) return <p>Error: {error.message}</p>;
 
 
 
