@@ -14,11 +14,8 @@ export default function TableList() {
     const {loading, error, fetchMore, searchResult, isLast } = useSearchItem();
 
     useEffect(() => {
-        console.log("TableList");
         fetchMore();
     }, []);
-
-
 
     if (loading) return <span className="loading loading-spinner text-primary"></span>
     if (error) return <p>Error: {error.message}</p>;
