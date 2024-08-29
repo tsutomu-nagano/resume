@@ -5,8 +5,8 @@ function BuilderCondition_core(items: Map<string, Set<string>>, kind: string, ta
     if (items.has(kind)){
         const items_of_kind = items.get(kind)
         if (items_of_kind && items_of_kind.size >= 1){
-            const quotedItems = Array.from(items_of_kind).map(item => `"${item}"`);
-            condition = `${table_name}: { ${column_name}: { _in: [${quotedItems.join(",")}] } } `
+            const quotedItems = Array.from(items_of_kind).map(item => `{ ${table_name}: { ${column_name}: {_eq: "${item}" } } }`);
+            condition = quotedItems.join(",")
         }
     }
 
@@ -22,7 +22,14 @@ export function BuilderCondition(items: Map<string, Set<string>>): string {
     const themasCondition = BuilderCondition_core(items, "thema", "table_tags", "tag_name");
     const dimensionsCondition = BuilderCondition_core(items, "dimension", "table_dimensions", "class_name");
 
-    return([statsCondition, measuresCondition, themasCondition, dimensionsCondition].join(" "))
+    const conditions = [
+        statsCondition,
+        measuresCondition,
+        themasCondition,
+        dimensionsCondition
+      ].filter(condition => condition !== ""); // null でないものをフィルタリング
+
+    return(`_and: [ ${conditions.join(",")} ]`)
 
     // return([statsCondition, measuresCondition, themasCondition].join(" "))
 
