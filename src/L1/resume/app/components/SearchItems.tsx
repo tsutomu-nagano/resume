@@ -28,7 +28,7 @@ export default function SearchItems({ names }: SearchItemsProps) {
       <span>検索条件</span>
       {Array.from(items.entries()).map(([kind, names])  => (
         Array.from(names).map(name => (
-          <Tag key={name} name={name} kind={kind} show_description={true} />
+          <Tag key={name} name={name} kind={kind} />
         ))
       ))}
       {/* Open the modal using document.getElementById('ID').showModal() method */}

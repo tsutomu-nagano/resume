@@ -10,6 +10,8 @@ import Tag from './Tag';
 
 import { useSearchItem } from '../contexts/SearchItemsProvider';
 
+import { renderIconByKind, descriptionByKind } from "../common/convertor";
+
 
 interface SearchItemsProps {
   names: string[];
@@ -71,7 +73,9 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
 
   return (
     <div className="dropdown">
-      <div tabIndex={0} role="button" className="flex flex-row gap-2 btn btn-outline m-1">{labelja}から探す<FaChevronDown /></div>
+      <div tabIndex={0} role="button" className="flex flex-row gap-2 btn btn-outline m-1">
+        {renderIconByKind(kind)}{labelja}から探す<FaChevronDown />
+      </div>
       <div
         tabIndex={0}
         className="dropdown-content card card-compact bg-base-100 z-[1] w-[700px] p-2 shadow">
@@ -82,12 +86,13 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
               <div className="divider divider-start divider-primary">現在選択している{labelja}</div>
               <div className="flex flex-row flex-wrap">
                 {itemsArray.map(({ kind, itemName }) => (
-                  <Tag key={itemName} name={itemName} kind={kind} />
+                  <Tag key={itemName} name={itemName} kind={kind} simple={true}/>
                 ))}
               </div>
             </>
           )}
 
+          <span>{descriptionByKind(kind)}</span>
           <div className="divider divider-start divider-primary">キーワードで検索</div>
           <label className="input input-bordered flex items-center gap-2">
             <input
@@ -112,7 +117,7 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
           <div className="flex flex-wrap">
             {data?.items.map(
               (item: { name: string; }) => (
-                <Tag key={item.name} name={item.name} kind={kind} />
+                <Tag key={item.name} name={item.name} kind={kind} simple={true}/>
               )
             )}
           </div>

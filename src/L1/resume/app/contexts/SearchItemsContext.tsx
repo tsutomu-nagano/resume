@@ -18,8 +18,10 @@ interface SearchItemContextType {
   setOffset: (offset:number) => void;
 
   fetchMore: () => Promise<void>;
+  fetchCount: () => Promise<void>;
   isLast: boolean;
   searchResult: any[];
+  countResult: any;
   loading: boolean
   error: Error | null;
 
