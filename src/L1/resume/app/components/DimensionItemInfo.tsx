@@ -5,7 +5,7 @@ import Drawer from "./Drawer";
 import { LuComponent } from "react-icons/lu";
 
 interface DimensionItemInfoProps {
-  id: string; // Drawerの一意なID
+  key: string; // Drawerの一意なID
   title: ReactNode;
   name: string;
   children?: ReactNode; // Drawerのメインコンテンツ
@@ -14,7 +14,7 @@ interface DimensionItemInfoProps {
 }
 
 export default function DimensionItemInfo({
-  id,
+  key,
   title,
   name,
   children,
