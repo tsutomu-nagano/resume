@@ -3,6 +3,7 @@ import { Inter, Noto_Sans_JP} from "next/font/google";
 import "./globals.css";
 import ClientProvider from '../lib/ClientProvider'; // 先ほど作成したClientProviderをインポート
 import {SearchItemProvider} from './contexts/SearchItemsProvider';
+import Header from './components/Header'
 
 
 // 使用したいフォントの設定
@@ -28,13 +29,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <ClientProvider>
+      <SearchItemProvider>
       <body className={noto.className}>
-        <ClientProvider>
-        <SearchItemProvider>
-        {children}
-        </SearchItemProvider>
-        </ClientProvider>
+        <div className="flex flex-col gap-10">
+          <Header />
+          <main className="">{children}</main>
+        </div>
       </body>
+      </SearchItemProvider>
+      </ClientProvider>
     </html>
   );
 }
