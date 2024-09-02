@@ -192,14 +192,44 @@ purrr::map(function(statcode){
     # メタの一覧出力
     # 一旦すべてtempエリアへ出力
     src <- glue("{root_dir}/tables/{statcode}_tables.csv")
+    src.latest <- glue("{root_dir}/tables/{statcode}_tables_latest.csv")
+
     tables <- read_csv(src, col_types = cols(.default = "c"))
+
+    if (file.exists(src.latest)){
+        tables.latest <- read_csv(src.latest, col_types = cols(.default = "c"))
+
+        ids.latest <- tables.latest %>%
+                        distinct(STATDISPID) %>%
+                        mutate(islatest = TRUE)
+        
+        ids.new <- tables %>%
+                        distinct(STATDISPID) %>%
+                        mutate(isnew = TRUE)
+
+        ids.all <- ids.latest %>% full_join(ids.new, by = "STATDISPID")
+
+        ids.update <- ids.all %>% filter(is.na(islatest)) %>% pull(STATDISPID)
+        ids.remove <- ids.all %>% filter(is.na(isnew)) %>% pull(STATDISPID)
+
+    } else {
+
+        ids.update <- tables %>% pull(STATDISPID)
+        ids.remove <- c()
+
+    }
+
 
     base.dir <- glue("{root_dir}/temp/{statcode}/base")
     if (!dir.exists(base.dir)){
         dir.create(base.dir, recursive = TRUE)
     }
-    tables %>%
-    pull(STATDISPID) %>%
+
+
+
+
+    # 新規or更新のため取得
+    ids.update %>%
     purrr::map(function(statdispid){
         
         dest <- glue("{base.dir}/{statdispid}.parquet")
@@ -209,19 +239,38 @@ purrr::map(function(statcode){
     })
 
 
-    # 事項名とテーブルのIDの中間テーブル用データ作成
-    meta_output(statcode, base.dir, "table_dimension", "cat", c("STATDISPID", "class.name"))
-    meta_output(statcode, base.dir, "dimension_item", "cat", c("class.name", "name"))
+    # 削除
+    ids.remove %>%
+    purrr::map(function(statdispid){
+        
+        dest <- glue("{base.dir}/{statdispid}.parquet")
+        file.remove(dest)
 
-    # 集計事項とテーブルのIDの中間テーブル用データ作成
-    meta_output(statcode, base.dir, "table_measure", "tab", c("STATDISPID", "name"))
+    })
 
-    # TODO 時間軸とテーブルのIDの中間テーブル用データ作成
-    # TODO 地域とテーブルのIDの中間テーブル用データ作成
+
+    tables %>%
+    write_excel_csv(src.latest, quote = "all")
+
+    file.remove(src)
+
+
+    # 変更があった時のみ再作成
+    if (length(ids.update) >= 1 | length(ids.remove) >= 1){
+
+        # 事項名とテーブルのIDの中間テーブル用データ作成
+        meta_output(statcode, base.dir, "table_dimension", "cat", c("STATDISPID", "class.name"))
+        meta_output(statcode, base.dir, "dimension_item", "cat", c("class.name", "name"))
+
+        # 集計事項とテーブルのIDの中間テーブル用データ作成
+        meta_output(statcode, base.dir, "table_measure", "tab", c("STATDISPID", "name"))
+
+        # TODO 時間軸とテーブルのIDの中間テーブル用データ作成
+        # TODO 地域とテーブルのIDの中間テーブル用データ作成
+
+    }
+
 
 
 })
 
-# db登録
-
-print(list.files(path = Sys.getenv("ROOT_DIR"), recursive = TRUE))
