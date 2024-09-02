@@ -73,6 +73,9 @@ con <- dbConnect(
 
 
 # init (order desc)
+dbExecute(con, "DELETE FROM dimension_item")
+dbExecute(con, "DELETE FROM table_dimension")
+dbExecute(con, "DELETE FROM dimensionlist")     
 dbExecute(con, "DELETE FROM table_measure")
 dbExecute(con, "DELETE FROM table_tag")
 dbExecute(con, "DELETE FROM taglist")
@@ -142,17 +145,34 @@ purrr::map(function(path){
 distinct() %>%
 dbWriteTable(con, "table_measure", ., append = TRUE, row.names = FALSE)
 
-## 7. dimension
-list.files(glue("{root_dir}/table_dimension"), full.names = TRUE) %>%
+## 7. dimensionlist
+dimension.base <- list.files(glue("{root_dir}/table_dimension"), full.names = TRUE) %>%
 purrr::map(function(path){
     read_csv(path, col_types = cols(.default = "c")) %>%
     mutate(across(everything(), ~replace_na(.x, ""))) %>%
-    mutate(across(everything(), ~str_replace(.x, "\\.", "_"))) %>%
+    rename_lower %>%
+    return
+}) %>% bind_rows() %>%
+distinct()
+
+dimension.base %>%
+distinct(class.name) %>%
+dbWriteTable(con, "dimensionlist", ., append = TRUE, row.names = FALSE)
+
+## 8. table_dimension
+dimension.base %>%
+dbWriteTable(con, "table_dimension", ., append = TRUE, row.names = FALSE)
+
+## 9. dimension_items
+list.files(glue("{root_dir}/dimension_item"), full.names = TRUE) %>%
+purrr::map(function(path){
+    read_csv(path, col_types = cols(.default = "c")) %>%
+    mutate(across(everything(), ~replace_na(.x, ""))) %>%
     rename_lower %>%
     return
 }) %>% bind_rows() %>%
 distinct() %>%
-dbWriteTable(con, "table_dimension", ., append = TRUE, row.names = FALSE)
+dbWriteTable(con, "dimension_item", ., append = TRUE, row.names = FALSE)
 
 
 dbDisconnect(con)
