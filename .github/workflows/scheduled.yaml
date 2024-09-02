@@ -12,5 +12,5 @@ jobs:
 
   register:
     needs: getter
-    uses: ./.github/workflows/registr.yaml
+    uses: ./.github/workflows/register.yaml
 
