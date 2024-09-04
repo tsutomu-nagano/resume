@@ -4,3 +4,4 @@ hasura/
 # local env files
 .env*.local
 
+resource/temp/
