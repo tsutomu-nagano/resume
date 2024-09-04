@@ -10,7 +10,7 @@ jobs:
   getter:
     uses: ./.github/workflows/getter.yaml
 
-  register:
-    needs: getter
-    uses: ./.github/workflows/register.yaml
+  # register:
+  #   needs: getter
+  #   uses: ./.github/workflows/register.yaml
 
