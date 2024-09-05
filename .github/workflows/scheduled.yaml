@@ -11,7 +11,7 @@ jobs:
     uses: ./.github/workflows/getter.yaml
     secrets:
       APPID_ESTATAPI: ${{ secrets.APPID_ESTATAPI }}
-      PG_DATABSE_URL: ${{ secrets.PG_DATABSE_URL }
+      PG_DATABSE_URL: ${{ secrets.PG_DATABSE_URL }}
       
   # register:
   #   needs: getter
