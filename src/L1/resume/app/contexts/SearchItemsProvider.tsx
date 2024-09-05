@@ -123,9 +123,18 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         variables: { limit_number: limit, offset_number: newOffSet },
       });
 
+      
 
       if (result.data.tablelist.length != 0) {
-        setSearchResult(prevData => [...prevData, ...result.data.tablelist]);
+        setSearchResult((prevData) => {
+          // 現在のデータと新しいデータをマージし、一意なデータのみ保持
+          const mergedData = [...prevData, ...result.data.tablelist];
+          
+          // 'id'など一意のキーを基に重複を排除
+          const uniqueData = Array.from(new Map(mergedData.map(item => [item.statdispid, item])).values());
+        
+          return uniqueData;
+        });        
         setOffset(newOffSet)
       } else {
         setIsLast(true)

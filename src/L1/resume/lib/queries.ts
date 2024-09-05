@@ -83,7 +83,7 @@ export const GET_DIMENSION_ITEMS = (dimension_name: string): DocumentNode =>  {
 
     return(gql`
         query get_dimension_items {
-        dimension_item: DIMESION_ITEM(where: {CLASS_NAME: {_eq: "${dimension_name}"}}) {
+        dimension_item: DIMENSION_ITEM(where: {CLASS_NAME: {_eq: "${dimension_name}"}}) {
             name: NAME
         }
         }

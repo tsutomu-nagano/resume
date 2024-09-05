@@ -12,7 +12,7 @@ interface StatCardProps {
 
 export default function StatCard({ statcode, statname, govname }: StatCardProps) {
   return (
-    <div className="card bg-base-100 w-96 shadow-xl">
+    <div className="card bg-base-100 w-200 shadow-xl">
       <div className="card-body">
         <div className="flex flex-row gap-5">
           <div className="flex flex-row items-center gap-2">

@@ -15,7 +15,7 @@ export default function Header() {
                 <SearchItemSelector labelja="集計事項" labelen="" resource_name="TABLE_MEASURE" resource_field="NAME" kind="measure" />
                 <SearchItemSelector labelja="分類事項" labelen="" resource_name="TABLE_DIMENSION" resource_field="CLASS_NAME" kind="dimension" />
             </div>
-            <SearchCountResult />
+            <div className="ml-4"><SearchCountResult /></div>
             <SearchItems names={[""]} />
         </header>
     )
