@@ -72,6 +72,8 @@ getStatsNameList <- function(appid){
     res <- GET(url)
     res.json <- content(res)
 
+    print(res.json)
+
     datalist_inf <- res.json$GET_STATS_LIST$DATALIST_INF
     result_inf <- datalist_inf$RESULT_INF
     table_infs <- datalist_inf$LIST_INF %>% toArray
