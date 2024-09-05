@@ -78,6 +78,11 @@ getStatsNameList <- function(appid){
 
     table_infs %>%
     tibble %>%
+    print
+
+
+    table_infs %>%
+    tibble %>%
     unnest_wider(".") %>%
     unnest_wider(c("STAT_NAME","GOV_ORG"), names_sep = ".") %>%
     rename(statcode = `STAT_NAME.@code`, statname = `STAT_NAME.$`, govcode = `GOV_ORG.@code`, govname = `GOV_ORG.$`) %>%
