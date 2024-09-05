@@ -292,7 +292,8 @@ mutate(del = purrr::pmap(
         purrr::map(function(statdispid){
             # dest <- glue("{temp_dir}/{statdispid}.parquet")
             # getMetaList(appid, statdispid) %>% write_parquet(dest)
-            getMetaList(appid, statdispid)
+            getMetaList(appid, statdispid) %>%
+            mutate(statcode = !!statcode)
 
         }) %>% bind_rows
 
