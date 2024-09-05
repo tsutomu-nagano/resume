@@ -2,15 +2,18 @@ name: Get and Register for e-Stat Data
 
 on:
   schedule:
-    - cron: '0 4 * * *' # 毎日 0:00(JST) に実行
+    - cron: '0 15 * * *' # 毎日 0:00(JST) に実行
   workflow_dispatch:
 
 jobs:
 
   getter:
     uses: ./.github/workflows/getter.yaml
-
-  register:
-    needs: getter
-    uses: ./.github/workflows/register.yaml
+    secrets:
+      APPID_ESTATAPI: ${{ secrets.APPID_ESTATAPI }}
+      PG_DATABSE_URL: ${{ secrets.PG_DATABSE_URL }}
+      
+  # register:
+  #   needs: getter
+  #   uses: ./.github/workflows/register.yaml
 

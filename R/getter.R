@@ -42,30 +42,84 @@ getMetaList <- function(appid, statsdataid){
 
         classes <- class_obj$CLASS %>% toArray
 
-        classes %>%
-        tibble %>%
-        unnest_wider(".") %>%
-        rename_with(~ str_replace(.x, "@",""), everything()) %>%
-        mutate(across(everything(), ~replace_na(.x, ""))) %>%
-        mutate(class.type = str_replace(class.id, "(.+?)[0-9]+$", "\\1")) %>%
-        mutate(class.name = class.name) %>%
-        return
+        df <- classes %>% tibble
+
+        if (nrow(df) >= 1){
+            df <- df %>%
+                unnest_wider(".") %>%
+                rename_with(~ str_replace(.x, "@",""), everything()) %>%
+                mutate(across(everything(), ~replace_na(.x, ""))) %>%
+                # mutate(class_type = str_replace(class.id, "(.+?)[0-9]+$", "\\1")) %>%
+                mutate(class_name = class.name, class_type = class.id)
+        }
+
+        return(df)
+
+
 
     }) %>% bind_rows %>%
-    select(-one_of("level", "parentCode")) %>%
+    # select(-one_of("level", "parentCode")) %>%
     mutate(STATDISPID = statsdataid) %>%
     return
 
 }
 
-getStatsList <- function(appid, statcode){
+getStatsNameList <- function(appid){
+
+    base <- ""
+
+    url <- glue("http://api.e-stat.go.jp/rest/3.0/app/json/getStatsList?appId={appid}&statsNameList=Y")
+    res <- GET(url)
+    res.json <- content(res)
+
+    print(res.json)
+
+    datalist_inf <- res.json$GET_STATS_LIST$DATALIST_INF
+    result_inf <- datalist_inf$RESULT_INF
+    table_infs <- datalist_inf$LIST_INF %>% toArray
+
+    table_infs %>%
+    tibble %>%
+    print
+
+
+    table_infs %>%
+    tibble %>%
+    unnest_wider(".") %>%
+    unnest_wider(c("STAT_NAME","GOV_ORG"), names_sep = ".") %>%
+    rename(statcode = `STAT_NAME.@code`, statname = `STAT_NAME.$`, govcode = `GOV_ORG.@code`, govname = `GOV_ORG.$`) %>%
+    select(-`@id`) %>%
+    return
+
+
+}
+
+
+
+
+
+getStatsList <- function(appid, statcode = "", updated_date = ""){
 
     base <- ""
     next_key <- "1"
     while (!is.null(next_key)){
 
-        url <- glue("http://api.e-stat.go.jp/rest/3.0/app/json/getStatsList?appId={appid}&statsCode={statcode}&startPosition={next_key}")
-        res <- GET(url)
+        params = list(
+            appId = appid,
+            startPosition = next_key
+        )
+
+        if (statcode != ""){
+            params["statsCode"] <- statcode
+        }
+
+        if (updated_date != ""){
+            params["updatedDate"] <- updated_date
+        }
+
+
+        url <- "http://api.e-stat.go.jp/rest/3.0/app/json/getStatsList"
+        res <- GET(url, query = params)
         res.json <- content(res)
 
         datalist_inf <- res.json$GET_STATS_LIST$DATALIST_INF
@@ -78,15 +132,18 @@ getStatsList <- function(appid, statcode){
             next_key <- NULL        
         }
 
+
+
         base_ <- table_infs %>%
                 tibble %>%
                 unnest_wider(".") %>%
                 rename(STATDISPID = `@id`) %>%
-                select(STATDISPID, STAT_NAME, TITLE, STATISTICS_NAME_SPEC, CYCLE, SURVEY_DATE) %>%
-                unnest_wider(c("STAT_NAME","STATISTICS_NAME_SPEC","TITLE"), names_sep = ".") %>%
-                rename_with( ~ "TITLE", matches("TITLE\\.[1$]")) %>%
-                select(-matches("TITLE\\.")) %>%
-                rename(STAT_CODE = `STAT_NAME.@code`, STAT_NAME = `STAT_NAME.$`)
+                select(STATDISPID, STAT_NAME, TITLE, STATISTICS_NAME_SPEC, CYCLE, SURVEY_DATE,UPDATED_DATE) %>%
+                unnest_wider(c("STAT_NAME", "STATISTICS_NAME_SPEC","TITLE"), names_sep = ".") %>%
+                unite(col = TITLE, matches("TITLE\\.[1$]"), sep = "", remove =TRUE, na.rm = TRUE) %>%
+                rename(statcode = `STAT_NAME.@code`, statname = `STAT_NAME.$`) %>%
+                select(-statname) %>%
+                distinct()
 
 
         if (base == ""){
@@ -98,44 +155,7 @@ getStatsList <- function(appid, statcode){
     }
 
 
-    # TODO tagとなる情報のうち意味をわけるものがあればここで整理する
-
-
-    # 提供統計名等をtagとして整理
-    # 統計調査名と同一のものは除外
-    tags.base <- base %>%
-                select(STATDISPID, STAT_NAME, starts_with("STATISTICS_NAME_SPEC")) %>%
-                pivot_longer(-c("STATDISPID","STAT_NAME")) %>%
-                filter(!is.na(value)) %>%
-                filter(STAT_NAME != value) %>%
-                select(STATDISPID, value) %>%
-                rename(TAG_NAME = value)
-
-    print(tags.base)
-
-    tags <- tags.base %>%
-                distinct(TAG_NAME)
-
-
-    # tags.base <- tags.base %>%
-    #                 left_join(tags, by = "value", multiple = "all") %>%
-    #                 select(-value)
-
-
-    # 統計表基本情報の整理
-    tables <- base %>%
-             select(STATDISPID, TITLE, CYCLE, SURVEY_DATE)
-
-
-    ret <- list(
-            tables = tables,
-            tags = tags,
-            table_tag = tags.base
-            # table_tag = 
-    )
-
-    return(ret)
-
+    return(base %>% distinct())
 
 }
 
@@ -166,111 +186,160 @@ appid <- Sys.getenv("APPID")
 root_dir <- args[1]
 
 
-# 統計一覧の内容でループ
-statlist <- read_csv(glue("{root_dir}/statlist.csv"), col_types = cols(.default = "c"))
+# 統計調査の一覧
+statlist <- getStatsNameList(appid)
+statlist %>%
+write_excel_csv(glue("{root_dir}/statlist.csv", qutoe = "all"))
 
-# dbへの登録用のデータ作成
+# 統計データの一覧
+## 1. temp へ統計データの一覧作成
+print("1. table create at temp")
+temp_dir <- glue("{root_dir}/temp/tables")
+if (!dir.exists(temp_dir)){
+    dir.create(temp_dir, recursive = TRUE)
+}
+
 statlist %>%
 pull(statcode) %>%
 purrr::map(function(statcode){
 
-    # テーブルの一覧　タグの一覧　出力
-    ret <- getStatsList(appid, statcode)
-    names(ret) %>%
-    purrr::map(function(name){
-
-        dest.dir <- glue("{root_dir}/{name}")
-        if (!dir.exists(dest.dir)){
-            dir.create(dest.dir)
-        }
-        dest <- glue("{dest.dir}/{statcode}_{name}.csv")
-        ret[[name]] %>% write_excel_csv(dest, quote = "all")
-
-    })
-
-
-    # メタの一覧出力
-    # 一旦すべてtempエリアへ出力
-    src <- glue("{root_dir}/tables/{statcode}_tables.csv")
-    src.latest <- glue("{root_dir}/tables/{statcode}_tables_latest.csv")
-
-    tables <- read_csv(src, col_types = cols(.default = "c"))
-
-    if (file.exists(src.latest)){
-        tables.latest <- read_csv(src.latest, col_types = cols(.default = "c"))
-
-        ids.latest <- tables.latest %>%
-                        distinct(STATDISPID) %>%
-                        mutate(islatest = TRUE)
-        
-        ids.new <- tables %>%
-                        distinct(STATDISPID) %>%
-                        mutate(isnew = TRUE)
-
-        ids.all <- ids.latest %>% full_join(ids.new, by = "STATDISPID")
-
-        ids.update <- ids.all %>% filter(is.na(islatest)) %>% pull(STATDISPID)
-        ids.remove <- ids.all %>% filter(is.na(isnew)) %>% pull(STATDISPID)
-
-    } else {
-
-        ids.update <- tables %>% pull(STATDISPID)
-        ids.remove <- c()
-
-    }
-
-
-    base.dir <- glue("{root_dir}/temp/{statcode}/base")
-    if (!dir.exists(base.dir)){
-        dir.create(base.dir, recursive = TRUE)
-    }
-
-
-
-
-    # 新規or更新のため取得
-    ids.update %>%
-    purrr::map(function(statdispid){
-        
-        dest <- glue("{base.dir}/{statdispid}.parquet")
-        getMetaList(appid, statdispid) %>%
-        write_parquet(dest)
-
-    })
-
-
-    # 削除
-    ids.remove %>%
-    purrr::map(function(statdispid){
-        
-        dest <- glue("{base.dir}/{statdispid}.parquet")
-        file.remove(dest)
-
-    })
-
-
-    tables %>%
-    write_excel_csv(src.latest, quote = "all")
-
-    file.remove(src)
-
-
-    # 変更があった時のみ再作成
-    if (length(ids.update) >= 1 | length(ids.remove) >= 1){
-
-        # 事項名とテーブルのIDの中間テーブル用データ作成
-        meta_output(statcode, base.dir, "table_dimension", "cat", c("STATDISPID", "class.name"))
-        meta_output(statcode, base.dir, "dimension_item", "cat", c("class.name", "name"))
-
-        # 集計事項とテーブルのIDの中間テーブル用データ作成
-        meta_output(statcode, base.dir, "table_measure", "tab", c("STATDISPID", "name"))
-
-        # TODO 時間軸とテーブルのIDの中間テーブル用データ作成
-        # TODO 地域とテーブルのIDの中間テーブル用データ作成
-
-    }
-
-
+    dest <- glue("{temp_dir}/{statcode}_tables.csv")
+    getStatsList(appid, statcode) %>%
+    write_excel_csv(dest, quote = "all")
 
 })
+
+## 2. 保存済のデータと比較
+print("2. compare to archive")
+temp_tables <- list.files(temp_dir, full.names = TRUE) %>%
+purrr::map(function(path){
+    read_csv(path, col_type = cols(.default = "c")) %>%
+    select(statcode, STATDISPID, UPDATED_DATE) %>%
+    rename(DATE.new = UPDATED_DATE, statcode.new = statcode) %>%
+    distinct
+}) %>% bind_rows
+
+
+latest_tables_dir <- glue("{root_dir}/tables")
+latest_tables <- list.files(latest_tables_dir, full.names = TRUE) %>%
+purrr::map(function(path){
+    read_csv(path, col_type = cols(.default = "c")) %>%
+    select(statcode, STATDISPID, UPDATED_DATE) %>%
+    rename(DATE.latest = UPDATED_DATE, statcode.latest = statcode) %>%
+    distinct
+}) %>% bind_rows
+
+latest_meta_dir <- glue("{root_dir}/meta")
+latest_meta <- list.files(latest_meta_dir, full.names = TRUE) %>%
+purrr::map(function(path){
+    read_parquet(path) %>%
+    distinct(STATDISPID) %>%
+    mutate(flg.meta = "EXIST")
+}) %>% bind_rows
+
+
+match <- temp_tables %>%
+            full_join(latest_tables, by = "STATDISPID") %>%
+            left_join(latest_meta, by = "STATDISPID") %>%
+            mutate(across(c(starts_with("DATE"),"flg.meta"), ~replace_na(.x, ""))) %>%
+            mutate(flg = if_else(DATE.new == "", "DELETE","")) %>%
+            mutate(flg = if_else(DATE.latest == "", "NEW",flg)) %>%
+            mutate(flg = if_else(flg == "" & DATE.latest != DATE.new, "UPDATE",flg)) %>%
+            mutate(flg = if_else(flg == "" & flg.meta == "", "NEW",flg)) %>%
+            mutate(statcode = coalesce(statcode.new, statcode.latest)) %>%
+            select(-starts_with("statcode."))
+
+
+## 3. 削除対象のデータを削除
+delcnt <- match %>% filter(flg == "DELETE") %>% nrow
+print(glue("3. delete meta : target = {delcnt}"))
+
+match %>% filter(flg == "DELETE") %>%
+select(statcode, STATDISPID, flg) %>%
+nest(statdispids = -statcode) %>%
+mutate(del = purrr::pmap(
+    list(statcode, statdispids),
+    function(statcode, statdispids){
+
+        src.latest <- glue("{root_dir}/meta/{statcode}.parquet")
+        latest <- read_parquet(src.latest)
+
+        latest %>%
+        left_join(statdispids, by = "STATDISPID", multiple = "all") %>%
+        filter(is.na(flg)) %>%
+        select(-flg) %>%
+        write_parquet(src.latest)
+
+    }
+))
+
+## 4. 新規 or 更新対象はメタデータ取得
+newcnt <- match %>% filter(flg %in% c("NEW", "UPDATE")) %>% nrow
+print(glue("4. get meta : target = {newcnt}"))
+
+match %>% filter(flg %in% c("NEW", "UPDATE")) %>%
+select(statcode, STATDISPID, flg) %>%
+nest(statdispids = -statcode) %>%
+mutate(del = purrr::pmap(
+    list(statcode, statdispids),
+    function(statcode, statdispids){
+
+        temp_dir <- glue("{root_dir}/temp/meta/{statcode}")
+        if (dir.exists(temp_dir)){unlink(temp_dir, recursive = TRUE, force = TRUE)}
+        dir.create(temp_dir, recursive = TRUE)
+
+        new <- statdispids %>% pull(STATDISPID) %>%
+        purrr::map(function(statdispid){
+            # dest <- glue("{temp_dir}/{statdispid}.parquet")
+            # getMetaList(appid, statdispid) %>% write_parquet(dest)
+            getMetaList(appid, statdispid)
+
+        }) %>% bind_rows
+
+
+        latest.src <- glue("{root_dir}/meta/{statcode}.parquet")
+
+        if (file.exists(latest.src)){
+            read_parquet(latest.src) %>%
+            bind_rows(new) %>%
+            write_parquet(latest.src)
+        } else {
+            new %>%
+            write_parquet(latest.src)
+        }
+
+ 
+
+    }
+))
+
+
+## 5. 「1.」を保存データに置き換え
+print("5. replace archive")
+
+temp_dir <- glue("{root_dir}/temp/tables")
+latest_tables_dir <- glue("{root_dir}/tables")
+unlink(latest_tables_dir, recursive = TRUE, force = TRUE)
+dir.create(latest_tables_dir)
+list.files(temp_dir, full.names = TRUE) %>%
+purrr::map(function(src){
+
+    dest <- glue("{latest_tables_dir}/{basename(src)}")
+    file.copy(src, dest)
+
+})
+
+
+
+
+
+# 事項名とテーブルのIDの中間テーブル用データ作成
+# meta_output(statcode, base.dir, "table_dimension", "cat", c("STATDISPID", "class.name"))
+# meta_output(statcode, base.dir, "dimension_item", "cat", c("class.name", "name"))
+
+# # 集計事項とテーブルのIDの中間テーブル用データ作成
+# meta_output(statcode, base.dir, "table_measure", "tab", c("STATDISPID", "name"))
+
+# # TODO 時間軸とテーブルのIDの中間テーブル用データ作成
+# # TODO 地域とテーブルのIDの中間テーブル用データ作成
 

@@ -5,8 +5,7 @@
 - e-StatのAPIで取得可能なデータをgraphQLへ変換
 - 全ての情報が必要ではないため検索に有用と思われる情報を取捨選択
 - 機械的なメタデータの付与
-
-- https://resume-rho-five.vercel.app
+- 検索アプリ：https://resume-rho-five.vercel.app
 
 
 
