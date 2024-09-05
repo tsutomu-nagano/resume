@@ -43,10 +43,13 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
   const handleSearch = async () => {
     try {
 
+
+       
+
       const { data } = await client.query({
         query: gql`
           query GetMetaData {
-            items: ${resource_name}(distinct_on: ${resource_field}, where: { ${resource_field}: { _ilike: "%${searchTerm}%" }} ) {
+            items: ${resource_name}(where: { ${resource_field}: { _ilike: "%${searchTerm}%" }} ) {
               name: ${resource_field}
             }
           }
@@ -54,7 +57,9 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
       });
 
 
-      setData(data)
+      const uniqueItems = {items: Array.from(new Map(data.items.map((item: { name: string}) => [item.name, item])).values())}
+
+      setData(uniqueItems)
     } catch (err) {
       setError(err as Error);
     } finally {

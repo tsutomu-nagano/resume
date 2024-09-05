@@ -21,7 +21,7 @@
             EXECUTE IMMEDIATE '
             CREATE TABLE dimension_item (
                 class_name VARCHAR2(255) NOT NULL,
-                name VARCHAR2(255) NOT NULL
+                name VARCHAR2(500) NOT NULL
             )
             
             ';

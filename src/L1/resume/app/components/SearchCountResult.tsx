@@ -20,12 +20,16 @@ export default function SearchCountResult() {
 
             <div className="flex flex-row gap-2 items-center p-2">
                 {renderIconByKind("stat")}{"統計調査"}
-                <div className="badge badge-primary">{countResult.stat}</div>
+                <div className="badge badge-primary">
+                    {countResult?.stat ?? 'N/A'}  {/* countResult.stat が undefined なら 'N/A' を表示 */}
+                </div>
             </div>
 
             <div className="flex flex-row gap-2 items-center p-2">
                 {renderIconByKind("db")}{"統計データ"}
-                <div className="badge badge-primary">{countResult.db}</div>
+                <div className="badge badge-lg badge-primary">
+                    {countResult?.db ?? 'N/A'}  {/* countResult.db が undefined なら 'N/A' を表示 */}
+                </div>
             </div>
 
         </div>

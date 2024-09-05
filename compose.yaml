@@ -1,4 +1,25 @@
 services:
+  workrpy:
+    build: 
+      context: ./python
+      dockerfile: Dockerfile
+    image: resume-worker-python
+    container_name: resume-worker-python
+
+    stdin_open: true
+    tty: true
+
+    env_file:
+      - .env
+      - .env.local
+
+    volumes:
+      - .:/home
+
+    working_dir: /home
+
+    command: "/bin/bash"
+
   workr:
     build: 
       context: ./R

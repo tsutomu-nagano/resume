@@ -17,10 +17,10 @@ function BuilderCondition_core(items: Map<string, Set<string>>, kind: string, ta
 
 export function BuilderCondition(items: Map<string, Set<string>>): string {
 
-    const statsCondition = BuilderCondition_core(items, "stat", "statlist", "statname");
-    const measuresCondition = BuilderCondition_core(items, "measure", "table_measures", "name");
-    const themasCondition = BuilderCondition_core(items, "thema", "table_tags", "tag_name");
-    const dimensionsCondition = BuilderCondition_core(items, "dimension", "table_dimensions", "class_name");
+    const statsCondition = BuilderCondition_core(items, "stat", "STATLIST", "STATNAME");
+    const measuresCondition = BuilderCondition_core(items, "measure", "TABLE_MEASUREs", "NAME");
+    const themasCondition = BuilderCondition_core(items, "thema", "TABLE_TAGs", "TAG_NAME");
+    const dimensionsCondition = BuilderCondition_core(items, "dimension", "TABLE_DIMENSIONs", "CLASS_NAME");
 
     const conditions = [
         statsCondition,

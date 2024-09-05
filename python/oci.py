@@ -82,7 +82,7 @@ class OCI:
         return(self)
 
 
-    def insert_from_df(self, name:str, df:pd.DataFrame):
+    def insert_from_df(self, name:str, df:pd.DataFrame, batch_size: int = 0):
         
         if len(df) >= 1:
             columns = df.columns.values
@@ -91,17 +91,26 @@ class OCI:
 
             sql_insert = f"INSERT INTO {name} ({','.join(columns)}) VALUES ({params})"
 
-            print(sql_insert)
             with self.connection.cursor() as cursor:
                 data_to_insert = []
-                for row in df.values:
-                    data_to_insert.append(list(row))
 
-                # データの一括挿入
-                cursor.executemany(sql_insert, data_to_insert)
+                if batch_size == 0:
+                    for row in df.values:
+                        data_to_insert.append(list(row))
+
+                    # データの一括挿入
+                    cursor.executemany(sql_insert, data_to_insert)
+                    self.connection.commit()
+
+                else:
+
+                    for i in range(0, len(df), batch_size):
+                        data_to_insert = [list(row) for row in df.values[i:i+batch_size]]
+                        cursor.executemany(sql_insert, data_to_insert)
+                        self.connection.commit()
+        
 
             
-            self.connection.commit()
         
         
         

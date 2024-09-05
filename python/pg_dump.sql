@@ -11,7 +11,7 @@
 
 CREATE TABLE public.dimension_item (
     "class.name" VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(500) NOT NULL
 );
 
 
@@ -85,7 +85,7 @@ ALTER TABLE public.table_dimension OWNER TO statmetadata_owner;
 
 CREATE TABLE public.table_measure (
     statdispid VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL
+    name VARCHAR(500) NOT NULL
 );
 
 
