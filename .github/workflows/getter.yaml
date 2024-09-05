@@ -2,6 +2,11 @@ name: Get e-Stat Data
 
 on:
   workflow_call:
+    secrets:
+      APPID_ESTATAPI:
+        required: true
+      PG_DATABSE_URL:
+        required: true
   workflow_dispatch:
 
 jobs:
