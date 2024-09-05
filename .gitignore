@@ -5,3 +5,5 @@ hasura/
 .env*.local
 
 resource/temp/
+
+__pycache__
