@@ -47,7 +47,7 @@ export default function DimensionItemInfo({
               <div className="flex flex-row flex-wrap gap-2">
                 {
                   data.map((item: {name: string}) => (
-                    <div key={name} className="btn btn-outline"><LuComponent/>{item.name}</div>
+                    <div key={item.name} className="btn btn-outline"><LuComponent/>{item.name}</div>
                   ))
                 }
               </div>

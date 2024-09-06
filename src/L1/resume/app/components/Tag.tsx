@@ -14,13 +14,12 @@ import DimensionItemInfo from "./DimensionItemInfo";
 import Drawer from "./Drawer";
 
 interface TagProps {
-  key: string;
   name: string;
   kind: string;
   simple?: boolean;
 }
 
-export default function Tag({ key, name, kind, simple = false }: TagProps) {
+export default function Tag({ name, kind, simple = false }: TagProps) {
 
   const { items, findItem, addItem, removeItem } = useSearchItem();
 

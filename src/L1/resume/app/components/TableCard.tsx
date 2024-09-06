@@ -9,7 +9,6 @@ import { TbDatabaseShare } from "react-icons/tb";
 import Tag from './Tag';
 
 interface TableCardProps {
-  key: string;
   statdispid: string;
   statcode: string;
   cycle: string;
@@ -21,7 +20,7 @@ interface TableCardProps {
 
 }
 
-export default function TableCard({ key, statdispid, statcode, cycle, survey_date, title, tags, measures, dimensions }: TableCardProps) {
+export default function TableCard({statdispid, statcode, cycle, survey_date, title, tags, measures, dimensions }: TableCardProps) {
 
   const handleClick = () => {
     window.open(`https://www.e-stat.go.jp/dbview?sid=${statdispid}`, '_blank');

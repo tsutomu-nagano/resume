@@ -29,6 +29,7 @@ export default function Drawer({
         type="checkbox"
         className="drawer-toggle"
         checked={isOpen}
+        readOnly
         // onChange={() => {
         //     console.log("change checked")
         // }}

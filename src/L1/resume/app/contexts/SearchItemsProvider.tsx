@@ -112,30 +112,15 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
     try {
 
-      let newOffSet = 0;
-      if (searchResult.length != 0) {
-        newOffSet = offset + limit;
-      };
-
       const query = searchQuery;
       const result = await client.query({
         query,
-        variables: { limit_number: limit, offset_number: newOffSet },
+        variables: { limit_number: limit, offset_number: offset },
       });
 
-      
-
       if (result.data.tablelist.length != 0) {
-        setSearchResult((prevData) => {
-          // 現在のデータと新しいデータをマージし、一意なデータのみ保持
-          const mergedData = [...prevData, ...result.data.tablelist];
-          
-          // 'id'など一意のキーを基に重複を排除
-          const uniqueData = Array.from(new Map(mergedData.map(item => [item.statdispid, item])).values());
-        
-          return uniqueData;
-        });        
-        setOffset(newOffSet)
+        setSearchResult(prevData => [...prevData, ...result.data.tablelist]);
+        setOffset(prevOffSet => prevOffSet + limit)
       } else {
         setIsLast(true)
       }

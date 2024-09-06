@@ -1,8 +1,6 @@
 "use client"; // このファイルはクライアントサイドでのみ実行される
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { gql, useQuery } from "@apollo/client";
-import { createApolloClient } from "@/lib/apolloClient";
+import { useRef, useEffect } from 'react';
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 import TableCard from "./TableCard";
 import { InfiniteScrollContainer } from './InfiniteScrollContainer'
@@ -13,9 +11,14 @@ export default function TableList() {
 
     const {loading, error, fetchMore, searchResult, isLast } = useSearchItem();
 
+    const didEffect = useRef(false);
     useEffect(() => {
+      if (!didEffect.current) {
+        didEffect.current = true;
         fetchMore();
+      }
     }, []);
+
 
     if (loading) return <span className="loading loading-spinner text-primary"></span>
     if (error) return <p>Error: {error.message}</p>;
@@ -49,7 +52,7 @@ export default function TableList() {
                     )
                 )}
         </div>
-        </InfiniteScrollContainer>
+            </InfiniteScrollContainer>
     );
 };
 
