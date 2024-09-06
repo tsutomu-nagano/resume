@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'DIMENSIONLIST';
+        WHERE table_name = 'DIMENSION_ITEM';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'DIMENSIONLIST_PKEY'
-        AND table_name = 'DIMENSIONLIST';
+        WHERE constraint_name = 'DIMENSION_ITEM_PKEY'
+        AND table_name = 'DIMENSION_ITEM';
     
 
         -- 
@@ -27,7 +27,7 @@
         IF table_count = 1 AND constraint_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE dimensionlist DROP CONSTRAINT dimensionlist_pkey
+            ALTER TABLE dimension_item DROP CONSTRAINT dimension_item_pkey
             ';
         END IF;
         

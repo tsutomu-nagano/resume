@@ -13,13 +13,16 @@
     
 
         -- 
-        -- テーブルが存在する場合のみ実行
+        -- テーブルが存在しない場合のみ実行
     
         
-        IF table_count = 1 THEN
+        IF table_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            COMMENT ON TABLE table_tag IS ''統計表とタグの中間テーブル''
+            CREATE TABLE table_tag (
+                statdispid VARCHAR2(255) NOT NULL,
+                tag_name VARCHAR2(255) NOT NULL
+            )
             
             ';
         END IF;

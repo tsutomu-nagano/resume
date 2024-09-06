@@ -9,7 +9,7 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'GOVLIST';
+        WHERE table_name = 'MEASURELIST';
     
 
         -- 
@@ -19,7 +19,7 @@
         IF table_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            DROP TABLE govlist
+            DROP TABLE measurelist
             ';
         END IF;
         

@@ -152,13 +152,14 @@ with OCI(base64_wallet_text=encoded_data,
 
 
     dimensions = []    
+    measures = []
     for meta in metas:
         
-        table_measure = meta.pipe(lambda df: df[df["class_type"] == "tab"]) \
-                        .pipe(select, names = ["STATDISPID", "^name$"]) \
-                        .drop_duplicates()
-        
-        oci.insert_from_df(name = "table_measure", df = table_measure)
+        measures.append(
+            meta.pipe(lambda df: df[df["class_type"] == "tab"]) \
+                                    .pipe(select, names = ["STATDISPID", "^name$"]) \
+                                    .drop_duplicates()
+        )
 
 
         dimensions.append(
@@ -167,6 +168,12 @@ with OCI(base64_wallet_text=encoded_data,
                     .drop_duplicates()
         )
                         
+
+    measures_base = pd.concat(measures)
+
+    oci.insert_from_df(name = "measurelist", df = measures_base[["name"]].drop_duplicates())
+    oci.insert_from_df(name = "table_measure", df = measures_base[["STATDISPID","name"]].drop_duplicates())
+
 
     dimensions_base = pd.concat(dimensions)
 

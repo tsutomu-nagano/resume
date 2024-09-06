@@ -13,13 +13,16 @@
     
 
         -- 
-        -- テーブルが存在する場合のみ実行
+        -- テーブルが存在しない場合のみ実行
     
         
-        IF table_count = 1 THEN
+        IF table_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            COMMENT ON TABLE govlist IS ''府省名の一覧''
+            CREATE TABLE govlist (
+                govcode VARCHAR2(255) NOT NULL,
+                govname VARCHAR2(255) NOT NULL
+            )
             
             ';
         END IF;

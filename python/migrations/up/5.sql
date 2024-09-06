@@ -13,13 +13,17 @@
     
 
         -- 
-        -- テーブルが存在する場合のみ実行
+        -- テーブルが存在しない場合のみ実行
     
         
-        IF table_count = 1 THEN
+        IF table_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            COMMENT ON TABLE statlist IS ''統計調査の一覧''
+            CREATE TABLE statlist (
+                statcode VARCHAR2(255) NOT NULL,
+                statname VARCHAR2(255) NOT NULL,
+                govcode VARCHAR2(255) NOT NULL
+            )
             
             ';
         END IF;

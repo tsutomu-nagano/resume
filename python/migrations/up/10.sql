@@ -9,23 +9,17 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLELIST';
+        WHERE table_name = 'TABLE_TAG';
     
 
         -- 
-        -- テーブルが存在しない場合のみ実行
+        -- テーブルが存在する場合のみ実行
     
         
-        IF table_count = 0 THEN
+        IF table_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            CREATE TABLE tablelist (
-                statcode VARCHAR2(255) NOT NULL,
-                statdispid VARCHAR2(255) NOT NULL,
-                title CLOB,
-                cycle VARCHAR2(255) NOT NULL,
-                survey_date VARCHAR2(255) NOT NULL
-            )
+            COMMENT ON TABLE table_tag IS ''統計表とタグの中間テーブル''
             
             ';
         END IF;

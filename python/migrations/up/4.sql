@@ -9,21 +9,17 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'STATLIST';
+        WHERE table_name = 'GOVLIST';
     
 
         -- 
-        -- テーブルが存在しない場合のみ実行
+        -- テーブルが存在する場合のみ実行
     
         
-        IF table_count = 0 THEN
+        IF table_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            CREATE TABLE statlist (
-                statcode VARCHAR2(255) NOT NULL,
-                statname VARCHAR2(255) NOT NULL,
-                govcode VARCHAR2(255) NOT NULL
-            )
+            COMMENT ON TABLE govlist IS ''府省名の一覧''
             
             ';
         END IF;

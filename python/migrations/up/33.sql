@@ -10,24 +10,26 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_MEASURE';
+        WHERE table_name = 'TABLELIST';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'TABLE_MEASURE_NAME_FKEY'
-        AND table_name = 'TABLE_MEASURE';
+        WHERE constraint_name = 'TABLELIST_STATCODE_FKEY'
+        AND table_name = 'TABLELIST';
     
 
         -- 
-        -- テーブルが存在して制約が存在する場合のみ実行
+        -- テーブルが存在して制約が存在しない場合のみ実行
     
         
-        IF table_count = 1 AND constraint_count = 1 THEN
+        IF table_count = 1 AND constraint_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE table_measure DROP CONSTRAINT table_measure_name_fkey
+            ALTER TABLE tablelist
+                ADD CONSTRAINT tablelist_statcode_fkey FOREIGN KEY (statcode) REFERENCES statlist(statcode) 
+            
             ';
         END IF;
         

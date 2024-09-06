@@ -28,6 +28,18 @@ CREATE TABLE public.dimensionlist (
 
 ALTER TABLE public.dimensionlist OWNER TO statmetadata_owner;
 
+
+--
+-- Name: measurelist; Type: TABLE; Schema: public; Owner: statmetadata_owner
+--
+
+CREATE TABLE public.measurelist (
+    "name" VARCHAR(500) NOT NULL
+);
+
+
+ALTER TABLE public.measurelist OWNER TO statmetadata_owner;
+
 --
 -- Name: govlist; Type: TABLE; Schema: public; Owner: statmetadata_owner
 --
@@ -167,6 +179,14 @@ ALTER TABLE ONLY public.dimensionlist
 
 
 --
+-- Name: mesurelist mesurelist_pkey; Type: CONSTRAINT; Schema: public; Owner: statmetadata_owner
+--
+
+ALTER TABLE ONLY public.measurelist
+    ADD CONSTRAINT measurelist_pkey PRIMARY KEY ("name");
+
+
+--
 -- Name: govlist govlist_pkey; Type: CONSTRAINT; Schema: public; Owner: statmetadata_owner
 --
 
@@ -252,6 +272,16 @@ ALTER TABLE ONLY public.table_dimension
 
 ALTER TABLE ONLY public.table_dimension
     ADD CONSTRAINT table_dimension_statdispid_fkey FOREIGN KEY (statdispid) REFERENCES public.tablelist(statdispid) ON UPDATE SET NULL ON DELETE SET NULL;
+
+
+
+--
+-- Name: table_measure table_measure_name_fkey; Type: FK CONSTRAINT; Schema: public; Owner: statmetadata_owner
+--
+
+ALTER TABLE ONLY public.table_measure
+    ADD CONSTRAINT table_measure_name_fkey FOREIGN KEY (name) REFERENCES public.measurelist(name) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
 
 
 --

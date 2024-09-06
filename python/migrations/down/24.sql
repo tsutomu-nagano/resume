@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'STATLIST';
+        WHERE table_name = 'TAGLIST';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'STATLIST_GOVCODE_FKEY'
-        AND table_name = 'STATLIST';
+        WHERE constraint_name = 'TAGLIST_PKEY'
+        AND table_name = 'TAGLIST';
     
 
         -- 
@@ -27,7 +27,7 @@
         IF table_count = 1 AND constraint_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE statlist DROP CONSTRAINT statlist_govcode_fkey
+            ALTER TABLE taglist DROP CONSTRAINT taglist_pkey
             ';
         END IF;
         

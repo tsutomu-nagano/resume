@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TAGLIST';
+        WHERE table_name = 'TABLE_TAG';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'TAGLIST_PKEY'
-        AND table_name = 'TAGLIST';
+        WHERE constraint_name = 'TABLE_TAG_PKEY'
+        AND table_name = 'TABLE_TAG';
     
 
         -- 
@@ -27,8 +27,8 @@
         IF table_count = 1 AND constraint_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE taglist
-                ADD CONSTRAINT taglist_pkey PRIMARY KEY (tag_name)
+            ALTER TABLE table_tag
+                ADD CONSTRAINT table_tag_pkey PRIMARY KEY (statdispid, tag_name)
             
             ';
         END IF;

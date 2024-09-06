@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_DIMENSION';
+        WHERE table_name = 'STATLIST';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'TABLE_DIMENSION_STATDISPID_FKEY'
-        AND table_name = 'TABLE_DIMENSION';
+        WHERE constraint_name = 'STATLIST_GOVCODE_FKEY'
+        AND table_name = 'STATLIST';
     
 
         -- 
@@ -27,8 +27,8 @@
         IF table_count = 1 AND constraint_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE table_dimension
-                ADD CONSTRAINT table_dimension_statdispid_fkey FOREIGN KEY (statdispid) REFERENCES tablelist(statdispid) 
+            ALTER TABLE statlist
+                ADD CONSTRAINT statlist_govcode_fkey FOREIGN KEY (govcode) REFERENCES govlist(govcode) 
             
             ';
         END IF;
