@@ -4,33 +4,8 @@ import { BuilderCondition } from "./BuilderCondition";
 
 export const GET_TABLE_LIST = (items: Map<string, Set<string>>): DocumentNode =>  {
 
-    const searchCondition: string = BuilderCondition(items);
-
-    // return(gql`
-    //     query GetTableList($limit_number: Int, $offset_number: Int) {
-    //     tablelist(
-    //         where:{${searchCondition}}
-    //         limit: $limit_number
-    //         offset: $offset_number
-    //         order_by: { statdispid: asc }
-    //     ) {
-    //         statdispid
-    //         cycle
-    //         statcode
-    //         survey_date
-    //         title
-    //         table_tags {
-    //         tag_name
-    //         }
-    //         table_measures {
-    //         name
-    //         }
-    //         table_dimensions {
-    //         class_name
-    //         }
-    //     }
-    //     }
-    // `)
+    // const searchCondition: string = `_and: [ ${BuilderCondition(items).join(",")} ]`;
+    const searchCondition: string = `${BuilderCondition(items).join(",")}`;
 
     return(gql`
         query GetTableList($limit_number: Int, $offset_number: Int) {
@@ -62,7 +37,7 @@ export const GET_TABLE_LIST = (items: Map<string, Set<string>>): DocumentNode =>
 
 export const GET_TABLE_LIST_COUNT = (items: Map<string, Set<string>>): DocumentNode =>  {
 
-    const searchCondition: string = BuilderCondition(items);
+    const searchCondition: string = `${BuilderCondition(items).join(",")}`;
 
     return(gql`
         query GetTableList($limit_number: Int, $offset_number: Int) {
@@ -88,4 +63,36 @@ export const GET_DIMENSION_ITEMS = (dimension_name: string): DocumentNode =>  {
         }
         }
     `)
+}
+
+
+export const GET_SEARCH_TAG_LIST = (
+    name: string, 
+    field: string,
+    ref_names: string[],
+    searchTerm: string,
+    items: Map<string, Set<string>>
+    ): DocumentNode =>  {
+
+    const searchCondition: string = `${BuilderCondition(items).join(",")}`;
+
+    const ref_name_s = ref_names.join(":{")
+    const ref_name_e = '}'.repeat(ref_names.length - 1);
+
+    const test_query = `
+        query GetMetaData {
+            items: ${name}(where: {
+                ${ref_name_s}: { ${searchCondition} } ${ref_name_e}
+                ${field}: { _like: "%${searchTerm}%" }
+                })
+                {
+                    name: ${field}
+                }
+            }
+    `;
+
+    console.log(test_query)
+
+    return(gql`${test_query}`)
+
 }

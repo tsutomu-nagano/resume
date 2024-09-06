@@ -1,9 +1,11 @@
 // src/app/StatCard.tsx
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { gql } from '@apollo/client';
 import { createApolloClient } from '@/lib/apolloClient';
+import { GET_SEARCH_TAG_LIST } from '../../lib/queries';
+
 
 import { FaChevronDown } from "react-icons/fa6";
 import Tag from './Tag';
@@ -21,12 +23,13 @@ interface SearchItemsProps {
 interface SearchItemSelectorProps {
   labelja: string;
   labelen: string;
+  ref_names: string[];
   resource_name: string;
   resource_field: string;
   kind: string
 }
 
-export default function SearchItemSelector({ labelja, labelen = "", resource_name, resource_field, kind }: SearchItemSelectorProps) {
+export default function SearchItemSelector({ labelja, labelen = "", ref_names, resource_name, resource_field, kind }: SearchItemSelectorProps) {
 
   const { items, getItemsArray } = useSearchItem();
 
@@ -40,26 +43,17 @@ export default function SearchItemSelector({ labelja, labelen = "", resource_nam
 
   const client = createApolloClient();
 
+
+  const searchQuery = useMemo(() => GET_SEARCH_TAG_LIST(resource_name,resource_field, ref_names, searchTerm, items), [items, resource_field,searchTerm ]);
+
   const handleSearch = async () => {
     try {
-
-
        
 
-      const { data } = await client.query({
-        query: gql`
-          query GetMetaData {
-            items: ${resource_name}(where: { ${resource_field}: { _ilike: "%${searchTerm}%" }} ) {
-              name: ${resource_field}
-            }
-          }
-        `
-      });
+      const query = searchQuery;
+      const { data } = await client.query({query})
+      setData(data)
 
-
-      const uniqueItems = {items: Array.from(new Map(data.items.map((item: { name: string}) => [item.name, item])).values())}
-
-      setData(uniqueItems)
     } catch (err) {
       setError(err as Error);
     } finally {
