@@ -24,12 +24,13 @@ toArray <- function(obj){
 
 getMetaList <- function(appid, statsdataid){
 
-    print(statsdataid)
-
-
     url <- glue("http://api.e-stat.go.jp/rest/3.0/app/json/getMetaInfo?appId={appid}&statsDataId={statsdataid}&explanationGetFlg=Y")
     res <- GET(url)
     res.json <- content(res)
+
+
+    statcode_ <- res.json$GET_META_INFO$METADATA_INF$TABLE_INF$STAT_NAME$`@code`
+
 
     class_objs <- res.json$GET_META_INFO$METADATA_INF$CLASS_INF$CLASS_OBJ %>% toArray
 
@@ -59,7 +60,7 @@ getMetaList <- function(appid, statsdataid){
 
     }) %>% bind_rows %>%
     # select(-one_of("level", "parentCode")) %>%
-    mutate(STATDISPID = statsdataid) %>%
+    mutate(STATDISPID = statsdataid, statcode = statcode_) %>%
     return
 
 }
@@ -72,16 +73,9 @@ getStatsNameList <- function(appid){
     res <- GET(url)
     res.json <- content(res)
 
-    print(res.json)
-
     datalist_inf <- res.json$GET_STATS_LIST$DATALIST_INF
     result_inf <- datalist_inf$RESULT_INF
     table_infs <- datalist_inf$LIST_INF %>% toArray
-
-    table_infs %>%
-    tibble %>%
-    print
-
 
     table_infs %>%
     tibble %>%
@@ -184,7 +178,7 @@ args <- commandArgs(trailingOnly = T)
 
 appid <- Sys.getenv("APPID")
 root_dir <- args[1]
-
+root_dir <- "./resource"
 
 # 統計調査の一覧
 statlist <- getStatsNameList(appid)
@@ -193,7 +187,7 @@ write_excel_csv(glue("{root_dir}/statlist.csv", qutoe = "all"))
 
 # 統計データの一覧
 ## 1. temp へ統計データの一覧作成
-print("1. table create at temp")
+print(glue("1. table create at temp"))
 temp_dir <- glue("{root_dir}/temp/tables")
 if (!dir.exists(temp_dir)){
     dir.create(temp_dir, recursive = TRUE)
@@ -210,7 +204,7 @@ purrr::map(function(statcode){
 })
 
 ## 2. 保存済のデータと比較
-print("2. compare to archive")
+print(glue("2. compare to archive"))
 temp_tables <- list.files(temp_dir, full.names = TRUE) %>%
 purrr::map(function(path){
     read_csv(path, col_type = cols(.default = "c")) %>%
@@ -254,7 +248,7 @@ match <- temp_tables %>%
 delcnt <- match %>% filter(flg == "DELETE") %>% nrow
 print(glue("3. delete meta : target = {delcnt}"))
 
-match %>% filter(flg == "DELETE") %>%
+dummy <- match %>% filter(flg == "DELETE") %>%
 select(statcode, STATDISPID, flg) %>%
 nest(statdispids = -statcode) %>%
 mutate(del = purrr::pmap(
@@ -277,10 +271,10 @@ mutate(del = purrr::pmap(
 newcnt <- match %>% filter(flg %in% c("NEW", "UPDATE")) %>% nrow
 print(glue("4. get meta : target = {newcnt}"))
 
-match %>% filter(flg %in% c("NEW", "UPDATE")) %>%
+dummy <- match %>% filter(flg %in% c("NEW", "UPDATE")) %>%
 select(statcode, STATDISPID, flg) %>%
 nest(statdispids = -statcode) %>%
-mutate(del = purrr::pmap(
+mutate(new = purrr::pmap(
     list(statcode, statdispids),
     function(statcode, statdispids){
 
@@ -292,8 +286,7 @@ mutate(del = purrr::pmap(
         purrr::map(function(statdispid){
             # dest <- glue("{temp_dir}/{statdispid}.parquet")
             # getMetaList(appid, statdispid) %>% write_parquet(dest)
-            getMetaList(appid, statdispid) %>%
-            mutate(statcode = !!statcode)
+            getMetaList(appid, statdispid)
 
         }) %>% bind_rows
 
