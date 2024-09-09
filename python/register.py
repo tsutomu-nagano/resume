@@ -38,43 +38,6 @@ def columns_normalize(df: pd.DataFrame) -> pd.DataFrame:
    
 
 
-def format_dataframe(src: str, selection:PandasPipeFunc , customfunc:PandasPipeFunc = lambda df: df ) -> pd.DataFrame:
-    return(
-        pd.read_csv(src, dtype=str) \
-            .pipe(selection) \
-            .fillna("-") \
-            .drop_duplicates() \
-            .pipe(columns_normalize) \
-            .pipe(customfunc)
-    )
-    
-
-def insert_concat_core(root: str, pattern: str, name: str, columns: List[str] = None, selection:PandasPipeFunc = None, customfunc:PandasPipeFunc = lambda df: df ):
-
-    logger.info(f'Start Insert to {name} from {root}')
-
-    df = pd.concat(
-        [format_dataframe(src = str(f), columns = columns, customfunc = customfunc)
-        for f in Path(root).glob(pattern)]
-        ).drop_duplicates()
-
-    oci.insert_from_df(name=name, df = df)
-    logger.info(f'End   Insert to {name} from {root}')
-
-
-def insert_core(root: str, pattern: str, name: str, columns: List[str] = None, selection:PandasPipeFunc = None, customfunc:PandasPipeFunc = lambda df: df ):
-
-    if selection is None:
-        selection = lambda df: df[columns]
-
-    for f in Path(root).glob(pattern):
-        logger.info(f'Start Insert to {name} from {str(f)}')
-        df = format_dataframe(src = str(f), selection = selection, customfunc = customfunc)
-        oci.insert_from_df(name=name, df = df)
-        logger.info(f'End   Insert to {name} from {str(f)}')
-
-    
-
 def get_datas(files: Iterable[Path], formats: List[PandasPipeFunc] = None) -> Iterator[pd.DataFrame]:
     for f in files:
         suffix = f.suffix.lower()
@@ -153,8 +116,10 @@ with OCI(base64_wallet_text=encoded_data,
 
     dimensions = []    
     measures = []
+    regions = []
     for meta in metas:
-        
+
+       
         measures.append(
             meta.pipe(lambda df: df[df["class_type"] == "tab"]) \
                                     .pipe(select, names = ["STATDISPID", "^name$"]) \
@@ -169,6 +134,13 @@ with OCI(base64_wallet_text=encoded_data,
         )
                         
 
+        regions.append(
+                meta.pipe(lambda df: df[df["class_type"].str.startswith("area")]) \
+                    .pipe(select, names = ["STATDISPID", "class_name", "^name$"]) \
+                    .drop_duplicates()
+        )
+
+
     measures_base = pd.concat(measures)
 
     oci.insert_from_df(name = "measurelist", df = measures_base[["name"]].drop_duplicates())
@@ -180,6 +152,12 @@ with OCI(base64_wallet_text=encoded_data,
     oci.insert_from_df(name = "dimensionlist", df = dimensions_base[["class_name"]].drop_duplicates())
     oci.insert_from_df(name = "table_dimension", df = dimensions_base[["STATDISPID","class_name"]].drop_duplicates())
     oci.insert_from_df(name = "dimension_item", df = dimensions_base[["class_name","name"]].fillna("NA").drop_duplicates(), batch_size = 100000)
+
+    regions_base = pd.concat(regions)
+
+    oci.insert_from_df(name = "regionlist", df = regions_base[["class_name"]].drop_duplicates())
+    oci.insert_from_df(name = "table_region", df = regions_base[["STATDISPID","class_name"]].drop_duplicates())
+    oci.insert_from_df(name = "region_item", df = regions_base[["class_name","name"]].fillna("NA").drop_duplicates(), batch_size = 100000)
 
 
 ## 7. dimensionlist

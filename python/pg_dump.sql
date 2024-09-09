@@ -41,6 +41,31 @@ CREATE TABLE public.measurelist (
 ALTER TABLE public.measurelist OWNER TO statmetadata_owner;
 
 --
+-- Name: measurelist; Type: TABLE; Schema: public; Owner: statmetadata_owner
+--
+
+CREATE TABLE public.regionlist (
+    "class.name" VARCHAR(255) NOT NULL
+);
+
+
+ALTER TABLE public.regionlist OWNER TO statmetadata_owner;
+
+
+--
+-- Name: region_item; Type: TABLE; Schema: public; Owner: statmetadata_owner
+--
+
+CREATE TABLE public.region_item (
+    "class.name" VARCHAR(255) NOT NULL,
+    name VARCHAR(500) NOT NULL
+);
+
+
+ALTER TABLE public.region_item OWNER TO statmetadata_owner;
+
+
+--
 -- Name: govlist; Type: TABLE; Schema: public; Owner: statmetadata_owner
 --
 
@@ -101,7 +126,20 @@ CREATE TABLE public.table_measure (
 );
 
 
-ALTER TABLE public.table_measure OWNER TO statmetadata_owner;
+ALTER TABLE public.table_region OWNER TO statmetadata_owner;
+
+--
+-- Name: table_region; Type: TABLE; Schema: public; Owner: statmetadata_owner
+--
+
+CREATE TABLE public.table_region (
+    statdispid VARCHAR(255) NOT NULL,
+    "class.name" VARCHAR(255) NOT NULL
+);
+
+
+ALTER TABLE public.table_region OWNER TO statmetadata_owner;
+
 
 --
 -- Name: table_tag; Type: TABLE; Schema: public; Owner: statmetadata_owner
@@ -178,6 +216,22 @@ ALTER TABLE ONLY public.dimensionlist
     ADD CONSTRAINT dimensionlist_pkey PRIMARY KEY ("class.name");
 
 
+
+--
+-- Name: region_item region_item_pkey; Type: CONSTRAINT; Schema: public; Owner: statmetadata_owner
+--
+
+ALTER TABLE ONLY public.region_item
+    ADD CONSTRAINT region_item_pkey PRIMARY KEY ("class.name", name);
+
+
+--
+-- Name: regionlist regionlist_pkey; Type: CONSTRAINT; Schema: public; Owner: statmetadata_owner
+--
+
+ALTER TABLE ONLY public.regionlist
+    ADD CONSTRAINT resionlist_pkey PRIMARY KEY ("class.name");
+
 --
 -- Name: mesurelist mesurelist_pkey; Type: CONSTRAINT; Schema: public; Owner: statmetadata_owner
 --
@@ -209,6 +263,13 @@ ALTER TABLE ONLY public.statlist
 ALTER TABLE ONLY public.table_dimension
     ADD CONSTRAINT table_dimension_pkey PRIMARY KEY (statdispid, "class.name");
 
+
+--
+-- Name: table_region table_region_pkey; Type: CONSTRAINT; Schema: public; Owner: statmetadata_owner
+--
+
+ALTER TABLE ONLY public.table_region
+    ADD CONSTRAINT table_region_pkey PRIMARY KEY (statdispid, "class.name");
 
 --
 -- Name: table_measure table_measure_pkey; Type: CONSTRAINT; Schema: public; Owner: statmetadata_owner
@@ -251,6 +312,13 @@ ALTER TABLE ONLY public.dimension_item
 
 
 --
+-- Name: region_item region_item_class.name_fkey; Type: FK CONSTRAINT; Schema: public; Owner: statmetadata_owner
+--
+
+ALTER TABLE ONLY public.region_item
+    ADD CONSTRAINT "region_item_class.name_fkey" FOREIGN KEY ("class.name") REFERENCES public.regionlist("class.name") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+--
 -- Name: statlist statlist_govcode_fkey; Type: FK CONSTRAINT; Schema: public; Owner: statmetadata_owner
 --
 
@@ -273,6 +341,22 @@ ALTER TABLE ONLY public.table_dimension
 ALTER TABLE ONLY public.table_dimension
     ADD CONSTRAINT table_dimension_statdispid_fkey FOREIGN KEY (statdispid) REFERENCES public.tablelist(statdispid) ON UPDATE SET NULL ON DELETE SET NULL;
 
+
+
+--
+-- Name: table_region table_region_class.name_fkey; Type: FK CONSTRAINT; Schema: public; Owner: statmetadata_owner
+--
+
+ALTER TABLE ONLY public.table_region
+    ADD CONSTRAINT "table_region_class.name_fkey" FOREIGN KEY ("class.name") REFERENCES public.regionlist("class.name") ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: table_region table_region_statdispid_fkey; Type: FK CONSTRAINT; Schema: public; Owner: statmetadata_owner
+--
+
+ALTER TABLE ONLY public.table_region
+    ADD CONSTRAINT table_region_statdispid_fkey FOREIGN KEY (statdispid) REFERENCES public.tablelist(statdispid) ON UPDATE SET NULL ON DELETE SET NULL;
 
 
 --

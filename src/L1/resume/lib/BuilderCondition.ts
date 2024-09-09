@@ -21,12 +21,14 @@ export function BuilderCondition(items: Map<string, Set<string>>): string[] {
     const measuresCondition = BuilderCondition_core(items, "measure", "TABLE_MEASUREs", "NAME");
     const themasCondition = BuilderCondition_core(items, "thema", "TABLE_TAGs", "TAG_NAME");
     const dimensionsCondition = BuilderCondition_core(items, "dimension", "TABLE_DIMENSIONs", "CLASS_NAME");
+    const regionsCondition = BuilderCondition_core(items, "region", "TABLE_REGIONs", "CLASS_NAME");
 
     const conditions = [
         statsCondition,
         measuresCondition,
         themasCondition,
-        dimensionsCondition
+        dimensionsCondition,
+        regionsCondition
       ].filter(condition => condition !== ""); // null でないものをフィルタリング
 
     return(conditions)

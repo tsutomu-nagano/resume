@@ -9,7 +9,7 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_DIMENSION';
+        WHERE table_name = 'STATLIST';
     
 
         -- 
@@ -19,7 +19,7 @@
         IF table_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            DROP TABLE table_dimension
+            DROP TABLE statlist
             ';
         END IF;
         

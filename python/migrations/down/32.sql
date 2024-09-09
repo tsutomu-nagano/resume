@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_TAG';
+        WHERE table_name = 'REGION_ITEM';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'TABLE_TAG_TAG_NAME_FKEY'
-        AND table_name = 'TABLE_TAG';
+        WHERE constraint_name = 'REGION_ITEM_CLASS_NAME_FKEY'
+        AND table_name = 'REGION_ITEM';
     
 
         -- 
@@ -27,7 +27,7 @@
         IF table_count = 1 AND constraint_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE table_tag DROP CONSTRAINT table_tag_tag_name_fkey
+            ALTER TABLE region_item DROP CONSTRAINT region_item_class_name_fkey
             ';
         END IF;
         

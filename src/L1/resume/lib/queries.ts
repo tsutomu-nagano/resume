@@ -29,6 +29,9 @@ export const GET_TABLE_LIST = (items: Map<string, Set<string>>): DocumentNode =>
                 table_dimensions: TABLE_DIMENSIONs {
                     class_name: CLASS_NAME
                 }
+                table_regions: TABLE_REGIONs {
+                    class_name: CLASS_NAME
+                }
             }
         }
     `)
@@ -54,11 +57,11 @@ export const GET_TABLE_LIST_COUNT = (items: Map<string, Set<string>>): DocumentN
 }
 
 
-export const GET_DIMENSION_ITEMS = (dimension_name: string): DocumentNode =>  {
+export const GET_ITEMS = (resource_nam: string, name: string): DocumentNode =>  {
 
     return(gql`
-        query get_dimension_items {
-        dimension_item: DIMENSION_ITEM(where: {CLASS_NAME: {_eq: "${dimension_name}"}}) {
+        query get_items {
+        item: ${resource_nam}(where: {CLASS_NAME: {_eq: "${name}"}}) {
             name: NAME
         }
         }

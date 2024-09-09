@@ -1,11 +1,12 @@
 // Drawer.tsx
 import React, { ReactNode, useEffect } from "react";
-import { useFetchDimensionItems } from "@/lib/useFetchDimensionItems"
+import { useFetchItems } from "@/lib/useFetchDimensionItems"
 import Drawer from "./Drawer";
 import { LuComponent } from "react-icons/lu";
 
 interface DimensionItemInfoProps {
   id: string; // Drawerの一意なID
+  kind: string;
   title: ReactNode;
   name: string;
   children?: ReactNode; // Drawerのメインコンテンツ
@@ -15,6 +16,7 @@ interface DimensionItemInfoProps {
 
 export default function DimensionItemInfo({
   id,
+  kind,
   title,
   name,
   children,
@@ -23,7 +25,8 @@ export default function DimensionItemInfo({
 }: DimensionItemInfoProps) {
   // ポータルのためにドキュメントのルートにレンダリング
 
-  const { data, fetch, loading, error } = useFetchDimensionItems(name);
+  const resource_name: string = kind === "dimension" ? "DIMENSION_ITEM" : kind === "region" ? "REGION_ITEM" : "";
+  const { data, fetch, loading, error } = useFetchItems(resource_name, name);
 
   useEffect(() => {
     fetch();

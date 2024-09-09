@@ -37,6 +37,7 @@ export default function TableList() {
                         table_tags: { tag_name: string }[];
                         table_measures: { name: string }[];
                         table_dimensions: { class_name: string }[];
+                        table_regions: { class_name: string }[];
                     }) => (
                         <TableCard
                             key={tbl.statdispid}
@@ -48,6 +49,7 @@ export default function TableList() {
                             tags={tbl.table_tags}
                             measures={tbl.table_measures}
                             dimensions={tbl.table_dimensions}
+                            regions={tbl.table_regions}
                         />
                     )
                 )}

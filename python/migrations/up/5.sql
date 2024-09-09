@@ -9,7 +9,7 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'STATLIST';
+        WHERE table_name = 'GOVLIST';
     
 
         -- 
@@ -19,10 +19,9 @@
         IF table_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            CREATE TABLE statlist (
-                statcode VARCHAR2(255) NOT NULL,
-                statname VARCHAR2(255) NOT NULL,
-                govcode VARCHAR2(255) NOT NULL
+            CREATE TABLE govlist (
+                govcode VARCHAR2(255) NOT NULL,
+                govname VARCHAR2(255) NOT NULL
             )
             
             ';

@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_TAG';
+        WHERE table_name = 'MEASURELIST';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'TABLE_TAG_PKEY'
-        AND table_name = 'TABLE_TAG';
+        WHERE constraint_name = 'MEASURELIST_PKEY'
+        AND table_name = 'MEASURELIST';
     
 
         -- 
@@ -27,8 +27,8 @@
         IF table_count = 1 AND constraint_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE table_tag
-                ADD CONSTRAINT table_tag_pkey PRIMARY KEY (statdispid, tag_name)
+            ALTER TABLE measurelist
+                ADD CONSTRAINT measurelist_pkey PRIMARY KEY (name)
             
             ';
         END IF;

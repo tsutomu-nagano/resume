@@ -1,6 +1,6 @@
 // lib/apolloClient.ts
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
-import { GET_DIMENSION_ITEMS } from './queries';
+import { GET_ITEMS } from './queries';
 
 export const createApolloClient = () => {
     return new ApolloClient({
@@ -16,10 +16,11 @@ export const createApolloClient = () => {
 };
 
 
-export const fetchDimensionItems = async (name: string) => {
+export const fetchItems = async (resource_name: string, name: string) => {
   const client = createApolloClient();
   const { data } = await client.query({
-    query: GET_DIMENSION_ITEMS(name)
+    query: GET_ITEMS(resource_name, name)
   });
-  return data.dimension_item;
+  return data.item;
 };
+

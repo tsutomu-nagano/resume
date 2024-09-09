@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_TAG';
+        WHERE table_name = 'DIMENSION_ITEM';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'TABLE_TAG_STATDISPID_FKEY'
-        AND table_name = 'TABLE_TAG';
+        WHERE constraint_name = 'DIMENSION_ITEM_CLASS_NAME_FKEY'
+        AND table_name = 'DIMENSION_ITEM';
     
 
         -- 
@@ -27,8 +27,8 @@
         IF table_count = 1 AND constraint_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE table_tag
-                ADD CONSTRAINT table_tag_statdispid_fkey FOREIGN KEY (statdispid) REFERENCES tablelist(statdispid) 
+            ALTER TABLE dimension_item
+                ADD CONSTRAINT dimension_item_class_name_fkey FOREIGN KEY (class_name) REFERENCES dimensionlist(class_name) 
             
             ';
         END IF;

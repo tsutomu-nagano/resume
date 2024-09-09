@@ -9,7 +9,7 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLELIST';
+        WHERE table_name = 'TABLE_REGION';
     
 
         -- 
@@ -19,7 +19,7 @@
         IF table_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            DROP TABLE tablelist
+            DROP TABLE table_region
             ';
         END IF;
         

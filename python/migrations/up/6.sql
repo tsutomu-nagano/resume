@@ -9,7 +9,7 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'STATLIST';
+        WHERE table_name = 'GOVLIST';
     
 
         -- 
@@ -19,7 +19,7 @@
         IF table_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            COMMENT ON TABLE statlist IS ''統計調査の一覧''
+            COMMENT ON TABLE govlist IS ''府省名の一覧''
             
             ';
         END IF;

@@ -9,20 +9,17 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_MEASURE';
+        WHERE table_name = 'STATLIST';
     
 
         -- 
-        -- テーブルが存在しない場合のみ実行
+        -- テーブルが存在する場合のみ実行
     
         
-        IF table_count = 0 THEN
+        IF table_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            CREATE TABLE table_measure (
-                statdispid VARCHAR2(255) NOT NULL,
-                name VARCHAR2(500) NOT NULL
-            )
+            COMMENT ON TABLE statlist IS ''統計調査の一覧''
             
             ';
         END IF;

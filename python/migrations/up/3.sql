@@ -9,7 +9,7 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'GOVLIST';
+        WHERE table_name = 'REGIONLIST';
     
 
         -- 
@@ -19,9 +19,8 @@
         IF table_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            CREATE TABLE govlist (
-                govcode VARCHAR2(255) NOT NULL,
-                govname VARCHAR2(255) NOT NULL
+            CREATE TABLE regionlist (
+                class_name VARCHAR2(255) NOT NULL
             )
             
             ';

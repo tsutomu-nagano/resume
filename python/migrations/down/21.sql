@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_MEASURE';
+        WHERE table_name = 'REGIONLIST';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'TABLE_MEASURE_PKEY'
-        AND table_name = 'TABLE_MEASURE';
+        WHERE constraint_name = 'RESIONLIST_PKEY'
+        AND table_name = 'REGIONLIST';
     
 
         -- 
@@ -27,7 +27,7 @@
         IF table_count = 1 AND constraint_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE table_measure DROP CONSTRAINT table_measure_pkey
+            ALTER TABLE regionlist DROP CONSTRAINT resionlist_pkey
             ';
         END IF;
         

@@ -2,7 +2,6 @@
     DECLARE
         
         table_count NUMBER;
-        constraint_count NUMBER;
     
     BEGIN
         
@@ -10,25 +9,17 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'MEASURELIST';
-
-        -- 制約の存在を確認
-        SELECT COUNT(*)
-        INTO constraint_count
-        FROM all_constraints
-        WHERE constraint_name = 'MEASURELIST_PKEY'
-        AND table_name = 'MEASURELIST';
+        WHERE table_name = 'TAGLIST';
     
 
         -- 
-        -- テーブルが存在して制約が存在しない場合のみ実行
+        -- テーブルが存在する場合のみ実行
     
         
-        IF table_count = 1 AND constraint_count = 0 THEN
+        IF table_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE measurelist
-                ADD CONSTRAINT measurelist_pkey PRIMARY KEY (name)
+            COMMENT ON TABLE taglist IS ''タグの一覧''
             
             ';
         END IF;

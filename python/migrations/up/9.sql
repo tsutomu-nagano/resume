@@ -9,7 +9,7 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_TAG';
+        WHERE table_name = 'TABLE_DIMENSION';
     
 
         -- 
@@ -19,9 +19,9 @@
         IF table_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            CREATE TABLE table_tag (
+            CREATE TABLE table_dimension (
                 statdispid VARCHAR2(255) NOT NULL,
-                tag_name VARCHAR2(255) NOT NULL
+                class_name VARCHAR2(255) NOT NULL
             )
             
             ';

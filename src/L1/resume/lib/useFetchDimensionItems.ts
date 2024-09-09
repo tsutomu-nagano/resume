@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { fetchDimensionItems } from "./apolloClient"
+import { fetchItems } from "./apolloClient"
 
-export const useFetchDimensionItems = (name: string) => {
+export const useFetchItems = (resource_name: string, name: string) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -9,7 +9,7 @@ export const useFetchDimensionItems = (name: string) => {
   const fetch = async () => {
     setLoading(true);
     try {
-      const data = await fetchDimensionItems(name);
+      const data = await fetchItems(resource_name, name);
       setData(data);
     } catch (err) {
       setError(err as Error);

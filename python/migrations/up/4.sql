@@ -9,17 +9,20 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'GOVLIST';
+        WHERE table_name = 'REGION_ITEM';
     
 
         -- 
-        -- テーブルが存在する場合のみ実行
+        -- テーブルが存在しない場合のみ実行
     
         
-        IF table_count = 1 THEN
+        IF table_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            COMMENT ON TABLE govlist IS ''府省名の一覧''
+            CREATE TABLE region_item (
+                class_name VARCHAR2(255) NOT NULL,
+                name VARCHAR2(500) NOT NULL
+            )
             
             ';
         END IF;

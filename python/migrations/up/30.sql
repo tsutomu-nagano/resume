@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_MEASURE';
+        WHERE table_name = 'TAGLIST';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'TABLE_MEASURE_STATDISPID_FKEY'
-        AND table_name = 'TABLE_MEASURE';
+        WHERE constraint_name = 'TAGLIST_PKEY'
+        AND table_name = 'TAGLIST';
     
 
         -- 
@@ -27,8 +27,8 @@
         IF table_count = 1 AND constraint_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE table_measure
-                ADD CONSTRAINT table_measure_statdispid_fkey FOREIGN KEY (statdispid) REFERENCES tablelist(statdispid) 
+            ALTER TABLE taglist
+                ADD CONSTRAINT taglist_pkey PRIMARY KEY (tag_name)
             
             ';
         END IF;

@@ -9,7 +9,7 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLELIST';
+        WHERE table_name = 'TABLE_REGION';
     
 
         -- 
@@ -19,12 +19,9 @@
         IF table_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            CREATE TABLE tablelist (
-                statcode VARCHAR2(255) NOT NULL,
+            CREATE TABLE table_region (
                 statdispid VARCHAR2(255) NOT NULL,
-                title CLOB,
-                cycle VARCHAR2(255) NOT NULL,
-                survey_date VARCHAR2(255) NOT NULL
+                class_name VARCHAR2(255) NOT NULL
             )
             
             ';

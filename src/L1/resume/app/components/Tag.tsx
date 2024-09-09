@@ -84,10 +84,11 @@ export default function Tag({ name, kind, simple = false }: TagProps) {
           </li>
         </ul>
         {
-          kind == "dimension" ? (
+          kind == "dimension" || kind == "region" ? (
             <>
               <DimensionItemInfo
                 id="example"
+                kind = {kind}
                 title={title}
                 name={name}
                 isOpen={isDrawerOpen}

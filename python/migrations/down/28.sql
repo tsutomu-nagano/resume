@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_DIMENSION';
+        WHERE table_name = 'TABLE_TAG';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'TABLE_DIMENSION_STATDISPID_FKEY'
-        AND table_name = 'TABLE_DIMENSION';
+        WHERE constraint_name = 'TABLE_TAG_PKEY'
+        AND table_name = 'TABLE_TAG';
     
 
         -- 
@@ -27,7 +27,7 @@
         IF table_count = 1 AND constraint_count = 1 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE table_dimension DROP CONSTRAINT table_dimension_statdispid_fkey
+            ALTER TABLE table_tag DROP CONSTRAINT table_tag_pkey
             ';
         END IF;
         

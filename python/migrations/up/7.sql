@@ -9,7 +9,7 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_DIMENSION';
+        WHERE table_name = 'STATLIST';
     
 
         -- 
@@ -19,9 +19,10 @@
         IF table_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            CREATE TABLE table_dimension (
-                statdispid VARCHAR2(255) NOT NULL,
-                class_name VARCHAR2(255) NOT NULL
+            CREATE TABLE statlist (
+                statcode VARCHAR2(255) NOT NULL,
+                statname VARCHAR2(255) NOT NULL,
+                govcode VARCHAR2(255) NOT NULL
             )
             
             ';

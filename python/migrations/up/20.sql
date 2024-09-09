@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLE_DIMENSION';
+        WHERE table_name = 'REGION_ITEM';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'TABLE_DIMENSION_PKEY'
-        AND table_name = 'TABLE_DIMENSION';
+        WHERE constraint_name = 'REGION_ITEM_PKEY'
+        AND table_name = 'REGION_ITEM';
     
 
         -- 
@@ -27,8 +27,8 @@
         IF table_count = 1 AND constraint_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE table_dimension
-                ADD CONSTRAINT table_dimension_pkey PRIMARY KEY (statdispid, class_name)
+            ALTER TABLE region_item
+                ADD CONSTRAINT region_item_pkey PRIMARY KEY (class_name, name)
             
             ';
         END IF;

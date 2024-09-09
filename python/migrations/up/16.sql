@@ -2,7 +2,6 @@
     DECLARE
         
         table_count NUMBER;
-        constraint_count NUMBER;
     
     BEGIN
         
@@ -10,25 +9,19 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'DIMENSIONLIST';
-
-        -- 制約の存在を確認
-        SELECT COUNT(*)
-        INTO constraint_count
-        FROM all_constraints
-        WHERE constraint_name = 'DIMENSIONLIST_PKEY'
-        AND table_name = 'DIMENSIONLIST';
+        WHERE table_name = 'TAGLIST';
     
 
         -- 
-        -- テーブルが存在して制約が存在しない場合のみ実行
+        -- テーブルが存在しない場合のみ実行
     
         
-        IF table_count = 1 AND constraint_count = 0 THEN
+        IF table_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE dimensionlist
-                ADD CONSTRAINT dimensionlist_pkey PRIMARY KEY (class_name)
+            CREATE TABLE taglist (
+                tag_name VARCHAR2(255) NOT NULL
+            )
             
             ';
         END IF;

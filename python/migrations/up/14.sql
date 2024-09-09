@@ -9,17 +9,23 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TAGLIST';
+        WHERE table_name = 'TABLELIST';
     
 
         -- 
-        -- テーブルが存在する場合のみ実行
+        -- テーブルが存在しない場合のみ実行
     
         
-        IF table_count = 1 THEN
+        IF table_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            COMMENT ON TABLE taglist IS ''タグの一覧''
+            CREATE TABLE tablelist (
+                statcode VARCHAR2(255) NOT NULL,
+                statdispid VARCHAR2(255) NOT NULL,
+                title CLOB,
+                cycle VARCHAR2(255) NOT NULL,
+                survey_date VARCHAR2(255) NOT NULL
+            )
             
             ';
         END IF;

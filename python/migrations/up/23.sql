@@ -10,14 +10,14 @@
         SELECT COUNT(*)
         INTO table_count
         FROM user_tables
-        WHERE table_name = 'TABLELIST';
+        WHERE table_name = 'GOVLIST';
 
         -- 制約の存在を確認
         SELECT COUNT(*)
         INTO constraint_count
         FROM all_constraints
-        WHERE constraint_name = 'TABLELIST_PKEY'
-        AND table_name = 'TABLELIST';
+        WHERE constraint_name = 'GOVLIST_PKEY'
+        AND table_name = 'GOVLIST';
     
 
         -- 
@@ -27,8 +27,8 @@
         IF table_count = 1 AND constraint_count = 0 THEN
     
             EXECUTE IMMEDIATE '
-            ALTER TABLE tablelist
-                ADD CONSTRAINT tablelist_pkey PRIMARY KEY (statdispid)
+            ALTER TABLE govlist
+                ADD CONSTRAINT govlist_pkey PRIMARY KEY (govcode)
             
             ';
         END IF;

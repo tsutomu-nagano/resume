@@ -13,6 +13,8 @@ import sys
 
 import pandas as pd
 
+from typing import Callable
+
 class OCI:
 
     user: str = None
@@ -24,6 +26,8 @@ class OCI:
     _base64_wallet_text: str = ""
     _work_dir: str = None
     _wallet_dir: str = None
+
+    logger: Callable[[str], None] = print
 
     def __init__(self,
                   user: str,
@@ -82,9 +86,15 @@ class OCI:
         return(self)
 
 
+    def set_logger(self,logger: Callable[[str], None]):
+        self.logger = logger
+    
     def insert_from_df(self, name:str, df:pd.DataFrame, batch_size: int = 0):
         
         if len(df) >= 1:
+            
+            self.logger(f"{name} Insert Start : {len(df)} Record")
+            
             columns = df.columns.values
 
             params = ",".join([f":{i + 1}" for i in range(len(columns))])
@@ -109,6 +119,7 @@ class OCI:
                         cursor.executemany(sql_insert, data_to_insert)
                         self.connection.commit()
         
+            self.logger(f"{name} Insert End ")
 
             
         

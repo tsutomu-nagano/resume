@@ -17,10 +17,10 @@ interface TableCardProps {
   tags: {tag_name: string}[]; 
   measures: {name: string}[]; 
   dimensions: {class_name: string}[];
-
+  regions: {class_name: string}[];
 }
 
-export default function TableCard({statdispid, statcode, cycle, survey_date, title, tags, measures, dimensions }: TableCardProps) {
+export default function TableCard({statdispid, statcode, cycle, survey_date, title, tags, measures, dimensions, regions }: TableCardProps) {
 
   const handleClick = () => {
     window.open(`https://www.e-stat.go.jp/dbview?sid=${statdispid}`, '_blank');
@@ -57,6 +57,9 @@ export default function TableCard({statdispid, statcode, cycle, survey_date, tit
           ))}
           {measures.map((measure: { name: string;}) => (
             <Tag key={measure.name} name={measure.name} kind="measure" />
+          ))}
+          {regions.map((region: { class_name: string;}) => (
+            <Tag key={region.class_name} name={region.class_name} kind="region" />
           ))}
         </div>
 
