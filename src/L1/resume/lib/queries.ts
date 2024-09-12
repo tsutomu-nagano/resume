@@ -57,11 +57,11 @@ export const GET_TABLE_LIST_COUNT = (items: Map<string, Set<string>>): DocumentN
 }
 
 
-export const GET_ITEMS = (resource_nam: string, name: string): DocumentNode =>  {
+export const GET_ITEMS = (resource_name: string, name: string): DocumentNode =>  {
 
     return(gql`
         query get_items {
-        item: ${resource_nam}(where: {CLASS_NAME: {_eq: "${name}"}}) {
+        item: ${resource_name}(where: {CLASS_NAME: {_eq: "${name}"}}) {
             name: NAME
         }
         }
@@ -93,8 +93,6 @@ export const GET_SEARCH_TAG_LIST = (
                 }
             }
     `;
-
-    console.log(test_query)
 
     return(gql`${test_query}`)
 

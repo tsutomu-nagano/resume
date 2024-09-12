@@ -5,7 +5,6 @@ import { SearchItemContext } from './SearchItemsContext';
 import { gql, useQuery } from "@apollo/client";
 import { createApolloClient } from "@/lib/apolloClient";
 import { GET_TABLE_LIST, GET_TABLE_LIST_COUNT } from '../../lib/queries';
-import { SearchParamsContext } from 'next/dist/shared/lib/hooks-client-context.shared-runtime';
 
 interface SearchItemProviderProps {
   children: ReactNode;

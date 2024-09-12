@@ -1,6 +1,5 @@
 // lib/apolloClient.ts
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
-import { GET_ITEMS } from './queries';
 
 export const createApolloClient = () => {
     return new ApolloClient({
@@ -16,11 +15,12 @@ export const createApolloClient = () => {
 };
 
 
-export const fetchItems = async (resource_name: string, name: string) => {
-  const client = createApolloClient();
-  const { data } = await client.query({
-    query: GET_ITEMS(resource_name, name)
-  });
-  return data.item;
-};
+// export const fetchItems = async (resource_name: string, name: string) => {
+//   const client = createApolloClient();
+
+//   const { data } = await useQuery(GET_ITEMS(resource_name, name),{
+//     skip: true
+//   });
+//   return data.item;
+// };
 
