@@ -25,12 +25,16 @@ export default function DimensionItemInfo({
 }: DimensionItemInfoProps) {
   // ポータルのためにドキュメントのルートにレンダリング
 
-  const resource_name: string = kind === "dimension" ? "DIMENSION_ITEM" : kind === "region" ? "REGION_ITEM" : "";
+  const resource_name: string = kind === "dimension" ? "DIMENSION_ITEM" : kind === "region" ? "DIMENSION_ITEM" : "";
+  // const resource_name: string = kind === "dimension" ? "DIMENSION_ITEM" : "";
   const { data, fetch, loading, error } = useFetchItems(resource_name, name);
 
   useEffect(() => {
-    fetch();
-  }, []);
+    if (isOpen){
+      console.log(`fetch: ${id}`)
+      fetch();
+    }
+  }, [isOpen]);
 
   return (
     <Drawer
