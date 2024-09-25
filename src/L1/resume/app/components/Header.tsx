@@ -15,6 +15,7 @@ export default function Header() {
                 <SearchItemSelector labelja="集計事項" labelen="" ref_names = {["TABLE_MEASUREs","TABLELIST"]} resource_name="MEASURELIST" resource_field="NAME" kind="measure" />
                 <SearchItemSelector labelja="地域事項" labelen="" ref_names = {["TABLE_REGIONs","TABLELIST"]} resource_name="REGIONLIST" resource_field="CLASS_NAME" kind="region" />
                 <SearchItemSelector labelja="分類事項" labelen="" ref_names = {["TABLE_DIMENSIONs", "TABLELIST"]} resource_name="DIMENSIONLIST" resource_field="CLASS_NAME" kind="dimension" />
+                <span className="ml-4 text-xs">このサービスは、政府統計総合窓口(e-Stat)のAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。</span>
             </div>
             <div className="ml-4"><SearchCountResult /></div>
             <SearchItems names={[""]} />
