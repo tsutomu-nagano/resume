@@ -35,7 +35,7 @@ const Tag: React.FC<TagProps> = ({ kind, name, operator, simple = false }) => {
 
   // ボタンクリック時に選択状態をトグルするハンドラ
   const handleButtonClick = () => {
-    isSelected ? removeItem(kind, name) : addItem(kind, name);
+    isSelected ? removeItem(kind, name, operator) : addItem(kind, name, operator);
     setIsSelected(!isSelected);
   };
 
