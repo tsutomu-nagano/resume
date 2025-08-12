@@ -84,8 +84,8 @@ export default function SearchItemSelector({ labelja, labelen = "", ref_names, r
             <>
               <div className="divider divider-start divider-primary">現在選択している{labelja}</div>
               <div className="flex flex-row flex-wrap">
-                {itemsArray.map(({ kind, itemName }) => (
-                  <Tag key={itemName} name={itemName} kind={kind} simple={true}/>
+                {itemsArray.map(({ kind, itemName, operator }) => (
+                  <Tag key={`${kind}:${itemName}:${operator}`} name={itemName} kind={kind} operator={operator} simple={true}/>
                 ))}
               </div>
             </>
@@ -116,7 +116,7 @@ export default function SearchItemSelector({ labelja, labelen = "", ref_names, r
           <div className="flex flex-wrap">
             {data?.items.map(
               (item: { name: string; }) => (
-                <Tag key={item.name} name={item.name} kind={kind} simple={true}/>
+                <Tag key={item.name} name={item.name} kind={kind} operator="_eq" simple={true}/>
               )
             )}
           </div>
@@ -125,5 +125,3 @@ export default function SearchItemSelector({ labelja, labelen = "", ref_names, r
     </div>
   );
 }
-
-
