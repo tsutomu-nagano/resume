@@ -14,22 +14,24 @@ import DimensionItemInfo from "./DimensionItemInfo";
 import Drawer from "./Drawer";
 
 interface TagProps {
-  name: string;
   kind: string;
+  name: string;
+  operator: string;
   simple?: boolean;
 }
 
-export default function Tag({ name, kind, simple = false }: TagProps) {
+const Tag: React.FC<TagProps> = ({ kind, name, operator, simple = false }) => {
 
   const { items, findItem, addItem, removeItem } = useSearchItem();
 
   // ボタンが選択されているかどうかを管理する状態
-  const [isSelected, setIsSelected] = useState(findItem(kind, name));
+  const [isSelected, setIsSelected] = useState(findItem(kind, name, operator));
 
   // itemSet が変更されたときに isSelected を更新
   useEffect(() => {
-    setIsSelected(findItem(kind, name));
-  }, [items, name]);
+    // findItem に operator 引数を追加
+    setIsSelected(findItem(kind, name, operator));
+  }, [kind, name, operator, findItem]); // 依存配列に operator を追加
 
   // ボタンクリック時に選択状態をトグルするハンドラ
   const handleButtonClick = () => {
@@ -119,3 +121,5 @@ export default function Tag({ name, kind, simple = false }: TagProps) {
     )
   
 }
+
+export default Tag;
