@@ -22,11 +22,12 @@
 | ----- | --------------- | 
 | Frontend | Nextjs + TypeScript |
 | CSS | daisyUI + Tailwind | 
-| Backend | HasuraCloud(graphQL) + Neon(postgres) | 
-| Worker | R + github Action |
+| Backend | HasuraCloud(graphQL) + OCI(Oracle) | 
 | deploy | Vercel |
 
 - 基本的にクラウドサービスはどれも無料プランです。
+- データを管理しているリポジトリが別にあります [resume-data](https://github.com/tsutomu-nagano/resume-data)
+  - github-action + R + Python で日時で更新のあったデータをOracleのDBに反映しています 
 
 ## Note
 - このサービスは、政府統計総合窓口(e-Stat)のAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。
