@@ -63,4 +63,22 @@ services:
 
     command: "/bin/bash"
 
+  app-test:
+    image: node:18.18
+    container_name: resume-L1-test
+
+    stdin_open: true
+    tty: true
+
+    env_file:
+      - .env
+      - .env.local
+
+    volumes:
+      - ./src/L1/resume:/home
+
+    working_dir: /home
+
+    command: "sh -c 'npm install && npm test'"
+
     
