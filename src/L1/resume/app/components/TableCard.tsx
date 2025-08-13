@@ -50,16 +50,16 @@ export default function TableCard({statdispid, statcode, cycle, survey_date, tit
         <h2 className="card-title mb-5">{title}</h2>
         <div className="flex flex-wrap flex-row gap-3">
           {tags.map((tag: { tag_name: string;}) => (
-            <Tag key={tag.tag_name} name={tag.tag_name} kind="thema" />
+            <Tag key={tag.tag_name} name={tag.tag_name} kind="thema" operator="_eq" />
           ))}
           {dimensions.map((dimension: { class_name: string;}) => (
-            <Tag key={dimension.class_name} name={dimension.class_name} kind="dimension" />
+            <Tag key={dimension.class_name} name={dimension.class_name} kind="dimension" operator="_eq" />
           ))}
           {measures.map((measure: { name: string;}) => (
-            <Tag key={measure.name} name={measure.name} kind="measure" />
+            <Tag key={measure.name} name={measure.name} kind="measure" operator="_eq" />
           ))}
           {regions.map((region: { class_name: string;}) => (
-            <Tag key={region.class_name} name={region.class_name} kind="region" />
+            <Tag key={region.class_name} name={region.class_name} kind="region" operator="_eq" />
           ))}
         </div>
 

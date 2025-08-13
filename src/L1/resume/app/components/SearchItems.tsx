@@ -26,11 +26,12 @@ export default function SearchItems({ names }: SearchItemsProps) {
   return (
     <div className="bg-base-100 w-full p-4 shadow-xl flex flex-row gap-2 items-center">
       <span>検索条件</span>
-      {Array.from(items.entries()).map(([kind, names])  => (
-        Array.from(names).map(name => (
-          <Tag key={name} name={name} kind={kind} />
-        ))
-      ))}
+      {Array.from(items.entries()).map(([key, names]) => {
+        const [kind, operator] = key.split(':');
+        return Array.from(names).map(name => (
+          <Tag key={`${key}:${name}`} name={name} kind={kind} operator={operator} />
+        ));
+      })}
       {/* Open the modal using document.getElementById('ID').showModal() method */}
       <button className="btn btn-outline items-center ml-auto" onClick={handleClick}><GrGraphQl />graphQLを表示</button>
       <dialog id="view_graphQL" className="modal">
@@ -45,4 +46,3 @@ export default function SearchItems({ names }: SearchItemsProps) {
     </div>
   );
 }
-

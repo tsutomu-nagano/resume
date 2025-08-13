@@ -35,54 +35,63 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
 
   // 値を追加する関数
-  const addItem = (kind: string, itemName: string) => {
+  const addItem = (kind: string, itemName: string, operator: string) => {
     resetSearch()
     setItemSet(prevSet => {
       const newSet = new Map(prevSet);
-      const currentItems = newSet.get(kind) || new Set<string>();
+      const key = `${kind}:${operator}`;
+      const currentItems = newSet.get(key) || new Set<string>();
       currentItems.add(itemName); // Set にアイテムを追加
-      newSet.set(kind, currentItems);
+      newSet.set(key, currentItems);
       return newSet;
     });
   };
 
   // 値を削除する関数
-  const removeItem = (kind: string, itemName: string) => {
+  const removeItem = (kind: string, itemName: string, operator: string) => {
     resetSearch()
     setItemSet(prevSet => {
       const newSet = new Map(prevSet);
-      const currentItems = newSet.get(kind) || new Set<string>();
+      const key = `${kind}:${operator}`;
+      const currentItems = newSet.get(key) || new Set<string>();
       currentItems.delete(itemName); // Set からアイテムを削除
       if (currentItems.size === 0) {
-        newSet.delete(kind); // Set が空になった場合、Map からも削除
+        newSet.delete(key); // Set が空になった場合、Map からも削除
       } else {
-        newSet.set(kind, currentItems); // 更新された Set を Map に保存
+        newSet.set(key, currentItems); // 更新された Set を Map に保存
       }
       return newSet;
     });
   };
 
   // 値の存在を確認する確認
-  const findItem = (kind: string, itemName: string) => {
-    return (items.has(kind) && items.get(kind)?.has(itemName) || false)
+  const findItem = (kind: string, itemName: string, operator: string) => {
+    const key = `${kind}:${operator}`;
+    return (items.has(key) && items.get(key)?.has(itemName) || false)
   };
 
   // 検索アイテムを配列で返す関数
-  const getItemsArray = (kind: string = ""): { kind: string, itemName: string }[] => {
+  const getItemsArray = (kind: string = ""): { kind: string, itemName: string, operator: string }[] => {
 
-    let result: { kind: string, itemName: string }[] = []
+    let result: { kind: string, itemName: string, operator: string }[] = []
 
     if (kind === "") {
-      result = Array.from(items.entries()).flatMap(([kind_, names]) =>
-        Array.from(names).map(itemName => ({ kind: kind_, itemName })))
+      result = Array.from(items.entries()).flatMap(([key, names]) => {
+        const [kind, operator] = key.split(':');
+        return Array.from(names).map(itemName => ({ kind, itemName, operator }))
+      })
 
     } else {
-      const items_of_kind = items.get(kind);
-
-      if (items_of_kind) {
-        result = Array.from(items_of_kind).map(itemName => ({ kind, itemName }))
+      // This part needs to be updated to handle the operator
+      // For now, it will only handle the _eq operator
+      const items_of_kind_eq = items.get(`${kind}:_eq`);
+      if (items_of_kind_eq) {
+        result = Array.from(items_of_kind_eq).map(itemName => ({ kind, itemName, operator: '_eq' }))
       }
-
+      const items_of_kind_neq = items.get(`${kind}:_neq`);
+      if (items_of_kind_neq) {
+        result = result.concat(Array.from(items_of_kind_neq).map(itemName => ({ kind, itemName, operator: '_neq' })))
+      }
     }
     return (result)
   };

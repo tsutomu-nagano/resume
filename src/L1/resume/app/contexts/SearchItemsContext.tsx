@@ -7,10 +7,10 @@ import React, { createContext, useState, ReactNode } from 'react';
 // Contextの型定義
 interface SearchItemContextType {
   items: Map<string, Set<string>>;
-  getItemsArray: (kind?: string) => ({kind: string, itemName:string}[]);
-  findItem: (kind:string, itemName:string) => boolean;
-  addItem: (kind:string, itemName:string) => void;
-  removeItem: (kind:string, itemName:string) => void;
+  getItemsArray: (kind?: string) => ({kind: string, itemName:string, operator: string}[]);
+  findItem: (kind:string, itemName:string, operator: string) => boolean;
+  addItem: (kind:string, itemName:string, operator: string) => void;
+  removeItem: (kind:string, itemName:string, operator: string) => void;
 
   searchQuery: DocumentNode;
 
