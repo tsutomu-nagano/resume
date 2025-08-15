@@ -19,7 +19,7 @@ interface TagProps {
   simple?: boolean;
 }
 
-export default function Tag({ name, kind, simple = false }: TagProps) {
+export function Tag({ name, kind, simple = false }: TagProps) {
 
   const { items, findItem, addItem, removeItem } = useSearchItem();
 

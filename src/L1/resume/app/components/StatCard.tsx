@@ -10,7 +10,7 @@ interface StatCardProps {
   govname: string;
 }
 
-export default function StatCard({ statcode, statname, govname }: StatCardProps) {
+export function StatCard({ statcode, statname, govname }: StatCardProps) {
   return (
     <div className="card bg-base-100 w-200 shadow-xl">
       <div className="card-body">
