@@ -2,12 +2,12 @@ import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 
 import { fn } from 'storybook/test';
 
-import { StatCard } from '@components/StatCard';
+import { Header } from '@/app/components/Header';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
-const meta: Meta<typeof StatCard> = {
-  title: 'Example/StatCard',
-  component: StatCard,
+const meta: Meta<typeof Header> = {
+  title: 'Components/Header',
+  component: Header,
   parameters: {
     // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
     layout: 'centered',
@@ -25,14 +25,11 @@ const meta: Meta<typeof StatCard> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof StatCard>;
+type Story = StoryObj<typeof Header>;
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
-export const Primary: Story = {
+export const Default: Story = {
   args: {
-    statcode: "TEST",
-    statname: 'dimension',
-    govname: "TEST"
   },
 };
 
