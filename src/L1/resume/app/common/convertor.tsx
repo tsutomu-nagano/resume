@@ -4,7 +4,7 @@ import { FaRegFolder } from "react-icons/fa";
 import { TbSum } from "react-icons/tb";
 import { TbMapPin } from "react-icons/tb";
 import { LuDatabase } from "react-icons/lu";
-LuDatabase
+import { RiTimeLine } from "react-icons/ri";
 
 const iconMap: Record<string, JSX.Element> = {
     stat: <SlNote />,
@@ -12,7 +12,8 @@ const iconMap: Record<string, JSX.Element> = {
     dimension: <BsTag />,
     thema: <FaRegFolder />,
     region: <TbMapPin />,
-    db: <LuDatabase />
+    db: <LuDatabase />,
+    time: <RiTimeLine />
 };
 
 export const renderIconByKind = (kind: string) => {
@@ -34,6 +35,8 @@ export function descriptionByKind(kind: string): string {
             return "統計データにおける地理的変数";
         case 'thema':
             return "統計作成機関で設定しているカテゴリ";
+        case 'time':
+            return "統計データの時点";
         default:
             return "その他";
     }
@@ -54,6 +57,8 @@ export function kind_en2ja(kind: string): string {
             return "地域事項";
         case 'thema':
             return "提供分類等";
+        case 'time':
+            return "時間軸事項";
         default:
             return "その他";
     }
