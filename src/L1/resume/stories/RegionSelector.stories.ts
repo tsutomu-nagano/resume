@@ -2,12 +2,12 @@ import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 
 import { fn } from 'storybook/test';
 
-import { TableCard } from '@/app/components/TableCard';
+import { RegionSelector } from '@/app/components/RegionSelector';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
-const meta: Meta<typeof TableCard> = {
-  title: 'Components/TableCard',
-  component: TableCard,
+const meta: Meta<typeof RegionSelector> = {
+  title: 'Components/RegionSelector',
+  component: RegionSelector,
   parameters: {
     // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
     layout: 'centered',
@@ -25,34 +25,20 @@ const meta: Meta<typeof TableCard> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof TableCard>;
+type Story = StoryObj<typeof RegionSelector>;
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const Default: Story = {
   args: {
-    statdispid: "統計表表示ID",
-    statcode: "政府統計コード",
-    cycle: "調査周期",
-    survey_date: "調査年月日",
-    title: "表題",
-    tags: [
-      {tag_name: "TEST1"},
-    ],
+
+    onScopeChange: (scope:{name:string, checked:boolean}) => {
+      alert(`${scope.name} : ${scope.checked}`)
+    },
+
+    onSearch: (word:string) => {alert(word)},
   },
 };
 
-export const Selected: Story = {
-  args: {
-    statdispid: "統計表表示ID",
-    statcode: "政府統計コード",
-    cycle: "調査周期",
-    survey_date: "調査年月日",
-    title: "性別、学歴別、年齢階級別人口",
-    tags: [
-      {tag_name: "TEST1"},
-    ],
-  },
-};
 
 
 

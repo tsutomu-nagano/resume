@@ -12,11 +12,10 @@ interface DrawerProps {
   onToggle: () => void; // Drawerの開閉をトグルする関数
 }
 
-export default function Drawer({
+export function Drawer({
   id,
   title,
   children,
-  sidebarContent,
   isOpen,
   onToggle,
 }: DrawerProps) {
@@ -30,29 +29,18 @@ export default function Drawer({
         className="drawer-toggle"
         checked={isOpen}
         readOnly
-        // onChange={() => {
-        //     console.log("change checked")
-        // }}
       />
-      <div className="drawer-content z-50">
-        {children}
-      </div>
       <div className="drawer-side z-40">
         <label
           htmlFor={`my-drawer-${id}`}
           aria-label="close sidebar"
           className="drawer-overlay"
-          onClick={() => {
-            console.log("click overlay")
-            // isOpen = false;
-            onToggle()
-        }}
+          onClick={() => {onToggle()}}
         ></label>
         <ul className="menu bg-base-200 text-base-content min-h-full w-2/5 p-4">
           <h1 className="text-3xl font-bold">{title}</h1>
           <div className="divider divider-primary" />
-          {/* Sidebar content */}
-          {sidebarContent || (
+          {children || (
             <>
               <li>
                 <a>Sidebar Item 1</a>

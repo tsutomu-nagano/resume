@@ -2,7 +2,7 @@
 
 import { useRef, useEffect } from 'react';
 import { useSearchItem } from "../contexts/SearchItemsProvider";
-import TableCard from "./TableCard";
+import { TableCard } from "./TableCard";
 import { InfiniteScrollContainer } from './InfiniteScrollContainer'
 
 
@@ -34,6 +34,8 @@ export default function TableList() {
                         statcode: string;
                         survey_date: string;
                         title: string;
+                        year_s: string;
+                        year_e: string;
                         table_tags: { tag_name: string }[];
                         table_measures: { name: string }[];
                         table_dimensions: { class_name: string }[];
@@ -43,6 +45,8 @@ export default function TableList() {
                             key={tbl.statdispid}
                             statdispid={tbl.statdispid}
                             title={tbl.title}
+                            year_s={tbl.year_s}
+                            year_e={tbl.year_e}
                             cycle={tbl.cycle}
                             statcode={tbl.statcode}
                             survey_date={tbl.survey_date}

@@ -1,13 +1,14 @@
 // src/app/StatCard.tsx
 "use client";
 
-import { FaChevronDown } from "react-icons/fa6";
+import { FaChevronDown, FaCircleExclamation  } from "react-icons/fa6";
 import { renderIconByKind } from "../common/convertor";
 import React from "react";
 
 import { yearSchema } from "@schemas/yearSchema";
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+
 import * as z from 'zod';
 
 
@@ -46,7 +47,7 @@ export function TimeSelector({ onSubmit }: TimeSelectorProps) {
   const labelja = "調査年"
 
 
-  const handleFormSubmit: SubmitHandler<Schema> = (data) => {
+  const handleFormSubmit: SubmitHandler<Schema> = (data: Schema) => {
     // data.fromYear, data.toYear は既に数値化されている想定
     onSubmit(data.fromYear, data.toYear);
   };
@@ -64,28 +65,28 @@ export function TimeSelector({ onSubmit }: TimeSelectorProps) {
           <form onSubmit={handleSubmit(handleFormSubmit)}>
             <fieldset className="fieldset">
               <div className="flex flex-row items-center gap-3">
-                <div>
-                  <legend className="fieldset-legend">開始年</legend>
+                <label className={`input input-bordered flex items-center gap-2 ${errors.fromYear ? 'border-red-500 bg-red-500/25' : ''}`}>
                   <input
                     type="text"
-                    className={`input input-bordered ${errors.fromYear ? 'border-red-500' : ''} w-40`}
+                    className="w-20"
                     placeholder="開始年"
                     {...register("fromYear")}
                   />
-                </div>
-                <span>〜</span>
-                <div>
-                  <legend className="fieldset-legend">終了年</legend>
+                  <FaCircleExclamation className={errors.fromYear ? "text-red-500" : "opacity-0"} />
+                </label>
+                <span className="align-baseline">〜</span>
+                <label className={`input input-bordered flex items-center gap-2 ${errors.toYear ? 'border-red-500 bg-red-500/25' : ''}`}>
                   <input
                     type="text"
-                    className="input input-bordered w-40"
+                    className="w-20 bg-transparent"
                     placeholder="終了年"
                     {...register("toYear")}
                   />
-                </div>
+                  <FaCircleExclamation className={errors.toYear ? "text-red-500" : "opacity-0"} />
+                </label>
               </div>
-              {errors.fromYear && <p className="text-red-500">{errors.fromYear.message}</p>}
-              {errors.toYear && <p className="text-red-500">{errors.toYear.message}</p>}
+              {errors.fromYear && <p className="text-red-500">{`開始年は${errors.fromYear.message}`}</p>}
+              {errors.toYear && <p className="text-red-500">{`終了年は${errors.toYear.message}`}</p>}
               <p className="label">例. 2022</p>
             </fieldset>
             <button type="submit" className="btn btn-primary mt-2">検索</button>
