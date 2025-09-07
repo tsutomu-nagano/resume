@@ -1,10 +1,13 @@
 "use client"; // このファイルはクライアントサイドでのみ実行される
 import React, { useContext, useState, ReactNode, useMemo, useEffect } from 'react';
-import { SearchItemContext } from './SearchItemsContext';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 import { gql, useQuery } from "@apollo/client";
 import { createApolloClient } from "@/lib/apolloClient";
+
+import { SearchItemContext } from './SearchItemsContext';
 import { GET_TABLE_LIST, GET_TABLE_LIST_COUNT } from '../../lib/queries';
+
 
 interface SearchItemProviderProps {
   children: ReactNode;
@@ -12,6 +15,24 @@ interface SearchItemProviderProps {
 
 export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
+  // URLの検索条件を設定する関数
+  function SetItemsFromURL() {
+
+    // resetSearch()
+    const newItems = new Map<string, Set<string>>();
+
+    searchParams.forEach((value, key) => {
+      const currentItems = new Set<string>([value]);
+      newItems.set(key, currentItems);
+    });
+
+    return(newItems)
+  }
+
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const [offset, setOffset] = useState<number>(0);
   const [isLast, setIsLast] = useState(false);
@@ -21,7 +42,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const [items, setItemSet] = useState<Map<string, Set<string>>>(new Map<string, Set<string>>());
+  const [items, setItemSet] = useState<Map<string, Set<string>>>(SetItemsFromURL);
   const limit: number = 5;
 
   const client = createApolloClient();
@@ -34,6 +55,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   };
 
 
+
   // 値を追加する関数
   const addItem = (kind: string, itemName: string) => {
     resetSearch()
@@ -43,7 +65,16 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       currentItems.add(itemName); // Set にアイテムを追加
       newSet.set(kind, currentItems);
       return newSet;
-    });
+    })
+    const params = new URLSearchParams(searchParams.toString());
+    const existingValues = params.getAll(kind);
+
+    if (!existingValues.includes(itemName)) {
+      params.append(kind, itemName);
+    }
+
+    router.push(`${pathname}?${params.toString()}`);
+    ;
   };
 
   // 値を削除する関数
@@ -59,7 +90,12 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         newSet.set(kind, currentItems); // 更新された Set を Map に保存
       }
       return newSet;
-    });
+    })
+    const params = new URLSearchParams(searchParams.toString());
+    const values = params.getAll(kind).filter(v => v !== itemName);
+    params.delete(kind);
+    values.forEach(v => params.append(kind, v));
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   // 値の存在を確認する確認
@@ -93,7 +129,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     try {
 
       const query = countQuery;
-      const result = await client.query({query});
+      const result = await client.query({ query });
 
       setCountResult(result.data.tablelist_aggregate.aggregate)
 
@@ -118,7 +154,15 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       });
 
       if (result.data.tablelist.length != 0) {
-        setSearchResult(prevData => [...prevData, ...result.data.tablelist]);
+        setSearchResult(prevData => {
+          const existingIds = new Set(prevData.map(item => item.statdispid));
+
+          const newData = result.data.tablelist.filter(
+            (item: any) => !existingIds.has(item.statdispid)
+          );
+
+          return [...prevData, ...newData];
+        });
         setOffset(prevOffSet => prevOffSet + limit)
       } else {
         setIsLast(true)
@@ -134,7 +178,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
   useEffect(() => {
     fetchCount();
-  }, [items]); 
+  }, [items]);
+
 
   return (
     <SearchItemContext.Provider

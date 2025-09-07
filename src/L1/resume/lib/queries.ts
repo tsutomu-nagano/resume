@@ -7,6 +7,8 @@ export const GET_TABLE_LIST = (items: Map<string, Set<string>>): DocumentNode =>
     // const searchCondition: string = `_and: [ ${BuilderCondition(items).join(",")} ]`;
     const searchCondition: string = `${BuilderCondition(items).join(",")}`;
 
+    console.log("searchCondition:", searchCondition);
+
     return(gql`
         query GetTableList($limit_number: Int, $offset_number: Int) {
             tablelist: TABLELIST(
@@ -20,6 +22,8 @@ export const GET_TABLE_LIST = (items: Map<string, Set<string>>): DocumentNode =>
                 statcode: STATCODE
                 survey_date: SURVEY_DATE
                 title: TITLE
+                year_s: YEAR_S
+                year_e: YEAR_E
                 table_tags: TABLE_TAGs {
                     tag_name: TAG_NAME
                 }
@@ -30,7 +34,7 @@ export const GET_TABLE_LIST = (items: Map<string, Set<string>>): DocumentNode =>
                     class_name: CLASS_NAME
                 }
                 table_regions: TABLE_REGIONs {
-                    class_name: CLASS_NAME
+                    class_name: NAME
                 }
             }
         }

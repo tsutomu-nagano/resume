@@ -1,6 +1,6 @@
 services:
   app:
-    image: node:18.18
+    image: node:20
     container_name: resume-L1
 
     stdin_open: true
@@ -19,5 +19,3 @@ services:
     working_dir: /home
 
     command: "/bin/bash"
-
-    
