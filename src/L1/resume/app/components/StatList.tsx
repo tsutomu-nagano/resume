@@ -3,7 +3,7 @@
 
 import { gql } from '@apollo/client';
 import { createApolloClient } from '@/lib/apolloClient';
-import StatCard from './StatCard';
+import { StatCard } from './StatCard';
 import React, { useEffect, useState } from "react";
 
 

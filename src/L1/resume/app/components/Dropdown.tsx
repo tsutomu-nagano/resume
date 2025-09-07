@@ -1,5 +1,5 @@
 
-import { ReactPortal, useState, ReactNode, Children } from "react";
+import { ReactPortal, useState, ReactNode  } from "react";
 import { TbFilterPlus, TbFilterX } from "react-icons/tb";
 import { FiInfo } from "react-icons/fi";
 import { renderIconByKind } from "../common/convertor";
@@ -12,9 +12,10 @@ interface DropdownProps {
   onClick: () => void;
   kind: string;
   name: string;
+  children?: ReactNode
 }
 
-export function Dropdown({ isSelected, onClick, kind, name,children  }: DropdownProps) {
+export function Dropdown({ isSelected, onClick, kind, name, children  }: DropdownProps) {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const toggleDrawer = () => {
     setDrawerOpen(prev => !prev)

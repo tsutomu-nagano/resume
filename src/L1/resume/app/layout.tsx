@@ -3,7 +3,7 @@ import { Inter, Noto_Sans_JP} from "next/font/google";
 import "./globals.css";
 import ClientProvider from '../lib/ClientProvider'; // 先ほど作成したClientProviderをインポート
 import {SearchItemProvider} from './contexts/SearchItemsProvider';
-import Header from './components/Header'
+import { Header } from './components/Header'
 
 
 // 使用したいフォントの設定

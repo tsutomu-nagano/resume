@@ -7,7 +7,7 @@ import { RegionSelectorContainer as RegionSelector} from './RegionSelector.conta
 import { TimeSelectorContainer as TimeSelector} from './TimeSelector.container';
 import {SearchCountResultContainer as SearchCountResult} from "./SearchCountResult.container"
 
-export default function Header() {
+export function Header() {
 
     return (
         <header className="flex flex-col gap-2">

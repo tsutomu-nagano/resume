@@ -1,3 +1,4 @@
+import { useState, ReactNode, useEffect } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_ITEMS } from "@/lib/queries";
 import { DimensionItemInfo } from "./DimensionItemInfo";
@@ -29,20 +30,21 @@ export function DimensionItemInfoContainer({
     { skip: !isOpen }
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       refetch();
     }
   }, [isOpen]);
 
   return (
-    <DimensionItemInfo
-      title={title}
-      isOpen={isOpen}
-      onToggle={onToggle}
-      loading={loading}
-      error={error instanceof Error ? error : null}
-      items={data?.item ?? []}
-    />
+    <span>TEST</span>
+    // <DimensionItemInfo
+    //   title={title}
+    //   isOpen={isOpen}
+    //   onToggle={onToggle}
+      // loading={loading}
+      // error={error instanceof Error ? error : null}
+      // items={data?.item ?? []}
+    // />
   );
 }

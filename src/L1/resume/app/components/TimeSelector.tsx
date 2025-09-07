@@ -13,8 +13,8 @@ import * as z from 'zod';
 
 
 const schema = z.object({
-  fromYear: yearSchema,
-  toYear: yearSchema
+  fromYear: yearSchema.optional(),
+  toYear: yearSchema.optional()
   // }).refine(({ fromYear, toYear }) => Number(fromYear) <= Number(toYear), {
   //   message: "終了年は開始年以降を指定してください",
   //   path: ["toYear"],
@@ -34,10 +34,6 @@ export function TimeSelector({ onSubmit }: TimeSelectorProps) {
     handleSubmit,
     formState: { errors },
   } = useForm<Schema>({
-    defaultValues: {
-      fromYear: undefined,
-      toYear: undefined
-    },
     resolver: zodResolver(schema),
     mode: "onBlur",
   });
@@ -48,8 +44,14 @@ export function TimeSelector({ onSubmit }: TimeSelectorProps) {
 
 
   const handleFormSubmit: SubmitHandler<Schema> = (data: Schema) => {
-    // data.fromYear, data.toYear は既に数値化されている想定
-    onSubmit(data.fromYear, data.toYear);
+
+    const fromYear = data.fromYear ?? "";
+    const toYear = data.toYear ?? "";
+    
+    if (fromYear !== "" || toYear !== "") {
+      onSubmit(fromYear, toYear);
+    }    
+
   };
 
   return (

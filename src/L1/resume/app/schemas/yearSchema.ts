@@ -45,6 +45,7 @@ function toAD(yearStr: string): number | null {
 export const yearSchema = z
   .string()
   .optional()
+  .default("")
   .refine(val => !val || yearRegexp.test(val), {
     message: "西暦4桁または和暦で入力してください",
   })
@@ -55,4 +56,4 @@ export const yearSchema = z
       throw new Error("変換できません");
     }
     return String(ad);
-  });
+  })
