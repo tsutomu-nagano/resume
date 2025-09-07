@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from 'react'
 import SearchItems from './SearchItems';
 import SearchItemSelector from './SearchItemSelector';
 import { RegionSelectorContainer as RegionSelector} from './RegionSelector.container';

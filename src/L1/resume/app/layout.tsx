@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Inter, Noto_Sans_JP} from "next/font/google";
+import { Inter, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import ClientProvider from '../lib/ClientProvider'; // 先ほど作成したClientProviderをインポート
-import {SearchItemProvider} from './contexts/SearchItemsProvider';
+import { SearchItemProvider } from './contexts/SearchItemsProvider';
 import { Header } from './components/Header'
-
+import { Suspense } from "react";
 
 // 使用したいフォントの設定
 const noto = Noto_Sans_JP({
@@ -30,14 +30,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <ClientProvider>
-      <SearchItemProvider>
-      <body className={noto.className}>
-        <div className="flex flex-col gap-10">
-          <Header />
-          <main className="">{children}</main>
-        </div>
-      </body>
-      </SearchItemProvider>
+        <Suspense>
+        <SearchItemProvider>
+            <body className={noto.className}>
+              <div className="flex flex-col gap-10">
+                <Header />
+                <main className="">{children}</main>
+              </div>
+            </body>
+        </SearchItemProvider>
+</Suspense>
       </ClientProvider>
     </html>
   );

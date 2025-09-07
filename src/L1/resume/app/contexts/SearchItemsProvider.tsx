@@ -8,6 +8,7 @@ import { createApolloClient } from "@/lib/apolloClient";
 import { SearchItemContext } from './SearchItemsContext';
 import { GET_TABLE_LIST, GET_TABLE_LIST_COUNT } from '../../lib/queries';
 
+
 interface SearchItemProviderProps {
   children: ReactNode;
 }
