@@ -14,8 +14,8 @@ interface TableCardProps {
   cycle: string;
   survey_date: string;
   title: string;
-  year_s: number;
-  year_e: number;
+  year_s: string;
+  year_e: string;
   tags?: { tag_name: string }[];
   measures?: { name: string }[];
   dimensions?: { class_name: string }[];
@@ -27,7 +27,7 @@ export function TableCard({ statdispid, statcode, cycle, survey_date, title, yea
 
 
     const year_view: string  = year_s === year_e
-                              ? (year_s === 0 ? "-" : String(year_s))
+                              ? (year_s === "0" ? "-" : year_s)
                               : `${year_s} - ${year_e}`
 
 
@@ -57,7 +57,7 @@ export function TableCard({ statdispid, statcode, cycle, survey_date, title, yea
           </div>
           <div className="flex flex-row items-center gap-2">
             {renderIconByKind("region")}
-            <span>{regions?.length > 0 ? "都道府県別" : "-"}</span>
+            <span>{regions && regions.length > 0 ? "都道府県別" : "-"}</span>
           </div>
         </div>
         <h2 className="card-title mb-5">{title}</h2>
