@@ -50,6 +50,7 @@ export function RegionSelector({ onScopeChange, onSearch, children  }: RegionSel
 
   const handleFormSubmit: SubmitHandler<Schema> = (data: Schema) => {
     // data.fromYear, data.toYear は既に数値化されている想定
+    console.log(data.word)
     onSearch(data.word);
   };
 

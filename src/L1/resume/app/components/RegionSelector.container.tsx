@@ -37,23 +37,19 @@ export function RegionSelectorContainer() {
   const resource_field = "NAME"
   const ref_names = ["TABLE_REGIONs", "TABLELIST"]
 
-  const searchQuery = useMemo(() => GET_SEARCH_TAG_LIST(resource_name,resource_field, ref_names, searchTerm, items), [items, resource_field,searchTerm ]);
-
   const onScopeChange = (scope:{name:string, checked:boolean}) => {
 
   }
 
+
   const onSearch = async (word:string) => {
-    setSearchTerm(word)
 
     try {
+      const searchQuery = GET_SEARCH_TAG_LIST(resource_name,resource_field, ref_names, word, items);
       const query = searchQuery;
 
-      console.log(query)
       const { data } = await client.query({query})
       setData(data)
-
-      console.log(data)
 
     } catch (err) {
       setError(err as Error);
