@@ -1,6 +1,8 @@
+"use client";
+
 // Drawer.tsx
 import { setupListeners } from "@reduxjs/toolkit/query";
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 interface DrawerProps {
@@ -20,6 +22,15 @@ export function Drawer({
   onToggle,
 }: DrawerProps) {
   // ポータルのためにドキュメントのルートにレンダリング
+
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // ブラウザ側でのみ実行されるので document.body を安全に参照できる
+    setContainer(document.body);
+  }, []);
+
+  if (!container) return null;
 
   return createPortal(
     <div className="drawer drawer-end">
@@ -53,6 +64,6 @@ export function Drawer({
         </ul>
       </div>
     </div>,
-    document.body // ポータルのターゲットをドキュメントのボディに設定
+    container // ポータルのターゲットをドキュメントのボディに設定
   );
 }

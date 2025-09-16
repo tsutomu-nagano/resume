@@ -39,7 +39,7 @@ export default function TableList() {
                         table_tags: { tag_name: string }[];
                         table_measures: { name: string }[];
                         table_dimensions: { class_name: string }[];
-                        table_regions: { class_name: string }[];
+                        table_regions: { regiontype: string }[];
                     }) => (
                         <TableCard
                             key={tbl.statdispid}

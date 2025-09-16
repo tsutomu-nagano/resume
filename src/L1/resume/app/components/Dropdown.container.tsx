@@ -1,3 +1,4 @@
+"use client";
 
 import { useState, ReactNode, useEffect } from "react";
 import { TbFilterPlus, TbFilterX } from "react-icons/tb";
