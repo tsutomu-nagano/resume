@@ -33,8 +33,8 @@ export const GET_TABLE_LIST = (items: Map<string, Set<string>>): DocumentNode =>
                 table_dimensions: TABLE_DIMENSIONs {
                     class_name: CLASS_NAME
                 }
-                table_regions: TABLE_REGIONs {
-                    class_name: NAME
+                table_regions: TABLE_REGIONTYPEs {
+                    regiontype: REGIONTYPE
                 }
             }
         }
@@ -73,6 +73,9 @@ export const GET_ITEMS = (resource_name: string, name: string): DocumentNode => 
 }
 
 
+
+
+
 export const GET_SEARCH_TAG_LIST = (
     name: string, 
     field: string,
@@ -98,6 +101,7 @@ export const GET_SEARCH_TAG_LIST = (
             }
     `;
 
+    console.log(test_query)
     return(gql`${test_query}`)
 
 }

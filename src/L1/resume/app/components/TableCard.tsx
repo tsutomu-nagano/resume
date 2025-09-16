@@ -5,7 +5,7 @@ import { BiHash } from "react-icons/bi";
 import { RiLoopLeftFill } from "react-icons/ri";
 import { TbDatabaseShare } from "react-icons/tb";
 import { DropdownContainer as Tag } from './Dropdown.container';
-import { renderIconByKind, descriptionByKind } from "../common/convertor";
+import { renderIconByKind } from "../common/convertor";
 
 
 interface TableCardProps {
@@ -19,19 +19,23 @@ interface TableCardProps {
   tags?: { tag_name: string }[];
   measures?: { name: string }[];
   dimensions?: { class_name: string }[];
-  regions?: { class_name: string }[];
+  regions?: { regiontype: string }[];
 }
 
 export function TableCard({ statdispid, statcode, cycle, survey_date, title, year_s, year_e, tags, measures, dimensions, regions }: TableCardProps) {
 
 
+  const regionLabel = new Map<string, string>([
+    ["ken", "都道府県"],
+    ["city", "市区町村"],
+  ]);
 
-    const year_view: string  = year_s === year_e
-                              ? (year_s === "0" ? "-" : year_s)
-                              : `${year_s} - ${year_e}`
+  const year_view: string = year_s === year_e
+    ? (year_s === "0" ? "-" : year_s)
+    : `${year_s} - ${year_e}`
 
 
-    const handleClick = () => {
+  const handleClick = () => {
     window.open(`https://www.e-stat.go.jp/dbview?sid=${statdispid}`, '_blank');
   };
 
@@ -55,10 +59,12 @@ export function TableCard({ statdispid, statcode, cycle, survey_date, title, yea
             {renderIconByKind("time")}
             <span>{year_view}</span>
           </div>
-          <div className="flex flex-row items-center gap-2">
-            {renderIconByKind("region")}
-            <span>{regions && regions.length > 0 ? "都道府県別" : "-"}</span>
-          </div>
+          {regions?.map((region: { regiontype: string;}) => (
+            <div key={region.regiontype} className="flex flex-row items-center gap-2">
+              {renderIconByKind("region")}
+              <span>{regionLabel.get(region.regiontype)}</span>
+            </div>
+          ))}
         </div>
         <h2 className="card-title mb-5">{title}</h2>
         <div className="flex flex-wrap flex-row gap-3">
