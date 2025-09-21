@@ -5,21 +5,22 @@ import { TbFilterPlus, TbFilterX } from "react-icons/tb";
 import { FiInfo } from "react-icons/fi";
 import { renderIconByKind } from "../common/convertor";
 import { Button } from "./Button";
-import { Drawer } from "./Drawer";
 import { Chicle } from "next/font/google";
 
 interface DropdownProps {
   isSelected: boolean;
   onClick: () => void;
+  showDetaile: (name: string) => void;
   kind: string;
   name: string;
   children?: ReactNode
 }
 
-export function Dropdown({ isSelected, onClick, kind, name, children  }: DropdownProps) {
+export function Dropdown({ isSelected, onClick, showDetaile ,kind, name, children  }: DropdownProps) {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const toggleDrawer = () => {
     setDrawerOpen(prev => !prev)
+    showDetaile(name)
     // setChildren(
     //   <div className="overflow-x-auto">
     //     <table className="table">
@@ -79,14 +80,6 @@ export function Dropdown({ isSelected, onClick, kind, name, children  }: Dropdow
             <li role="button" onClick={toggleDrawer}>
               <a><FiInfo />詳細を見る</a>
             </li>
-            <Drawer
-              id="example"
-              title={text}
-              isOpen={isDrawerOpen}
-              onToggle={toggleDrawer}
-            >
-              {children}
-            </Drawer>
           </>
         )}
       </ul>
