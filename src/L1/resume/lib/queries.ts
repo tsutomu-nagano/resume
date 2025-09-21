@@ -65,7 +65,7 @@ export const GET_ITEMS = (resource_name: string, name: string): DocumentNode => 
 
     return(gql`
         query get_items {
-        item: ${resource_name}(where: {CLASS_NAME: {_eq: "${name}"}}) {
+        items: ${resource_name}(where: {CLASS_NAME: {_eq: "${name}"}}) {
             name: NAME
         }
         }

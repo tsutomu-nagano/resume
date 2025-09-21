@@ -10,7 +10,10 @@ const config: Config = {
   ],
   theme: {
   	extend: {
-  		backgroundImage: {
+		fontFamily: {
+        	sans: ['var(--font-noto-sans-jp)', 'sans-serif'], // ✅ next/fontの変数を使用
+      	},
+		backgroundImage: {
   			'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
   			'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))'
   		},
