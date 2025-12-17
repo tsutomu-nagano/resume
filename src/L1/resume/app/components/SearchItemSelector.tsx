@@ -72,7 +72,7 @@ export default function SearchItemSelector({ labelja, labelen = "", ref_names, r
 
   return (
     <div className="dropdown">
-      <div tabIndex={0} role="button" className="flex flex-row gap-2 btn btn-outline m-1">
+      <div tabIndex={0} role="button" className="flex flex-row flex-nowrap gap-2 whitespace-nowrap btn btn-outline m-1">
         {renderIconByKind(kind)}{labelja}から探す<FaChevronDown />
       </div>
       <div
