@@ -1,7 +1,7 @@
 // src/app/StatCard.tsx
 "use client";
 
-import Tag from './Tag';
+import { DropdownContainer as Tag } from './Dropdown.container';
 import { print } from 'graphql';
 import { GrGraphQl } from "react-icons/gr";
 import { useSearchItem } from '../contexts/SearchItemsProvider';
@@ -34,7 +34,7 @@ export default function SearchItems({ names }: SearchItemsProps) {
       {/* Open the modal using document.getElementById('ID').showModal() method */}
       <button className="btn btn-outline items-center ml-auto" onClick={handleClick}><GrGraphQl />graphQLを表示</button>
       <dialog id="view_graphQL" className="modal">
-        <div className="modal-box">
+        <div className="modal-box whitespace-pre-wrap">
         {print(searchQuery)}
         </div>
         <form method="dialog" className="modal-backdrop">

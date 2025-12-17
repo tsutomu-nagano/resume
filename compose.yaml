@@ -1,49 +1,6 @@
 services:
-  workrpy:
-    build: 
-      context: ./python
-      dockerfile: Dockerfile
-    image: resume-worker-python
-    container_name: resume-worker-python
-
-    stdin_open: true
-    tty: true
-
-    env_file:
-      - .env
-      - .env.local
-
-    volumes:
-      - .:/home
-
-    working_dir: /home
-
-    command: "/bin/bash"
-
-  workr:
-    build: 
-      context: ./R
-      dockerfile: dockerfile
-    image: resume-worker
-    container_name: resume-worker
-
-    stdin_open: true
-    tty: true
-
-    env_file:
-      - .env
-      - .env.local
-
-    volumes:
-      - .:/home
-
-    working_dir: /home
-
-    command: "/bin/bash"
-   
-
   app:
-    image: node:18.18
+    image: node:20
     container_name: resume-L1
 
     stdin_open: true
@@ -62,5 +19,3 @@ services:
     working_dir: /home
 
     command: "/bin/bash"
-
-    

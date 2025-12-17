@@ -7,6 +7,8 @@ export const GET_TABLE_LIST = (items: Map<string, Set<string>>): DocumentNode =>
     // const searchCondition: string = `_and: [ ${BuilderCondition(items).join(",")} ]`;
     const searchCondition: string = `${BuilderCondition(items).join(",")}`;
 
+    console.log("searchCondition:", searchCondition);
+
     return(gql`
         query GetTableList($limit_number: Int, $offset_number: Int) {
             tablelist: TABLELIST(
@@ -20,6 +22,8 @@ export const GET_TABLE_LIST = (items: Map<string, Set<string>>): DocumentNode =>
                 statcode: STATCODE
                 survey_date: SURVEY_DATE
                 title: TITLE
+                year_s: YEAR_S
+                year_e: YEAR_E
                 table_tags: TABLE_TAGs {
                     tag_name: TAG_NAME
                 }
@@ -29,8 +33,8 @@ export const GET_TABLE_LIST = (items: Map<string, Set<string>>): DocumentNode =>
                 table_dimensions: TABLE_DIMENSIONs {
                     class_name: CLASS_NAME
                 }
-                table_regions: TABLE_REGIONs {
-                    class_name: CLASS_NAME
+                table_regions: TABLE_REGIONTYPEs {
+                    regiontype: REGIONTYPE
                 }
             }
         }
@@ -61,12 +65,15 @@ export const GET_ITEMS = (resource_name: string, name: string): DocumentNode => 
 
     return(gql`
         query get_items {
-        item: ${resource_name}(where: {CLASS_NAME: {_eq: "${name}"}}) {
+        items: ${resource_name}(where: {CLASS_NAME: {_eq: "${name}"}}) {
             name: NAME
         }
         }
     `)
 }
+
+
+
 
 
 export const GET_SEARCH_TAG_LIST = (
@@ -94,6 +101,7 @@ export const GET_SEARCH_TAG_LIST = (
             }
     `;
 
+    console.log(test_query)
     return(gql`${test_query}`)
 
 }

@@ -8,7 +8,7 @@ import { GET_SEARCH_TAG_LIST } from '../../lib/queries';
 
 
 import { FaChevronDown } from "react-icons/fa6";
-import Tag from './Tag';
+import { TagContainer as Tag } from './Tag.container';
 
 import { useSearchItem } from '../contexts/SearchItemsProvider';
 
@@ -79,7 +79,8 @@ export default function SearchItemSelector({ labelja, labelen = "", ref_names, r
         tabIndex={0}
         className="dropdown-content card card-compact bg-base-100 z-[1] w-[700px] p-2 shadow">
         <div className="card-body">
-
+          <span>{descriptionByKind(kind)}</span>
+          
           {itemsArray && itemsArray.length > 0 && (
             <>
               <div className="divider divider-start divider-primary">現在選択している{labelja}</div>
@@ -91,7 +92,6 @@ export default function SearchItemSelector({ labelja, labelen = "", ref_names, r
             </>
           )}
 
-          <span>{descriptionByKind(kind)}</span>
           <div className="divider divider-start divider-primary">キーワードで検索</div>
           <label className="input input-bordered flex items-center gap-2">
             <input

@@ -1,10 +1,8 @@
+
 import type { Metadata } from "next";
-import { Inter, Noto_Sans_JP} from "next/font/google";
+import { Inter, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import ClientProvider from '../lib/ClientProvider'; // 先ほど作成したClientProviderをインポート
-import {SearchItemProvider} from './contexts/SearchItemsProvider';
-import Header from './components/Header'
-
 
 // 使用したいフォントの設定
 const noto = Noto_Sans_JP({
@@ -13,9 +11,9 @@ const noto = Noto_Sans_JP({
   variable: '--font-noto-sans-jp',
 });
 
-const inter = Inter({
-  subsets: ["latin"]
-});
+// const inter = Inter({
+//   subsets: ["latin"]
+// });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -28,17 +26,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <ClientProvider>
-      <SearchItemProvider>
+    <html lang="ja">
       <body className={noto.className}>
-        <div className="flex flex-col gap-10">
-          <Header />
-          <main className="">{children}</main>
-        </div>
+        <ClientProvider>{children}</ClientProvider>
       </body>
-      </SearchItemProvider>
-      </ClientProvider>
     </html>
   );
 }

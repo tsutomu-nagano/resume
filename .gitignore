@@ -1,9 +1,4 @@
-docs/
-hasura/
 
 # local env files
 .env*.local
 
-resource/temp/
-
-__pycache__

@@ -1,6 +1,8 @@
+"use client";
+
 // Drawer.tsx
 import { setupListeners } from "@reduxjs/toolkit/query";
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
 interface DrawerProps {
@@ -12,15 +14,23 @@ interface DrawerProps {
   onToggle: () => void; // Drawerの開閉をトグルする関数
 }
 
-export default function Drawer({
+export function Drawer({
   id,
   title,
   children,
-  sidebarContent,
   isOpen,
   onToggle,
 }: DrawerProps) {
   // ポータルのためにドキュメントのルートにレンダリング
+
+  const [container, setContainer] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    // ブラウザ側でのみ実行されるので document.body を安全に参照できる
+    setContainer(document.body);
+  }, []);
+
+  if (!container) return null;
 
   return createPortal(
     <div className="drawer drawer-end">
@@ -30,29 +40,18 @@ export default function Drawer({
         className="drawer-toggle"
         checked={isOpen}
         readOnly
-        // onChange={() => {
-        //     console.log("change checked")
-        // }}
       />
-      <div className="drawer-content z-50">
-        {children}
-      </div>
       <div className="drawer-side z-40">
         <label
           htmlFor={`my-drawer-${id}`}
           aria-label="close sidebar"
           className="drawer-overlay"
-          onClick={() => {
-            console.log("click overlay")
-            // isOpen = false;
-            onToggle()
-        }}
+          onClick={() => {onToggle()}}
         ></label>
         <ul className="menu bg-base-200 text-base-content min-h-full w-2/5 p-4">
           <h1 className="text-3xl font-bold">{title}</h1>
           <div className="divider divider-primary" />
-          {/* Sidebar content */}
-          {sidebarContent || (
+          {children || (
             <>
               <li>
                 <a>Sidebar Item 1</a>
@@ -65,6 +64,6 @@ export default function Drawer({
         </ul>
       </div>
     </div>,
-    document.body // ポータルのターゲットをドキュメントのボディに設定
+    container // ポータルのターゲットをドキュメントのボディに設定
   );
 }

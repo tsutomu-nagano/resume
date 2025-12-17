@@ -2,7 +2,7 @@
 import { useQuery } from '@apollo/client';
 import React, { ReactNode, useEffect } from "react";
 import { GET_ITEMS } from "@/lib/queries"
-import Drawer from "./Drawer";
+import { Drawer } from "./Drawer";
 import { LuComponent } from "react-icons/lu";
 
 interface DimensionItemInfoProps {
@@ -15,7 +15,7 @@ interface DimensionItemInfoProps {
   onToggle: () => void; // Drawerの開閉をトグルする関数
 }
 
-export default function DimensionItemInfo({
+export function DimensionItemInfo({
   id,
   kind,
   title,

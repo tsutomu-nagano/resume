@@ -2,41 +2,22 @@
 "use client";
 
 import { FiInfo } from "react-icons/fi";
-
 import { TbFilterPlus } from "react-icons/tb";
 import { TbFilterX } from "react-icons/tb";
-
-import { useSearchItem } from '../contexts/SearchItemsProvider';
-
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { renderIconByKind } from "../common/convertor";
-import DimensionItemInfo from "./DimensionItemInfo";
-import Drawer from "./Drawer";
+import { DimensionItemInfo } from "./DimensionItemInfo";
+import { Drawer } from "./Drawer";
 
 interface TagProps {
   name: string;
   kind: string;
+  searchConditionClick: () => void;
   simple?: boolean;
+  isSelected?: boolean;
 }
 
-export default function Tag({ name, kind, simple = false }: TagProps) {
-
-  const { items, findItem, addItem, removeItem } = useSearchItem();
-
-  // ボタンが選択されているかどうかを管理する状態
-  const [isSelected, setIsSelected] = useState(findItem(kind, name));
-
-  // itemSet が変更されたときに isSelected を更新
-  useEffect(() => {
-    setIsSelected(findItem(kind, name));
-  }, [items, name]);
-
-  // ボタンクリック時に選択状態をトグルするハンドラ
-  const handleButtonClick = () => {
-    isSelected ? removeItem(kind, name) : addItem(kind, name);
-    setIsSelected(!isSelected);
-  };
-
+export function Tag({ name, kind, simple = false, isSelected = false, searchConditionClick }: TagProps) {
 
   const [isDrawerOpen, setDrawerOpen] = useState(false);
 
@@ -47,10 +28,9 @@ export default function Tag({ name, kind, simple = false }: TagProps) {
 
   const title = <div className="flex flex-row gap-2 items-center">{renderIconByKind(kind)}{name}</div>
 
-
   return simple ? (
       <div tabIndex={0} role="button"
-        onClick={handleButtonClick}
+        onClick={searchConditionClick}
         className={`btn m-1 ${isSelected ? 'btn-primary' : 'btn-outline'}`}
       >
         {title} 
@@ -66,7 +46,7 @@ export default function Tag({ name, kind, simple = false }: TagProps) {
           <li
             // tabIndex={0}
             role="button"
-            onClick={handleButtonClick}
+            onClick={searchConditionClick}
           >
             <a>{
               isSelected ? (
