@@ -29,5 +29,11 @@
 - データを管理しているリポジトリが別にあります [resume-data](https://github.com/tsutomu-nagano/resume-data)
   - github-action + R + Python で日時で更新のあったデータをOracleのDBに反映しています 
 
+## Security
+- Hasura の admin secret はブラウザに公開しないよう、Next.js の `/api/graphql` 経由でサーバー側からのみ送信します。
+- `/api/graphql` では mutation / subscription / introspection を拒否し、必要に応じて `HASURA_GRAPHQL_ROLE` で読み取り専用ロールを指定できます。
+- ローカルでは `src/L1/resume/.env.example` を `.env.local` にコピーし、`HASURA_ADMIN_SECRET` を設定してください。
+- `NEXT_PUBLIC_` から始まる環境変数はクライアントへ公開されるため、シークレットには使用しません。
+
 ## Note
 - このサービスは、政府統計総合窓口(e-Stat)のAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。
