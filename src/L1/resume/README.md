@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ReSUME L1
+
+Next.js application for searching the Layer 1 metadata prepared by the ReSUME project.
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies and start the development server from this directory:
+
+```bash
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser.
+
+## Environment Variables
+
+Copy `.env.example` to `.env.local` and set the server-side Hasura credentials:
+
+```bash
+cp .env.example .env.local
+```
+
+| Name | Required | Scope | Description |
+| --- | --- | --- | --- |
+| `HASURA_GRAPHQL_ENDPOINT` | No | Server only | Hasura GraphQL endpoint. Defaults to the current production endpoint when omitted. |
+| `HASURA_ADMIN_SECRET` | Yes | Server only | Secret sent from the Next.js API route to Hasura. |
+| `HASURA_GRAPHQL_ROLE` | No | Server only | Optional restricted Hasura role, for example a read-only role configured in Hasura permissions. |
+
+Do **not** prefix these variables with `NEXT_PUBLIC_`. Values with that prefix are exposed to browser JavaScript by Next.js.
+
+## GraphQL Proxy
+
+Browser code sends Apollo Client requests to `/api/graphql`. The API route forwards the request to Hasura and attaches `HASURA_ADMIN_SECRET` on the server, so the admin secret is never bundled into client-side JavaScript. The route also rejects mutations, subscriptions, and introspection requests before forwarding to Hasura.
+
+For defense in depth, configure a read-only Hasura role and set `HASURA_GRAPHQL_ROLE` so proxied requests do not execute with unrestricted admin permissions.
+
+## Scripts
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run start
+npm run storybook
+npm run build-storybook
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
