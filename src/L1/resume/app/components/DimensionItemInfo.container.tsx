@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, ReactNode, useEffect } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_ITEMS } from "@/lib/queries";
@@ -18,23 +20,25 @@ export function DimensionItemInfoContainer({
   isOpen,
   onToggle,
 }: DimensionItemInfoContainerProps) {
-  const resource_name =
+  const resourceName =
     kind === "dimension"
       ? "DIMENSION_ITEM"
       : kind === "region"
       ? "REGION_ITEM"
-      : "";
+      : "DIMENSION_ITEM";
+  const shouldSkipQuery = !isOpen || (kind !== "dimension" && kind !== "region");
+  const itemRequest = GET_ITEMS(resourceName, name);
 
   const { data, loading, error, refetch } = useQuery(
-    GET_ITEMS(resource_name, name),
-    { skip: !isOpen }
+    itemRequest.query,
+    { variables: itemRequest.variables, skip: shouldSkipQuery }
   );
 
   useEffect(() => {
-    if (isOpen) {
+    if (!shouldSkipQuery) {
       refetch();
     }
-  }, [isOpen]);
+  }, [shouldSkipQuery, refetch]);
 
   return (
     <span>TEST</span>

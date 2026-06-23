@@ -53,9 +53,8 @@ export function DropdownContainer({ kind, name }: DropdownContainerProps)  {
 
     try {
       const searchQuery = GET_ITEMS("DIMENSION_ITEM", word);
-      const query = searchQuery;
 
-      const { data } = await client.query({query})
+      const { data } = await client.query(searchQuery)
       const items: DimensionItem[] = data.items.map((item: {name: string;}, index:number) => ({
         id: String(index + 1), // IDを文字列化
         name: item.name,

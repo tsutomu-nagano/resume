@@ -1,107 +1,174 @@
-
-import { gql, DocumentNode } from "@apollo/client";
+import { gql } from "@apollo/client";
+import type { DocumentNode } from "graphql";
 import { BuilderCondition } from "./BuilderCondition";
 
-export const GET_TABLE_LIST = (items: Map<string, Set<string>>): DocumentNode =>  {
-
-    // const searchCondition: string = `_and: [ ${BuilderCondition(items).join(",")} ]`;
-    const searchCondition: string = `${BuilderCondition(items).join(",")}`;
-
-    console.log("searchCondition:", searchCondition);
-
-    return(gql`
-        query GetTableList($limit_number: Int, $offset_number: Int) {
-            tablelist: TABLELIST(
-                where:{${searchCondition}}
-                limit: $limit_number
-                offset: $offset_number
-                order_by: { STATDISPID: asc }
-            ) {
-                statdispid: STATDISPID
-                cycle: CYCLE
-                statcode: STATCODE
-                survey_date: SURVEY_DATE
-                title: TITLE
-                year_s: YEAR_S
-                year_e: YEAR_E
-                table_tags: TABLE_TAGs {
-                    tag_name: TAG_NAME
-                }
-                table_measures: TABLE_MEASUREs {
-                    name: NAME
-                }
-                table_dimensions: TABLE_DIMENSIONs {
-                    class_name: CLASS_NAME
-                }
-                table_regions: TABLE_REGIONTYPEs {
-                    regiontype: REGIONTYPE
-                }
-            }
-        }
-    `)
-
+export interface GraphQLRequest {
+  query: DocumentNode;
+  variables?: Record<string, unknown>;
 }
 
-export const GET_TABLE_LIST_COUNT = (items: Map<string, Set<string>>): DocumentNode =>  {
+const tableListFields = gql`
+  fragment TableListFields on TABLELIST {
+    statdispid: STATDISPID
+    cycle: CYCLE
+    statcode: STATCODE
+    survey_date: SURVEY_DATE
+    title: TITLE
+    year_s: YEAR_S
+    year_e: YEAR_E
+    table_tags: TABLE_TAGs {
+      tag_name: TAG_NAME
+    }
+    table_measures: TABLE_MEASUREs {
+      name: NAME
+    }
+    table_dimensions: TABLE_DIMENSIONs {
+      class_name: CLASS_NAME
+    }
+    table_regions: TABLE_REGIONTYPEs {
+      regiontype: REGIONTYPE
+    }
+  }
+`;
 
-    const searchCondition: string = `${BuilderCondition(items).join(",")}`;
+export const GET_TABLE_LIST = (items: Map<string, Set<string>>): GraphQLRequest => ({
+  query: gql`
+    ${tableListFields}
+    query GetTableList(
+      $where: TABLELIST_bool_exp!
+      $limit_number: Int
+      $offset_number: Int
+    ) {
+      tablelist: TABLELIST(
+        where: $where
+        limit: $limit_number
+        offset: $offset_number
+        order_by: { STATDISPID: asc }
+      ) {
+        ...TableListFields
+      }
+    }
+  `,
+  variables: {
+    where: BuilderCondition(items),
+  },
+});
 
-    return(gql`
-        query GetTableList($limit_number: Int, $offset_number: Int) {
-            tablelist_aggregate: TABLELIST_aggregate(
-                where:{${searchCondition}}
-            ) {
-                aggregate {
-                    stat: count(distinct: true, column: STATCODE)
-                    db: count(distinct: true, column: STATDISPID)
-                }
-            }
+export const GET_TABLE_LIST_COUNT = (items: Map<string, Set<string>>): GraphQLRequest => ({
+  query: gql`
+    query GetTableListCount($where: TABLELIST_bool_exp!) {
+      tablelist_aggregate: TABLELIST_aggregate(where: $where) {
+        aggregate {
+          stat: count(distinct: true, column: STATCODE)
+          db: count(distinct: true, column: STATDISPID)
         }
-    `)
-}
+      }
+    }
+  `,
+  variables: {
+    where: BuilderCondition(items),
+  },
+});
 
+const getItemsQueries: Record<string, DocumentNode> = {
+  DIMENSION_ITEM: gql`
+    query GetDimensionItems($className: String!) {
+      items: DIMENSION_ITEM(where: { CLASS_NAME: { _eq: $className } }) {
+        name: NAME
+      }
+    }
+  `,
+  REGION_ITEM: gql`
+    query GetRegionItems($className: String!) {
+      items: REGION_ITEM(where: { CLASS_NAME: { _eq: $className } }) {
+        name: NAME
+      }
+    }
+  `,
+};
 
-export const GET_ITEMS = (resource_name: string, name: string): DocumentNode =>  {
+export const GET_ITEMS = (resourceName: string, name: string): GraphQLRequest => {
+  const query = getItemsQueries[resourceName];
 
-    return(gql`
-        query get_items {
-        items: ${resource_name}(where: {CLASS_NAME: {_eq: "${name}"}}) {
-            name: NAME
+  if (!query) {
+    throw new Error(`Unsupported item resource: ${resourceName}`);
+  }
+
+  return {
+    query,
+    variables: {
+      className: name,
+    },
+  };
+};
+
+const searchTagListQueries: Record<string, DocumentNode> = {
+  "STATLIST:STATNAME:TABLELISTs": gql`
+    query SearchStatList($tableWhere: TABLELIST_bool_exp!, $searchPattern: String!) {
+      items: STATLIST(
+        where: { TABLELISTs: $tableWhere, STATNAME: { _like: $searchPattern } }
+      ) {
+        name: STATNAME
+      }
+    }
+  `,
+  "MEASURELIST:NAME:TABLE_MEASUREs.TABLELIST": gql`
+    query SearchMeasureList($tableWhere: TABLELIST_bool_exp!, $searchPattern: String!) {
+      items: MEASURELIST(
+        where: {
+          TABLE_MEASUREs: { TABLELIST: $tableWhere }
+          NAME: { _like: $searchPattern }
         }
+      ) {
+        name: NAME
+      }
+    }
+  `,
+  "DIMENSIONLIST:CLASS_NAME:TABLE_DIMENSIONs.TABLELIST": gql`
+    query SearchDimensionList($tableWhere: TABLELIST_bool_exp!, $searchPattern: String!) {
+      items: DIMENSIONLIST(
+        where: {
+          TABLE_DIMENSIONs: { TABLELIST: $tableWhere }
+          CLASS_NAME: { _like: $searchPattern }
         }
-    `)
-}
-
-
-
-
+      ) {
+        name: CLASS_NAME
+      }
+    }
+  `,
+  "REGIONLIST:NAME:TABLE_REGIONs.TABLELIST": gql`
+    query SearchRegionList($tableWhere: TABLELIST_bool_exp!, $searchPattern: String!) {
+      items: REGIONLIST(
+        where: {
+          TABLE_REGIONs: { TABLELIST: $tableWhere }
+          NAME: { _like: $searchPattern }
+        }
+      ) {
+        name: NAME
+      }
+    }
+  `,
+};
 
 export const GET_SEARCH_TAG_LIST = (
-    name: string, 
-    field: string,
-    ref_names: string[],
-    searchTerm: string,
-    items: Map<string, Set<string>>
-    ): DocumentNode =>  {
+  name: string,
+  field: string,
+  refNames: string[],
+  searchTerm: string,
+  items: Map<string, Set<string>>
+): GraphQLRequest => {
+  const queryKey = `${name}:${field}:${refNames.join(".")}`;
+  const query = searchTagListQueries[queryKey];
 
-    const searchCondition: string = `${BuilderCondition(items).join(",")}`;
+  if (!query) {
+    throw new Error(`Unsupported search tag resource: ${queryKey}`);
+  }
 
-    const ref_name_s = ref_names.join(":{")
-    const ref_name_e = '}'.repeat(ref_names.length - 1);
-
-    const test_query = `
-        query GetMetaData {
-            items: ${name}(where: {
-                ${ref_name_s}: { ${searchCondition} } ${ref_name_e}
-                ${field}: { _like: "%${searchTerm}%" }
-                })
-                {
-                    name: ${field}
-                }
-            }
-    `;
-
-    console.log(test_query)
-    return(gql`${test_query}`)
-
-}
+  return {
+    query,
+    variables: {
+      tableWhere: BuilderCondition(items),
+      searchPattern: `%${searchTerm}%`,
+    },
+  };
+};

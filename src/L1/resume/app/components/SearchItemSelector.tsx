@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { gql } from '@apollo/client';
 import { createApolloClient } from '@/lib/apolloClient';
 import { GET_SEARCH_TAG_LIST } from '../../lib/queries';
 
@@ -44,14 +43,13 @@ export default function SearchItemSelector({ labelja, labelen = "", ref_names, r
   const client = createApolloClient();
 
 
-  const searchQuery = useMemo(() => GET_SEARCH_TAG_LIST(resource_name,resource_field, ref_names, searchTerm, items), [items, resource_field,searchTerm ]);
+  const searchQuery = useMemo(() => GET_SEARCH_TAG_LIST(resource_name, resource_field, ref_names, searchTerm, items), [items, resource_name, resource_field, ref_names, searchTerm]);
 
   const handleSearch = async () => {
     try {
        
 
-      const query = searchQuery;
-      const { data } = await client.query({query})
+      const { data } = await client.query(searchQuery)
       setData(data)
 
     } catch (err) {
