@@ -1,7 +1,7 @@
 "use client"; // このファイルはクライアントサイドでのみ実行される
 
-import { DocumentNode } from 'graphql';
-import React, { createContext, useState, ReactNode } from 'react';
+import type { GraphQLRequest } from '@/lib/queries';
+import { createContext } from 'react';
 
 
 // Contextの型定義
@@ -12,7 +12,7 @@ interface SearchItemContextType {
   addItem: (kind:string, itemName:string) => void;
   removeItem: (kind:string, itemName:string) => void;
 
-  searchQuery: DocumentNode;
+  searchQuery: GraphQLRequest;
 
   offset: number;
   setOffset: (offset:number) => void;

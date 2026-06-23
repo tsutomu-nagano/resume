@@ -35,7 +35,13 @@ export default function SearchItems({ names }: SearchItemsProps) {
       <button className="btn btn-outline items-center ml-auto" onClick={handleClick}><GrGraphQl />graphQLを表示</button>
       <dialog id="view_graphQL" className="modal">
         <div className="modal-box whitespace-pre-wrap">
-        {print(searchQuery)}
+        {print(searchQuery.query)}
+          {searchQuery.variables && (
+            <>
+              {"\n\nVariables:\n"}
+              {JSON.stringify(searchQuery.variables, null, 2)}
+            </>
+          )}
         </div>
         <form method="dialog" className="modal-backdrop">
           <button>close</button>

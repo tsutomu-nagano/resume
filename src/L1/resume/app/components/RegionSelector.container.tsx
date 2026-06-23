@@ -45,10 +45,9 @@ export function RegionSelectorContainer() {
   const onSearch = async (word:string) => {
 
     try {
-      const searchQuery = GET_SEARCH_TAG_LIST(resource_name,resource_field, ref_names, word, items);
-      const query = searchQuery;
+      const searchQuery = GET_SEARCH_TAG_LIST(resource_name, resource_field, ref_names, word, items);
 
-      const { data } = await client.query({query})
+      const { data } = await client.query(searchQuery)
       setData(data)
 
     } catch (err) {

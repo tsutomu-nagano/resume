@@ -2,7 +2,6 @@
 import React, { useContext, useState, ReactNode, useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
-import { gql, useQuery } from "@apollo/client";
 import { createApolloClient } from "@/lib/apolloClient";
 
 import { SearchItemContext } from './SearchItemsContext';
@@ -128,8 +127,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
     try {
 
-      const query = countQuery;
-      const result = await client.query({ query });
+      const result = await client.query(countQuery);
 
       setCountResult(result.data.tablelist_aggregate.aggregate)
 
@@ -147,10 +145,13 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
     try {
 
-      const query = searchQuery;
       const result = await client.query({
-        query,
-        variables: { limit_number: limit, offset_number: offset },
+        ...searchQuery,
+        variables: {
+          ...searchQuery.variables,
+          limit_number: limit,
+          offset_number: offset,
+        },
       });
 
       if (result.data.tablelist.length != 0) {

@@ -1,75 +1,105 @@
-import { UniqueOperationNamesRule } from "graphql";
+type GraphQLCondition = Record<string, unknown>;
 
+type EqualityConditionConfig = {
+  kind: string;
+  tableName: string;
+  columnName: string;
+};
 
-type Operator = "_eq" | "_gte" | "_lte";
+const equalityConditionConfigs: EqualityConditionConfig[] = [
+  { kind: "stat", tableName: "STATLIST", columnName: "STATNAME" },
+  { kind: "measure", tableName: "TABLE_MEASUREs", columnName: "NAME" },
+  { kind: "thema", tableName: "TABLE_TAGs", columnName: "TAG_NAME" },
+  { kind: "dimension", tableName: "TABLE_DIMENSIONs", columnName: "CLASS_NAME" },
+  { kind: "region", tableName: "TABLE_REGIONs", columnName: "NAME" },
+];
 
-function BuilderCondition_core(items: Map<string, Set<string>>, kind: string, table_name: string, column_name: string, operator: Operator = "_eq"): string {
+function buildEqualityConditions(
+  items: Map<string, Set<string>>,
+  { kind, tableName, columnName }: EqualityConditionConfig
+): GraphQLCondition[] {
+  const itemsOfKind = items.get(kind);
 
-    let condition: string = "";
-    if (items.has(kind)) {
-        const items_of_kind = items.get(kind)
-        if (items_of_kind && items_of_kind.size >= 1) {
-            const quotedItems = Array.from(items_of_kind).map(item => `${table_name}: { ${column_name}: {_eq: "${item}" } }`);
-            condition = quotedItems.join(",")
-        }
+  if (!itemsOfKind || itemsOfKind.size === 0) {
+    return [];
+  }
+
+  return Array.from(itemsOfKind).map((item) => ({
+    [tableName]: {
+      [columnName]: {
+        _eq: item,
+      },
+    },
+  }));
+}
+
+function buildTimeConditions(
+  items: Map<string, Set<string>>,
+  kind: string,
+  tableName: string,
+  columnName: string
+): GraphQLCondition[] {
+  const itemsOfKind = items.get(kind);
+
+  if (!itemsOfKind || itemsOfKind.size === 0) {
+    return [];
+  }
+
+  const conditions: GraphQLCondition[] = [];
+
+  for (const item of itemsOfKind) {
+    const [from, to] = item.split("-");
+    const yearCondition: Record<string, number> = {};
+
+    if (from !== "") {
+      const fromYear = Number(from);
+      if (!Number.isNaN(fromYear)) {
+        yearCondition._gte = fromYear;
+      }
     }
 
-    return (condition)
-
-}
-
-function BuilderTimeCondition(items: Map<string, Set<string>>, kind: string, table_name: string, column_name: string): string {
-
-    let condition: string = "";
-    if (items.has(kind)) {
-        const items_of_kind = items.get(kind)
-        if (items_of_kind && items_of_kind.size >= 1) {
-            const quotedItems = Array.from(items_of_kind).map(
-                item => {
-                    const [from, to] = item.split("-"); // "-" で分割
-                    
-                    const parts: string[] = [];
-                    if (from !== "") parts.push(`_gte: ${from}`);
-                    if (to !== "") parts.push(`_lte: ${to}`);
-
-                    if (parts.length === 0) {
-                        return ""; // 両方 undefined の場合は条件なし
-                    } else {
-                        return `${table_name}: { ${column_name}: { ${parts.join(", ")} } }`;
-                    }
-
-                });
-            condition = quotedItems.join(",")
-        }
+    if (to !== "") {
+      const toYear = Number(to);
+      if (!Number.isNaN(toYear)) {
+        yearCondition._lte = toYear;
+      }
     }
 
-    return (condition)
+    if (Object.keys(yearCondition).length > 0) {
+      conditions.push({
+        [tableName]: {
+          [columnName]: yearCondition,
+        },
+      });
+    }
+  }
 
+  return conditions;
 }
 
+function groupOrConditions(conditions: GraphQLCondition[]): GraphQLCondition | undefined {
+  if (conditions.length === 0) {
+    return undefined;
+  }
 
-export function BuilderCondition(items: Map<string, Set<string>>): string[] {
+  if (conditions.length === 1) {
+    return conditions[0];
+  }
 
-    const statsCondition = BuilderCondition_core(items, "stat", "STATLIST", "STATNAME");
-    const measuresCondition = BuilderCondition_core(items, "measure", "TABLE_MEASUREs", "NAME");
-    const themasCondition = BuilderCondition_core(items, "thema", "TABLE_TAGs", "TAG_NAME");
-    const dimensionsCondition = BuilderCondition_core(items, "dimension", "TABLE_DIMENSIONs", "CLASS_NAME");
-    const regionsCondition = BuilderCondition_core(items, "region", "TABLE_REGIONs", "NAME");
-    const timeCondition = BuilderTimeCondition(items, "time", "TABLE_TIMEs", "YEAR");
-
-    const conditions = [
-        statsCondition,
-        measuresCondition,
-        themasCondition,
-        dimensionsCondition,
-        regionsCondition,
-        timeCondition
-    ].filter(condition => condition !== ""); // null でないものをフィルタリング
-
-    return (conditions)
-
-    // return([statsCondition, measuresCondition, themasCondition].join(" "))
-
+  return { _or: conditions };
 }
 
+export function BuilderCondition(items: Map<string, Set<string>>): GraphQLCondition {
+  const conditions = [
+    ...equalityConditionConfigs.map((config) =>
+      groupOrConditions(buildEqualityConditions(items, config))
+    ),
+    groupOrConditions(buildTimeConditions(items, "time", "TABLE_TIMEs", "YEAR")),
+  ].filter((condition): condition is GraphQLCondition => condition !== undefined);
 
+  if (conditions.length === 0) {
+    return {};
+  }
+
+  return { _and: conditions };
+}
