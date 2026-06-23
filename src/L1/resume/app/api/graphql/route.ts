@@ -1,3 +1,5 @@
+import { isReadOnlyGraphQLRequest } from "@/lib/graphqlRequestValidation";
+
 const DEFAULT_HASURA_GRAPHQL_ENDPOINT = "https://assuring-phoenix-83.hasura.app/v1/graphql";
 
 export const dynamic = "force-dynamic";
@@ -8,45 +10,6 @@ function getHasuraConfig() {
     adminSecret: process.env.HASURA_ADMIN_SECRET,
     role: process.env.HASURA_GRAPHQL_ROLE,
   };
-}
-
-type GraphQLRequestBody = { query?: unknown };
-
-function hasQueryText(value: unknown): value is GraphQLRequestBody {
-  return typeof value === "object" && value !== null && "query" in value;
-}
-
-function getGraphQLOperationText(body: string) {
-  try {
-    const parsedBody = JSON.parse(body) as unknown;
-
-    if (Array.isArray(parsedBody)) {
-      return parsedBody
-        .filter(hasQueryText)
-        .map((requestBody) => requestBody.query)
-        .filter((query): query is string => typeof query === "string")
-        .join("\n");
-    }
-
-    if (hasQueryText(parsedBody) && typeof parsedBody.query === "string") {
-      return parsedBody.query;
-    }
-  } catch {
-    return body;
-  }
-
-  return body;
-}
-
-function isReadOnlyGraphQLRequest(body: string) {
-  const normalizedOperationText = getGraphQLOperationText(body).toLowerCase();
-
-  return ![
-    "mutation",
-    "subscription",
-    "__schema",
-    "__type",
-  ].some((blockedToken) => normalizedOperationText.includes(blockedToken));
 }
 
 export async function POST(request: Request) {
