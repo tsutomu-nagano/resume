@@ -7,7 +7,10 @@ export interface GraphQLRequest {
   variables?: Record<string, unknown>;
 }
 
-function getItemsWithoutKind(\n  items: Map<string, Set<string>>,\n  kind: string\n): Map<string, Set<string>> {
+function getItemsWithoutKind(
+  items: Map<string, Set<string>>,
+  kind: string
+): Map<string, Set<string>> {
   return new Map(
     Array.from(items.entries())
       .filter(([itemKind]) => itemKind !== kind)
