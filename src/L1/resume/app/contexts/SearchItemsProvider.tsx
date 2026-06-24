@@ -4,6 +4,7 @@ import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createApolloClient } from "@/lib/apolloClient";
 import {
+  GET_SURVEY_ATTRIBUTES,
   GET_SURVEY_LIST,
   GET_TABLE_LIST,
   GET_TABLE_LIST_COUNT,
@@ -194,11 +195,40 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         return;
       }
 
+      let enrichedResults = nextResults;
+
+      if (view === "surveys") {
+        const statcodes = nextResults.map(
+          (survey: { statcode: string }) => survey.statcode
+        );
+
+        try {
+          const attributesResult = await client.query(
+            GET_SURVEY_ATTRIBUTES(statcodes)
+          );
+          const attributesByStatcode = new Map<string, unknown[]>();
+
+          for (const attribute of attributesResult.data.attributes || []) {
+            const currentAttributes =
+              attributesByStatcode.get(attribute.statcode) || [];
+            currentAttributes.push(attribute);
+            attributesByStatcode.set(attribute.statcode, currentAttributes);
+          }
+
+          enrichedResults = nextResults.map((survey: { statcode: string }) => ({
+            ...survey,
+            attributes: attributesByStatcode.get(survey.statcode) || [],
+          }));
+        } catch {
+          // Survey results remain useful even when optional descriptions are unavailable.
+        }
+      }
+
       setSearchResult((previousResults) => {
         const existingIds = new Set(previousResults.map((item) => item[idKey]));
         return [
           ...previousResults,
-          ...nextResults.filter((item: Record<string, unknown>) =>
+          ...enrichedResults.filter((item: Record<string, unknown>) =>
             !existingIds.has(item[idKey])
           ),
         ];
