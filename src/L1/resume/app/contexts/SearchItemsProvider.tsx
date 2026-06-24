@@ -177,7 +177,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     }
 
     const result = await client.query(GET_SURVEY_STATCODES(items));
-    const statcodes = new Set(
+    const statcodes = new Set<string>(
       (result.data.items || []).map(
         (item: { statcode: string }) => item.statcode
       )
@@ -190,7 +190,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
     resolvedItems.set(
       "statcode",
-      statcodes.size > 0 ? statcodes : new Set([NO_SURVEY_UNIT_MATCH])
+      statcodes.size > 0 ? statcodes : new Set<string>([NO_SURVEY_UNIT_MATCH])
     );
 
     return resolvedItems;
