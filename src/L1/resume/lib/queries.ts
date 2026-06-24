@@ -7,6 +7,14 @@ export interface GraphQLRequest {
   variables?: Record<string, unknown>;
 }
 
+function getItemsWithoutKind(items: Map<string, Set<string>>, kind: string) {
+  return new Map(
+    Array.from(items.entries())
+      .filter(([itemKind]) => itemKind !== kind)
+      .map(([itemKind, values]) => [itemKind, new Set(values)])
+  );
+}
+
 const tableListFields = gql`
   fragment TableListFields on TABLELIST {
     statdispid: STATDISPID
@@ -141,6 +149,31 @@ export const GET_SURVEY_ATTRIBUTES = (
   },
 });
 
+export const GET_SURVEY_STATCODES = (
+  items: Map<string, Set<string>>
+): GraphQLRequest => ({
+  query: gql`
+    query GetSurveyStatcodes(
+      $tableWhere: TABLELIST_bool_exp!
+      $surveyUnits: [String!]!
+    ) {
+      items: STAT_ATTRIBUTE_VALUES(
+        where: {
+          STATLIST: { TABLELISTs: $tableWhere }
+          STAT_ATTRIBUTE: { CODE: { _eq: "survey_units" } }
+          VALUE: { _in: $surveyUnits }
+        }
+      ) {
+        statcode: STATCODE
+      }
+    }
+  `,
+  variables: {
+    tableWhere: BuilderCondition(getItemsWithoutKind(items, "survey_unit")),
+    surveyUnits: Array.from(items.get("survey_unit") || []),
+  },
+});
+
 const getItemsQueries: Record<string, DocumentNode> = {
   DIMENSION_ITEM: gql`
     query GetDimensionItems($className: String!) {
@@ -219,6 +252,24 @@ const searchTagListQueries: Record<string, DocumentNode> = {
       }
     }
   `,
+  "STAT_ATTRIBUTE_VALUES:VALUE:STATLIST.TABLELISTs": gql`
+    query SearchSurveyUnits(
+      $tableWhere: TABLELIST_bool_exp!
+      $searchPattern: String!
+    ) {
+      items: STAT_ATTRIBUTE_VALUES(
+        distinct_on: VALUE
+        order_by: { VALUE: asc }
+        where: {
+          STATLIST: { TABLELISTs: $tableWhere }
+          STAT_ATTRIBUTE: { CODE: { _eq: "survey_units" } }
+          VALUE: { _like: $searchPattern }
+        }
+      ) {
+        name: VALUE
+      }
+    }
+  `,
 };
 
 export const GET_SEARCH_TAG_LIST = (
@@ -238,7 +289,7 @@ export const GET_SEARCH_TAG_LIST = (
   return {
     query,
     variables: {
-      tableWhere: BuilderCondition(items),
+      tableWhere: BuilderCondition(getItemsWithoutKind(items, "survey_unit")),
       searchPattern: `%${searchTerm}%`,
     },
   };
