@@ -1,13 +1,9 @@
-// src/app/page.tsx
-import TableList from './components/TableList'
+import SearchResultList from "./components/SearchResultList";
 
-export default async function HomePage() {
-
-
+export default function HomePage() {
   return (
     <div className="my-4 mx-4">
-      <TableList />
+      <SearchResultList />
     </div>
   );
 }
-
