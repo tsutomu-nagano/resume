@@ -1,8 +1,13 @@
 "use client";
 
+import {
+  Building2,
+  Factory,
+  Landmark,
+  UsersRound,
+} from "lucide-react";
 import { BiHash } from "react-icons/bi";
 import {
-  TbBuilding,
   TbCalendarRepeat,
   TbHome,
   TbTable,
@@ -35,8 +40,14 @@ function SurveyUnitIcon({ value }: { value: string }) {
   const iconClassName = "size-4 shrink-0";
 
   switch (getSurveyUnitIconKey(value)) {
+    case "establishment":
+      return <Factory className={iconClassName} aria-hidden />;
+    case "enterprise":
+      return <Building2 className={iconClassName} aria-hidden />;
+    case "corporation":
+      return <Landmark className={iconClassName} aria-hidden />;
     case "organization":
-      return <TbBuilding className={iconClassName} aria-hidden />;
+      return <UsersRound className={iconClassName} aria-hidden />;
     case "household":
       return <TbHome className={iconClassName} aria-hidden />;
     case "person":
