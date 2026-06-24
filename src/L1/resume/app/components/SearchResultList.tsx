@@ -5,7 +5,15 @@ import SurveyList from "./SurveyList";
 import TableList from "./TableList";
 
 export default function SearchResultList() {
-  const { view } = useSearchItem();
+  const { getItemsArray, view } = useSearchItem();
+  const resultKey = `${view}:${getItemsArray()
+    .map(({ kind, itemName }) => `${kind}=${itemName}`)
+    .sort()
+    .join("&")}`;
 
-  return view === "surveys" ? <SurveyList /> : <TableList />;
+  return view === "surveys" ? (
+    <SurveyList key={resultKey} />
+  ) : (
+    <TableList key={resultKey} />
+  );
 }
