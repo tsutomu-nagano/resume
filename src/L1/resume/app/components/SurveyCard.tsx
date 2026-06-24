@@ -1,7 +1,15 @@
 "use client";
 
 import { BiHash } from "react-icons/bi";
-import { TbCalendarRepeat, TbTable, TbTargetArrow } from "react-icons/tb";
+import {
+  TbBuilding,
+  TbCalendarRepeat,
+  TbHome,
+  TbTable,
+  TbTargetArrow,
+  TbUser,
+} from "react-icons/tb";
+import { getSurveyUnitIconKey } from "../../lib/surveyUnitIcons";
 
 type SurveyAttribute = {
   value: string;
@@ -21,6 +29,21 @@ interface SurveyCardProps {
 
 function truncate(value: string, length = 240) {
   return value.length > length ? `${value.slice(0, length)}...` : value;
+}
+
+function SurveyUnitIcon({ value }: { value: string }) {
+  const iconClassName = "size-4 shrink-0";
+
+  switch (getSurveyUnitIconKey(value)) {
+    case "organization":
+      return <TbBuilding className={iconClassName} aria-hidden />;
+    case "household":
+      return <TbHome className={iconClassName} aria-hidden />;
+    case "person":
+      return <TbUser className={iconClassName} aria-hidden />;
+    default:
+      return <TbTargetArrow className={iconClassName} aria-hidden />;
+  }
 }
 
 export function SurveyCard({
@@ -57,10 +80,21 @@ export function SurveyCard({
 
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
           {surveyUnits.length > 0 && (
-            <span className="flex items-center gap-2">
-              <TbTargetArrow />
-              調査対象: {surveyUnits.join(" / ")}
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="flex items-center gap-2">
+                <TbTargetArrow aria-hidden />
+                調査対象:
+              </span>
+              {surveyUnits.map((surveyUnit) => (
+                <span
+                  key={surveyUnit}
+                  className="badge badge-outline gap-1.5 py-3"
+                >
+                  <SurveyUnitIcon value={surveyUnit} />
+                  {surveyUnit}
+                </span>
+              ))}
+            </div>
           )}
           {surveyCycle && (
             <span className="flex items-center gap-2">
