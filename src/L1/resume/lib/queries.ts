@@ -105,6 +105,42 @@ export const GET_TABLE_LIST_COUNT = (items: Map<string, Set<string>>): GraphQLRe
   },
 });
 
+export type SurveyAttribute = {
+  statcode: string;
+  value: string;
+  attribute: {
+    code: string;
+    label: string;
+  };
+};
+
+export const GET_SURVEY_ATTRIBUTES = (
+  statcodes: string[]
+): GraphQLRequest => ({
+  query: gql`
+    query GetSurveyAttributes($statcodes: [String!]!) {
+      attributes: STAT_ATTRIBUTE_VALUES(
+        where: {
+          STATCODE: { _in: $statcodes }
+          STAT_ATTRIBUTE: {
+            CODE: { _in: ["description", "survey_units", "survey_cycle"] }
+          }
+        }
+      ) {
+        statcode: STATCODE
+        value: VALUE
+        attribute: STAT_ATTRIBUTE {
+          code: CODE
+          label: NAME_JA
+        }
+      }
+    }
+  `,
+  variables: {
+    statcodes,
+  },
+});
+
 const getItemsQueries: Record<string, DocumentNode> = {
   DIMENSION_ITEM: gql`
     query GetDimensionItems($className: String!) {
