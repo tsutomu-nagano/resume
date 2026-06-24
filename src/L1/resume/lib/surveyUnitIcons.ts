@@ -1,11 +1,26 @@
 export type SurveyUnitIconKey =
+  | "establishment"
+  | "enterprise"
+  | "corporation"
   | "organization"
   | "household"
   | "person"
   | "default";
 
 export function getSurveyUnitIconKey(value: string): SurveyUnitIconKey {
-  if (/(企業|事業所|会社|法人|団体)/.test(value)) {
+  if (/法人/.test(value)) {
+    return "corporation";
+  }
+
+  if (/事業所/.test(value)) {
+    return "establishment";
+  }
+
+  if (/(企業|会社)/.test(value)) {
+    return "enterprise";
+  }
+
+  if (/団体/.test(value)) {
     return "organization";
   }
 
