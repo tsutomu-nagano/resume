@@ -182,7 +182,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         (item: { statcode: string }) => item.statcode
       )
     );
-    const resolvedItems = new Map(
+    const resolvedItems: Map<string, Set<string>> = new Map(
       Array.from(items.entries())
         .filter(([kind]) => kind !== "survey_unit")
         .map(([kind, values]) => [kind, new Set(values)] as const)
