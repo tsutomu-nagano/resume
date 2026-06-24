@@ -1,33 +1,32 @@
-"use client"; // このファイルはクライアントサイドでのみ実行される
+"use client";
 
-import type { GraphQLRequest } from '@/lib/queries';
-import { createContext } from 'react';
+import type { GraphQLRequest } from "@/lib/queries";
+import { createContext } from "react";
 
+export type SearchResultView = "tables" | "surveys";
 
-// Contextの型定義
 interface SearchItemContextType {
   items: Map<string, Set<string>>;
-  getItemsArray: (kind?: string) => ({kind: string, itemName:string}[]);
-  findItem: (kind:string, itemName:string) => boolean;
-  addItem: (kind:string, itemName:string) => void;
-  removeItem: (kind:string, itemName:string) => void;
+  getItemsArray: (kind?: string) => { kind: string; itemName: string }[];
+  findItem: (kind: string, itemName: string) => boolean;
+  addItem: (kind: string, itemName: string) => void;
+  removeItem: (kind: string, itemName: string) => void;
+  selectSurvey: (surveyName: string) => void;
 
+  view: SearchResultView;
+  setView: (view: SearchResultView) => void;
   searchQuery: GraphQLRequest;
 
   offset: number;
-  setOffset: (offset:number) => void;
+  setOffset: (offset: number) => void;
 
   fetchMore: () => Promise<void>;
   fetchCount: () => Promise<void>;
   isLast: boolean;
   searchResult: any[];
   countResult: any;
-  loading: boolean
+  loading: boolean;
   error: Error | null;
-
 }
 
-// コンテキストの作成
 export const SearchItemContext = createContext<SearchItemContextType | undefined>(undefined);
-
-
