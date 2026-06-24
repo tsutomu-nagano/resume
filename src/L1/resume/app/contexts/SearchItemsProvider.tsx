@@ -6,6 +6,7 @@ import { createApolloClient } from "@/lib/apolloClient";
 import {
   GET_SURVEY_ATTRIBUTES,
   GET_SURVEY_LIST,
+  GET_SURVEY_STATCODES,
   GET_TABLE_LIST,
   GET_TABLE_LIST_COUNT,
 } from "@/lib/queries";
@@ -20,6 +21,7 @@ interface SearchItemProviderProps {
 
 const RESULT_VIEW_PARAM = "view";
 const PAGE_SIZE = 5;
+const NO_SURVEY_UNIT_MATCH = "__NO_SURVEY_UNIT_MATCH__";
 
 type SearchParamsReader = Pick<URLSearchParams, "forEach" | "get">;
 
@@ -161,15 +163,43 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     );
   };
 
-  const countQuery = useMemo(() => GET_TABLE_LIST_COUNT(items), [items]);
   const searchQuery = useMemo(
     () => (view === "surveys" ? GET_SURVEY_LIST(items) : GET_TABLE_LIST(items)),
     [items, view]
   );
+  const countQuery = useMemo(() => GET_TABLE_LIST_COUNT(items), [items]);
+
+  const resolveSurveyUnitItems = async () => {
+    const surveyUnits = items.get("survey_unit");
+
+    if (!surveyUnits || surveyUnits.size === 0) {
+      return items;
+    }
+
+    const result = await client.query(GET_SURVEY_STATCODES(items));
+    const statcodes = new Set(
+      (result.data.items || []).map(
+        (item: { statcode: string }) => item.statcode
+      )
+    );
+    const resolvedItems = new Map(
+      Array.from(items.entries())
+        .filter(([kind]) => kind !== "survey_unit")
+        .map(([kind, values]) => [kind, new Set(values)])
+    );
+
+    resolvedItems.set(
+      "statcode",
+      statcodes.size > 0 ? statcodes : new Set([NO_SURVEY_UNIT_MATCH])
+    );
+
+    return resolvedItems;
+  };
 
   const fetchCount = async () => {
     try {
-      const result = await client.query(countQuery);
+      const resolvedItems = await resolveSurveyUnitItems();
+      const result = await client.query(GET_TABLE_LIST_COUNT(resolvedItems));
       setCountResult(result.data.tablelist_aggregate.aggregate);
     } catch (err) {
       setError(err as Error);
@@ -178,10 +208,15 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
   const fetchMore = async () => {
     try {
+      const resolvedItems = await resolveSurveyUnitItems();
+      const query =
+        view === "surveys"
+          ? GET_SURVEY_LIST(resolvedItems)
+          : GET_TABLE_LIST(resolvedItems);
       const result = await client.query({
-        ...searchQuery,
+        ...query,
         variables: {
-          ...searchQuery.variables,
+          ...query.variables,
           limit_number: PAGE_SIZE,
           offset_number: offset,
         },
