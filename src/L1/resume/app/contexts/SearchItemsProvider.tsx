@@ -20,7 +20,9 @@ interface SearchItemProviderProps {
 const RESULT_VIEW_PARAM = "view";
 const PAGE_SIZE = 5;
 
-function getItemsFromSearchParams(searchParams: URLSearchParams) {
+type SearchParamsReader = Pick<URLSearchParams, "forEach" | "get">;
+
+function getItemsFromSearchParams(searchParams: SearchParamsReader) {
   const newItems = new Map<string, Set<string>>();
 
   searchParams.forEach((value, key) => {
@@ -36,7 +38,7 @@ function getItemsFromSearchParams(searchParams: URLSearchParams) {
   return newItems;
 }
 
-function getResultView(searchParams: URLSearchParams): SearchResultView {
+function getResultView(searchParams: SearchParamsReader): SearchResultView {
   return searchParams.get(RESULT_VIEW_PARAM) === "surveys"
     ? "surveys"
     : "tables";
