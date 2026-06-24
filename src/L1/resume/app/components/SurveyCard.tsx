@@ -2,8 +2,8 @@
 
 import {
   Building2,
-  Factory,
   Landmark,
+  Store,
   UsersRound,
 } from "lucide-react";
 import { BiHash } from "react-icons/bi";
@@ -41,7 +41,7 @@ function SurveyUnitIcon({ value }: { value: string }) {
 
   switch (getSurveyUnitIconKey(value)) {
     case "establishment":
-      return <Factory className={iconClassName} aria-hidden />;
+      return <Store className={iconClassName} aria-hidden />;
     case "enterprise":
       return <Building2 className={iconClassName} aria-hidden />;
     case "corporation":
