@@ -1,29 +1,45 @@
 "use client";
 
-import { useEffect } from 'react'
-import { useSearchItem } from '../contexts/SearchItemsProvider';
-import { renderIconByKind } from "../common/convertor"
-
+import { renderIconByKind } from "../common/convertor";
+import type { SearchResultView } from "../contexts/SearchItemsContext";
 
 interface SearchCountResultProps {
   stat: number;
   db: number;
+  view: SearchResultView;
+  onViewChange: (view: SearchResultView) => void;
 }
 
-export function SearchCountResult({stat, db} : SearchCountResultProps) {
-    return (
-        <div className="flex flex-row gap-2 items-center">
-
-            <div className="flex flex-row gap-2 items-center p-2">
-                {renderIconByKind("stat")}{"統計調査"}
-                <div className="badge badge-primary">{stat}</div>
-            </div>
-
-            <div className="flex flex-row gap-2 items-center p-2">
-                {renderIconByKind("db")}{"統計データ"}
-                <div className="badge badge-lg badge-primary">{db}</div>
-            </div>
-
-        </div>
-    )
-};
+export function SearchCountResult({
+  stat,
+  db,
+  view,
+  onViewChange,
+}: SearchCountResultProps) {
+  return (
+    <div className="join" role="tablist" aria-label="検索結果の表示単位">
+      <button
+        type="button"
+        role="tab"
+        aria-selected={view === "surveys"}
+        className={`btn btn-sm join-item ${view === "surveys" ? "btn-primary" : "btn-outline"}`}
+        onClick={() => onViewChange("surveys")}
+      >
+        {renderIconByKind("stat")}
+        統計調査
+        <span className="badge badge-sm">{stat}</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={view === "tables"}
+        className={`btn btn-sm join-item ${view === "tables" ? "btn-primary" : "btn-outline"}`}
+        onClick={() => onViewChange("tables")}
+      >
+        {renderIconByKind("db")}
+        統計表
+        <span className="badge badge-sm">{db}</span>
+      </button>
+    </div>
+  );
+}
