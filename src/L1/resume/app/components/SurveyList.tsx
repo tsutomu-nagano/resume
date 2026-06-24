@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { toSurveyCardProps, type SurveyResult } from "../../lib/surveyResults";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 import { InfiniteScrollContainer } from "./InfiniteScrollContainer";
 import { SurveyCard } from "./SurveyCard";
@@ -34,21 +35,17 @@ export default function SurveyList() {
   return (
     <InfiniteScrollContainer fetchMore={fetchMore} isLast={isLast}>
       <div className="flex flex-col gap-y-6">
-        {searchResult.map(
-          (survey: {
-            statcode: string;
-            statname: string;
-            table_count?: { aggregate?: { count?: number } };
-          }) => (
+        {searchResult.map((survey: SurveyResult) => {
+          const cardProps = toSurveyCardProps(survey);
+
+          return (
             <SurveyCard
-              key={survey.statcode}
-              statcode={survey.statcode}
-              statname={survey.statname}
-              tableCount={Number(survey.table_count?.aggregate?.count ?? 0)}
-              onSelect={() => selectSurvey(survey.statname)}
+              key={cardProps.statcode}
+              {...cardProps}
+              onSelect={() => selectSurvey(cardProps.statname)}
             />
-          )
-        )}
+          );
+        })}
       </div>
     </InfiniteScrollContainer>
   );
