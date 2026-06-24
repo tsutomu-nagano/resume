@@ -185,7 +185,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     const resolvedItems = new Map(
       Array.from(items.entries())
         .filter(([kind]) => kind !== "survey_unit")
-        .map(([kind, values]) => [kind, new Set(values)])
+        .map(([kind, values]) => [kind, new Set(values)] as const)
     );
 
     resolvedItems.set(
