@@ -54,6 +54,41 @@ export const GET_TABLE_LIST = (items: Map<string, Set<string>>): GraphQLRequest 
   },
 });
 
+const surveyListFields = gql`
+  fragment SurveyListFields on STATLIST {
+    statcode: STATCODE
+    statname: STATNAME
+    table_count: TABLELISTs_aggregate(where: $where) {
+      aggregate {
+        count
+      }
+    }
+  }
+`;
+
+export const GET_SURVEY_LIST = (items: Map<string, Set<string>>): GraphQLRequest => ({
+  query: gql`
+    ${surveyListFields}
+    query GetSurveyList(
+      $where: TABLELIST_bool_exp!
+      $limit_number: Int
+      $offset_number: Int
+    ) {
+      surveylist: STATLIST(
+        where: { TABLELISTs: $where }
+        limit: $limit_number
+        offset: $offset_number
+        order_by: { STATNAME: asc }
+      ) {
+        ...SurveyListFields
+      }
+    }
+  `,
+  variables: {
+    where: BuilderCondition(items),
+  },
+});
+
 export const GET_TABLE_LIST_COUNT = (items: Map<string, Set<string>>): GraphQLRequest => ({
   query: gql`
     query GetTableListCount($where: TABLELIST_bool_exp!) {
