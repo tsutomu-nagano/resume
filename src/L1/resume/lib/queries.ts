@@ -11,7 +11,7 @@ function getItemsWithoutKind(items: Map<string, Set<string>>, kind: string) {
   return new Map(
     Array.from(items.entries())
       .filter(([itemKind]) => itemKind !== kind)
-      .map(([itemKind, values]) => [itemKind, new Set(values)])
+      .map(([itemKind, values]) => [itemKind, new Set(values)] as const)
   );
 }
 
