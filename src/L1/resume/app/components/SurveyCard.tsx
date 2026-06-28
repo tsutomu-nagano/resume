@@ -6,7 +6,8 @@ import {
   Store,
   UsersRound,
 } from "lucide-react";
-import { BiHash } from "react-icons/bi";
+import { BiHash, BiAward } from "react-icons/bi";
+import { RiLoopLeftFill } from "react-icons/ri";
 import {
   TbCalendarRepeat,
   TbHome,
@@ -14,7 +15,8 @@ import {
   TbTargetArrow,
   TbUser,
 } from "react-icons/tb";
-import { getSurveyUnitIconKey } from "../../lib/surveyUnitIcons";
+import { SurveyUnitIcon } from "../../lib/surveyUnitIcons";
+import { Badge } from "./Badge"
 
 type SurveyAttribute = {
   value: string;
@@ -27,6 +29,7 @@ type SurveyAttribute = {
 interface SurveyCardProps {
   statcode: string;
   statname: string;
+  govname: string;
   tableCount: number;
   attributes?: SurveyAttribute[];
   onSelect: () => void;
@@ -36,50 +39,55 @@ function truncate(value: string, length = 240) {
   return value.length > length ? `${value.slice(0, length)}...` : value;
 }
 
-function SurveyUnitIcon({ value }: { value: string }) {
-  const iconClassName = "size-4 shrink-0";
-
-  switch (getSurveyUnitIconKey(value)) {
-    case "establishment":
-      return <Store className={iconClassName} aria-hidden />;
-    case "enterprise":
-      return <Building2 className={iconClassName} aria-hidden />;
-    case "corporation":
-      return <Landmark className={iconClassName} aria-hidden />;
-    case "organization":
-      return <UsersRound className={iconClassName} aria-hidden />;
-    case "household":
-      return <TbHome className={iconClassName} aria-hidden />;
-    case "person":
-      return <TbUser className={iconClassName} aria-hidden />;
-    default:
-      return <TbTargetArrow className={iconClassName} aria-hidden />;
-  }
-}
 
 export function SurveyCard({
   statcode,
   statname,
+  govname,
   tableCount,
   attributes = [],
   onSelect,
 }: SurveyCardProps) {
-  const description = attributes.find(
+
+    console.log(attributes)
+
+    const description = attributes.find(
     (attribute) => attribute.attribute.code === "description"
   )?.value;
+
   const surveyUnits = attributes
     .filter((attribute) => attribute.attribute.code === "survey_units")
     .map((attribute) => attribute.value);
-  const surveyCycle = attributes.find(
-    (attribute) => attribute.attribute.code === "survey_cycle"
+
+
+  const surveyCycles = attributes
+    .filter((attribute) => attribute.attribute.code === "survey_cycle")
+    .map((attribute) => attribute.value);
+
+  const statKind = attributes.find(
+    (attribute) => attribute.attribute.code === "stat_kind"
   )?.value;
+
+  console.log(statKind)
 
   return (
     <article className="card bg-base-100 w-full shadow-xl">
       <div className="card-body gap-4">
-        <div className="flex flex-row items-center gap-2 text-sm">
-          <BiHash />
-          <span>{statcode}</span>
+        <div className="flex flex-row items-center gap-5 text-sm">
+          <div className="flex flex-row items-center gap-2">
+            <BiHash />
+            <span>{statcode}</span>
+          </div>
+          <div className="flex flex-row items-center gap-2">
+            <Landmark className="size-4 shrink-0" />
+            <span>{govname}</span>
+          </div>
+          {surveyCycles.length > 0 && (
+            <span className="flex items-center gap-2">
+              <RiLoopLeftFill  className="size-4 shrink-0" />
+              調査周期: {surveyCycles.join("、")}
+            </span>
+          )}
         </div>
         <h2 className="card-title">{statname}</h2>
 
@@ -90,28 +98,33 @@ export function SurveyCard({
         )}
 
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          {statKind && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="flex items-center gap-2">
+                統計の種類:
+              </span>
+                <Badge 
+                  key={statKind}
+                  name={statKind}
+                  icon = {<><BiAward /></>}
+                  onClick={onSelect}
+                />
+            </div>
+          )}
           {surveyUnits.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="flex items-center gap-2">
-                <TbTargetArrow aria-hidden />
                 調査対象:
               </span>
               {surveyUnits.map((surveyUnit) => (
-                <span
+                <Badge 
                   key={surveyUnit}
-                  className="badge badge-outline gap-1.5 py-3"
-                >
-                  <SurveyUnitIcon value={surveyUnit} />
-                  {surveyUnit}
-                </span>
+                  name={surveyUnit}
+                  icon = {<SurveyUnitIcon value={surveyUnit}/>}
+                  onClick={onSelect}
+                />
               ))}
             </div>
-          )}
-          {surveyCycle && (
-            <span className="flex items-center gap-2">
-              <TbCalendarRepeat />
-              調査周期: {surveyCycle}
-            </span>
           )}
         </div>
 

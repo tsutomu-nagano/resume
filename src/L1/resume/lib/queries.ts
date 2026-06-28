@@ -69,6 +69,9 @@ const surveyListFields = gql`
   fragment SurveyListFields on STATLIST {
     statcode: STATCODE
     statname: STATNAME
+    govlist: GOVLIST {
+      govname: GOVNAME
+    }
     table_count: TABLELISTs_aggregate(where: $where) {
       aggregate {
         count
@@ -134,7 +137,7 @@ export const GET_SURVEY_ATTRIBUTES = (
         where: {
           STATCODE: { _in: $statcodes }
           STAT_ATTRIBUTE: {
-            CODE: { _in: ["description", "survey_units", "survey_cycle"] }
+            CODE: { _in: ["description", "survey_units", "survey_cycle", "stat_kind"] }
           }
         }
       ) {

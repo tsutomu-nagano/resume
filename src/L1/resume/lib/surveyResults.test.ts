@@ -20,12 +20,14 @@ describe("toSurveyCardProps", () => {
       toSurveyCardProps({
         statcode: "00020111",
         statname: "サンプル調査",
+        govname: "テスト府省",
         table_count: { aggregate: { count: 12 } },
         attributes,
       })
     ).toEqual({
       statcode: "00020111",
       statname: "サンプル調査",
+      govname: "テスト府省",
       tableCount: 12,
       attributes,
     });
@@ -33,7 +35,7 @@ describe("toSurveyCardProps", () => {
 
   it("uses an empty attribute list when no attributes are returned", () => {
     expect(
-      toSurveyCardProps({ statcode: "00020111", statname: "サンプル調査" })
+      toSurveyCardProps({ statcode: "00020111", statname: "サンプル調査", govname: "テスト府省" })
     ).toMatchObject({ tableCount: 0, attributes: [] });
   });
 });

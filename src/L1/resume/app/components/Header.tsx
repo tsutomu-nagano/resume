@@ -2,6 +2,8 @@
 
 import SearchItems from "./SearchItems";
 import SearchItemSelector from "./SearchItemSelector";
+import SurveyUnitSelector from "./SurveyUnitSelector"
+
 import { RegionSelectorContainer as RegionSelector } from "./RegionSelector.container";
 import { TimeSelectorContainer as TimeSelector } from "./TimeSelector.container";
 import { SearchCountResultContainer as SearchCountResult } from "./SearchCountResult.container";
@@ -20,7 +22,7 @@ export function Header() {
           resource_field="STATNAME"
           kind="stat"
         />
-        <SearchItemSelector
+        <SurveyUnitSelector
           labelja="調査対象"
           labelen=""
           ref_names={["STATLIST", "TABLELISTs"]}

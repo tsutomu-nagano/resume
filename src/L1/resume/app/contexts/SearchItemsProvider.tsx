@@ -2,14 +2,14 @@
 
 import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { createApolloClient } from "@/lib/apolloClient";
+import { createApolloClient } from "@lib/apolloClient";
 import {
   GET_SURVEY_ATTRIBUTES,
   GET_SURVEY_LIST,
   GET_SURVEY_STATCODES,
   GET_TABLE_LIST,
   GET_TABLE_LIST_COUNT,
-} from "@/lib/queries";
+} from "@lib/queries";
 import {
   SearchItemContext,
   SearchResultView,
