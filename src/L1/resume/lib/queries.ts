@@ -9,12 +9,21 @@ export interface GraphQLRequest {
 
 function getItemsWithoutKind(
   items: Map<string, Set<string>>,
-  kind: string
+  kind: string,
 ): Map<string, Set<string>> {
+  return getItemsWithoutKinds(items, [kind]);
+}
+
+function getItemsWithoutKinds(
+  items: Map<string, Set<string>>,
+  kinds: string[],
+): Map<string, Set<string>> {
+  const excludedKinds = new Set(kinds);
+
   return new Map(
     Array.from(items.entries())
-      .filter(([itemKind]) => itemKind !== kind)
-      .map(([itemKind, values]) => [itemKind, new Set(values)] as const)
+      .filter(([itemKind]) => !excludedKinds.has(itemKind))
+      .map(([itemKind, values]) => [itemKind, new Set(values)] as const),
   );
 }
 
@@ -42,7 +51,9 @@ const tableListFields = gql`
   }
 `;
 
-export const GET_TABLE_LIST = (items: Map<string, Set<string>>): GraphQLRequest => ({
+export const GET_TABLE_LIST = (
+  items: Map<string, Set<string>>,
+): GraphQLRequest => ({
   query: gql`
     ${tableListFields}
     query GetTableList(
@@ -80,7 +91,9 @@ const surveyListFields = gql`
   }
 `;
 
-export const GET_SURVEY_LIST = (items: Map<string, Set<string>>): GraphQLRequest => ({
+export const GET_SURVEY_LIST = (
+  items: Map<string, Set<string>>,
+): GraphQLRequest => ({
   query: gql`
     ${surveyListFields}
     query GetSurveyList(
@@ -103,7 +116,9 @@ export const GET_SURVEY_LIST = (items: Map<string, Set<string>>): GraphQLRequest
   },
 });
 
-export const GET_TABLE_LIST_COUNT = (items: Map<string, Set<string>>): GraphQLRequest => ({
+export const GET_TABLE_LIST_COUNT = (
+  items: Map<string, Set<string>>,
+): GraphQLRequest => ({
   query: gql`
     query GetTableListCount($where: TABLELIST_bool_exp!) {
       tablelist_aggregate: TABLELIST_aggregate(where: $where) {
@@ -128,16 +143,16 @@ export type SurveyAttribute = {
   };
 };
 
-export const GET_SURVEY_ATTRIBUTES = (
-  statcodes: string[]
-): GraphQLRequest => ({
+export const GET_SURVEY_ATTRIBUTES = (statcodes: string[]): GraphQLRequest => ({
   query: gql`
     query GetSurveyAttributes($statcodes: [String!]!) {
       attributes: STAT_ATTRIBUTE_VALUES(
         where: {
           STATCODE: { _in: $statcodes }
           STAT_ATTRIBUTE: {
-            CODE: { _in: ["description", "survey_units", "survey_cycle", "stat_kind"] }
+            CODE: {
+              _in: ["description", "survey_units", "survey_cycle", "stat_kind"]
+            }
           }
         }
       ) {
@@ -156,7 +171,7 @@ export const GET_SURVEY_ATTRIBUTES = (
 });
 
 export const GET_SURVEY_STATCODES = (
-  items: Map<string, Set<string>>
+  items: Map<string, Set<string>>,
 ): GraphQLRequest => ({
   query: gql`
     query GetSurveyStatcodes(
@@ -180,6 +195,36 @@ export const GET_SURVEY_STATCODES = (
   },
 });
 
+export const GET_SURVEY_ATTRIBUTE_STATCODES = (
+  attributeCode: string,
+  values: string[],
+  items: Map<string, Set<string>>,
+  excludedKinds: string[],
+): GraphQLRequest => ({
+  query: gql`
+    query GetSurveyAttributeStatcodes(
+      $tableWhere: TABLELIST_bool_exp!
+      $attributeCode: String!
+      $values: [String!]!
+    ) {
+      items: STAT_ATTRIBUTE_VALUES(
+        where: {
+          STATLIST: { TABLELISTs: $tableWhere }
+          STAT_ATTRIBUTE: { CODE: { _eq: $attributeCode } }
+          VALUE: { _in: $values }
+        }
+      ) {
+        statcode: STATCODE
+      }
+    }
+  `,
+  variables: {
+    tableWhere: BuilderCondition(getItemsWithoutKinds(items, excludedKinds)),
+    attributeCode,
+    values,
+  },
+});
+
 const getItemsQueries: Record<string, DocumentNode> = {
   DIMENSION_ITEM: gql`
     query GetDimensionItems($className: String!) {
@@ -197,7 +242,10 @@ const getItemsQueries: Record<string, DocumentNode> = {
   `,
 };
 
-export const GET_ITEMS = (resourceName: string, name: string): GraphQLRequest => {
+export const GET_ITEMS = (
+  resourceName: string,
+  name: string,
+): GraphQLRequest => {
   const query = getItemsQueries[resourceName];
 
   if (!query) {
@@ -214,7 +262,10 @@ export const GET_ITEMS = (resourceName: string, name: string): GraphQLRequest =>
 
 const searchTagListQueries: Record<string, DocumentNode> = {
   "STATLIST:STATNAME:TABLELISTs": gql`
-    query SearchStatList($tableWhere: TABLELIST_bool_exp!, $searchPattern: String!) {
+    query SearchStatList(
+      $tableWhere: TABLELIST_bool_exp!
+      $searchPattern: String!
+    ) {
       items: STATLIST(
         where: { TABLELISTs: $tableWhere, STATNAME: { _like: $searchPattern } }
       ) {
@@ -223,7 +274,10 @@ const searchTagListQueries: Record<string, DocumentNode> = {
     }
   `,
   "MEASURELIST:NAME:TABLE_MEASUREs.TABLELIST": gql`
-    query SearchMeasureList($tableWhere: TABLELIST_bool_exp!, $searchPattern: String!) {
+    query SearchMeasureList(
+      $tableWhere: TABLELIST_bool_exp!
+      $searchPattern: String!
+    ) {
       items: MEASURELIST(
         where: {
           TABLE_MEASUREs: { TABLELIST: $tableWhere }
@@ -235,7 +289,10 @@ const searchTagListQueries: Record<string, DocumentNode> = {
     }
   `,
   "DIMENSIONLIST:CLASS_NAME:TABLE_DIMENSIONs.TABLELIST": gql`
-    query SearchDimensionList($tableWhere: TABLELIST_bool_exp!, $searchPattern: String!) {
+    query SearchDimensionList(
+      $tableWhere: TABLELIST_bool_exp!
+      $searchPattern: String!
+    ) {
       items: DIMENSIONLIST(
         where: {
           TABLE_DIMENSIONs: { TABLELIST: $tableWhere }
@@ -247,7 +304,10 @@ const searchTagListQueries: Record<string, DocumentNode> = {
     }
   `,
   "REGIONLIST:NAME:TABLE_REGIONs.TABLELIST": gql`
-    query SearchRegionList($tableWhere: TABLELIST_bool_exp!, $searchPattern: String!) {
+    query SearchRegionList(
+      $tableWhere: TABLELIST_bool_exp!
+      $searchPattern: String!
+    ) {
       items: REGIONLIST(
         where: {
           TABLE_REGIONs: { TABLELIST: $tableWhere }
@@ -259,8 +319,9 @@ const searchTagListQueries: Record<string, DocumentNode> = {
     }
   `,
   "STAT_ATTRIBUTE_VALUES:VALUE:STATLIST.TABLELISTs": gql`
-    query SearchSurveyUnits(
+    query SearchSurveyAttributes(
       $tableWhere: TABLELIST_bool_exp!
+      $attributeCode: String!
       $searchPattern: String!
     ) {
       items: STAT_ATTRIBUTE_VALUES(
@@ -268,7 +329,7 @@ const searchTagListQueries: Record<string, DocumentNode> = {
         order_by: { VALUE: asc }
         where: {
           STATLIST: { TABLELISTs: $tableWhere }
-          STAT_ATTRIBUTE: { CODE: { _eq: "survey_units" } }
+          STAT_ATTRIBUTE: { CODE: { _eq: $attributeCode } }
           VALUE: { _like: $searchPattern }
         }
       ) {
@@ -283,7 +344,8 @@ export const GET_SEARCH_TAG_LIST = (
   field: string,
   refNames: string[],
   searchTerm: string,
-  items: Map<string, Set<string>>
+  items: Map<string, Set<string>>,
+  kind = "",
 ): GraphQLRequest => {
   const queryKey = `${name}:${field}:${refNames.join(".")}`;
   const query = searchTagListQueries[queryKey];
@@ -295,7 +357,10 @@ export const GET_SEARCH_TAG_LIST = (
   return {
     query,
     variables: {
-      tableWhere: BuilderCondition(getItemsWithoutKind(items, "survey_unit")),
+      tableWhere: BuilderCondition(
+        getItemsWithoutKinds(items, ["survey_unit", "stat_kind"]),
+      ),
+      attributeCode: kind === "stat_kind" ? "stat_kind" : "survey_units",
       searchPattern: `%${searchTerm}%`,
     },
   };

@@ -1,13 +1,14 @@
 import { BsTag } from "react-icons/bs";
 import { SlNote } from "react-icons/sl";
 import { FaRegFolder } from "react-icons/fa";
-import { TbSum, TbMapPin, TbTargetArrow } from "react-icons/tb";
+import { TbSum, TbMapPin, TbTargetArrow, TbCategory } from "react-icons/tb";
 import { LuDatabase } from "react-icons/lu";
 import { RiTimeLine } from "react-icons/ri";
 
 const iconMap: Record<string, JSX.Element> = {
   stat: <SlNote />,
   survey_unit: <TbTargetArrow />,
+  stat_kind: <TbCategory />,
   measure: <TbSum />,
   dimension: <BsTag />,
   thema: <FaRegFolder />,
@@ -26,6 +27,8 @@ export function descriptionByKind(kind: string): string {
       return "統計調査";
     case "survey_unit":
       return "統計調査が対象とする個人、世帯、事業所など";
+    case "stat_kind":
+      return "基幹統計、一般統計などの統計の種類";
     case "measure":
       return "統計データにおける量的変数";
     case "dimension":
@@ -47,6 +50,8 @@ export function kind_en2ja(kind: string): string {
       return "統計調査";
     case "survey_unit":
       return "調査対象";
+    case "stat_kind":
+      return "統計の種類";
     case "measure":
       return "集計事項";
     case "dimension":

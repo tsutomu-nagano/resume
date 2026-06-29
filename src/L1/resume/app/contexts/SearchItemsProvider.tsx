@@ -4,16 +4,13 @@ import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createApolloClient } from "@lib/apolloClient";
 import {
+  GET_SURVEY_ATTRIBUTE_STATCODES,
   GET_SURVEY_ATTRIBUTES,
   GET_SURVEY_LIST,
-  GET_SURVEY_STATCODES,
   GET_TABLE_LIST,
   GET_TABLE_LIST_COUNT,
 } from "@lib/queries";
-import {
-  SearchItemContext,
-  SearchResultView,
-} from "./SearchItemsContext";
+import { SearchItemContext, SearchResultView } from "./SearchItemsContext";
 
 interface SearchItemProviderProps {
   children: ReactNode;
@@ -21,7 +18,11 @@ interface SearchItemProviderProps {
 
 const RESULT_VIEW_PARAM = "view";
 const PAGE_SIZE = 5;
-const NO_SURVEY_UNIT_MATCH = "__NO_SURVEY_UNIT_MATCH__";
+const NO_ATTRIBUTE_FILTER_MATCH = "__NO_ATTRIBUTE_FILTER_MATCH__";
+const ATTRIBUTE_FILTERS = [
+  { kind: "survey_unit", attributeCode: "survey_units" },
+  { kind: "stat_kind", attributeCode: "stat_kind" },
+] as const;
 
 type SearchParamsReader = Pick<URLSearchParams, "forEach" | "get">;
 
@@ -60,7 +61,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [items, setItemSet] = useState<Map<string, Set<string>>>(() =>
-    getItemsFromSearchParams(searchParams)
+    getItemsFromSearchParams(searchParams),
   );
 
   const client = createApolloClient();
@@ -159,38 +160,63 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     }
 
     return Array.from(items.entries()).flatMap(([itemKind, names]) =>
-      Array.from(names).map((itemName) => ({ kind: itemKind, itemName }))
+      Array.from(names).map((itemName) => ({ kind: itemKind, itemName })),
     );
   };
 
   const searchQuery = useMemo(
     () => (view === "surveys" ? GET_SURVEY_LIST(items) : GET_TABLE_LIST(items)),
-    [items, view]
+    [items, view],
   );
   const countQuery = useMemo(() => GET_TABLE_LIST_COUNT(items), [items]);
 
-  const resolveSurveyUnitItems = async () => {
-    const surveyUnits = items.get("survey_unit");
+  const resolveSurveyAttributeItems = async () => {
+    const activeFilters = ATTRIBUTE_FILTERS.filter(
+      ({ kind }) => (items.get(kind)?.size || 0) > 0,
+    );
 
-    if (!surveyUnits || surveyUnits.size === 0) {
+    if (activeFilters.length === 0) {
       return items;
     }
 
-    const result = await client.query(GET_SURVEY_STATCODES(items));
+    const excludedKinds: string[] = activeFilters.map(({ kind }) => kind);
+    const statcodeSets = await Promise.all(
+      activeFilters.map(async ({ kind, attributeCode }) => {
+        const values = Array.from(items.get(kind) || []);
+        const result = await client.query(
+          GET_SURVEY_ATTRIBUTE_STATCODES(
+            attributeCode,
+            values,
+            items,
+            excludedKinds,
+          ),
+        );
+
+        return new Set<string>(
+          (result.data.items || []).map(
+            (item: { statcode: string }) => item.statcode,
+          ),
+        );
+      }),
+    );
+
+    const [firstSet, ...remainingSets] = statcodeSets;
     const statcodes = new Set<string>(
-      (result.data.items || []).map(
-        (item: { statcode: string }) => item.statcode
-      )
+      Array.from(firstSet || []).filter((statcode) =>
+        remainingSets.every((set) => set.has(statcode)),
+      ),
     );
     const resolvedItems: Map<string, Set<string>> = new Map(
       Array.from(items.entries())
-        .filter(([kind]) => kind !== "survey_unit")
-        .map(([kind, values]) => [kind, new Set(values)] as const)
+        .filter(([kind]) => !excludedKinds.includes(kind))
+        .map(([kind, values]) => [kind, new Set(values)] as const),
     );
 
     resolvedItems.set(
       "statcode",
-      statcodes.size > 0 ? statcodes : new Set<string>([NO_SURVEY_UNIT_MATCH])
+      statcodes.size > 0
+        ? statcodes
+        : new Set<string>([NO_ATTRIBUTE_FILTER_MATCH]),
     );
 
     return resolvedItems;
@@ -198,7 +224,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
   const fetchCount = async () => {
     try {
-      const resolvedItems = await resolveSurveyUnitItems();
+      const resolvedItems = await resolveSurveyAttributeItems();
       const result = await client.query(GET_TABLE_LIST_COUNT(resolvedItems));
       setCountResult(result.data.tablelist_aggregate.aggregate);
     } catch (err) {
@@ -208,7 +234,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
   const fetchMore = async () => {
     try {
-      const resolvedItems = await resolveSurveyUnitItems();
+      const resolvedItems = await resolveSurveyAttributeItems();
       const query =
         view === "surveys"
           ? GET_SURVEY_LIST(resolvedItems)
@@ -234,12 +260,12 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
       if (view === "surveys") {
         const statcodes = nextResults.map(
-          (survey: { statcode: string }) => survey.statcode
+          (survey: { statcode: string }) => survey.statcode,
         );
 
         try {
           const attributesResult = await client.query(
-            GET_SURVEY_ATTRIBUTES(statcodes)
+            GET_SURVEY_ATTRIBUTES(statcodes),
           );
           const attributesByStatcode = new Map<string, unknown[]>();
 
@@ -263,8 +289,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         const existingIds = new Set(previousResults.map((item) => item[idKey]));
         return [
           ...previousResults,
-          ...enrichedResults.filter((item: Record<string, unknown>) =>
-            !existingIds.has(item[idKey])
+          ...enrichedResults.filter(
+            (item: Record<string, unknown>) => !existingIds.has(item[idKey]),
           ),
         ];
       });
