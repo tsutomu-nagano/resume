@@ -1,22 +1,11 @@
 "use client";
 
-import {
-  Building2,
-  Landmark,
-  Store,
-  UsersRound,
-} from "lucide-react";
+import { Landmark } from "lucide-react";
 import { BiHash, BiAward } from "react-icons/bi";
 import { RiLoopLeftFill } from "react-icons/ri";
-import {
-  TbCalendarRepeat,
-  TbHome,
-  TbTable,
-  TbTargetArrow,
-  TbUser,
-} from "react-icons/tb";
+import { TbTable } from "react-icons/tb";
 import { SurveyUnitIcon } from "../../lib/surveyUnitIcons";
-import { Badge } from "./Badge"
+import { Badge } from "./Badge";
 
 type SurveyAttribute = {
   value: string;
@@ -33,12 +22,13 @@ interface SurveyCardProps {
   tableCount: number;
   attributes?: SurveyAttribute[];
   onSelect: () => void;
+  onSelectStatKind: (statKind: string) => void;
+  onSelectSurveyUnit: (surveyUnit: string) => void;
 }
 
 function truncate(value: string, length = 240) {
   return value.length > length ? `${value.slice(0, length)}...` : value;
 }
-
 
 export function SurveyCard({
   statcode,
@@ -47,28 +37,24 @@ export function SurveyCard({
   tableCount,
   attributes = [],
   onSelect,
+  onSelectStatKind,
+  onSelectSurveyUnit,
 }: SurveyCardProps) {
-
-    console.log(attributes)
-
-    const description = attributes.find(
-    (attribute) => attribute.attribute.code === "description"
+  const description = attributes.find(
+    (attribute) => attribute.attribute.code === "description",
   )?.value;
 
   const surveyUnits = attributes
     .filter((attribute) => attribute.attribute.code === "survey_units")
     .map((attribute) => attribute.value);
 
-
   const surveyCycles = attributes
     .filter((attribute) => attribute.attribute.code === "survey_cycle")
     .map((attribute) => attribute.value);
 
   const statKind = attributes.find(
-    (attribute) => attribute.attribute.code === "stat_kind"
+    (attribute) => attribute.attribute.code === "stat_kind",
   )?.value;
-
-  console.log(statKind)
 
   return (
     <article className="card bg-base-100 w-full shadow-xl">
@@ -84,7 +70,7 @@ export function SurveyCard({
           </div>
           {surveyCycles.length > 0 && (
             <span className="flex items-center gap-2">
-              <RiLoopLeftFill  className="size-4 shrink-0" />
+              <RiLoopLeftFill className="size-4 shrink-0" />
               調査周期: {surveyCycles.join("、")}
             </span>
           )}
@@ -100,28 +86,24 @@ export function SurveyCard({
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
           {statKind && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="flex items-center gap-2">
-                統計の種類:
-              </span>
-                <Badge 
-                  key={statKind}
-                  name={statKind}
-                  icon = {<><BiAward /></>}
-                  onClick={onSelect}
-                />
+              <span className="flex items-center gap-2">統計の種類:</span>
+              <Badge
+                key={statKind}
+                name={statKind}
+                icon={<BiAward />}
+                onClick={() => onSelectStatKind(statKind)}
+              />
             </div>
           )}
           {surveyUnits.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="flex items-center gap-2">
-                調査対象:
-              </span>
+              <span className="flex items-center gap-2">調査対象:</span>
               {surveyUnits.map((surveyUnit) => (
-                <Badge 
+                <Badge
                   key={surveyUnit}
                   name={surveyUnit}
-                  icon = {<SurveyUnitIcon value={surveyUnit}/>}
-                  onClick={onSelect}
+                  icon={<SurveyUnitIcon value={surveyUnit} />}
+                  onClick={() => onSelectSurveyUnit(surveyUnit)}
                 />
               ))}
             </div>
