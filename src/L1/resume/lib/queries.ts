@@ -368,7 +368,10 @@ const searchTagListQueries: Record<string, DocumentNode> = {
       items: DIMENSIONLIST(
         where: {
           TABLE_DIMENSIONs: { TABLELIST: $tableWhere }
-          CLASS_NAME: { _like: $searchPattern }
+          _or: [
+            { CLASS_NAME: { _like: $searchPattern } }
+            { DIMENSION_ITEMs: { NAME: { _like: $searchPattern } } }
+          ]
         }
       ) {
         name: CLASS_NAME
