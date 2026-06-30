@@ -134,6 +134,78 @@ export const GET_TABLE_LIST_COUNT = (
   },
 });
 
+export const GET_METADATA_LIST = (
+  items: Map<string, Set<string>>,
+): GraphQLRequest => ({
+  query: gql`
+    query GetMetadataList(
+      $where: TABLELIST_bool_exp!
+      $limit_number: Int
+      $offset_number: Int
+    ) {
+      measures: MEASURELIST(
+        where: { TABLE_MEASUREs: { TABLELIST: $where } }
+        limit: $limit_number
+        offset: $offset_number
+        order_by: { NAME: asc }
+      ) {
+        name: NAME
+      }
+      dimensions: DIMENSIONLIST(
+        where: { TABLE_DIMENSIONs: { TABLELIST: $where } }
+        limit: $limit_number
+        offset: $offset_number
+        order_by: { CLASS_NAME: asc }
+      ) {
+        name: CLASS_NAME
+      }
+      themes: TAGLIST(
+        where: { TABLE_TAGs: { TABLELIST: $where } }
+        limit: $limit_number
+        offset: $offset_number
+        order_by: { TAG_NAME: asc }
+      ) {
+        name: TAG_NAME
+      }
+      regions: REGIONLIST(
+        where: { TABLE_REGIONs: { TABLELIST: $where } }
+        limit: $limit_number
+        offset: $offset_number
+        order_by: { NAME: asc }
+      ) {
+        name: NAME
+      }
+      surveyUnits: STAT_ATTRIBUTE_VALUES(
+        distinct_on: VALUE
+        where: {
+          STATLIST: { TABLELISTs: $where }
+          STAT_ATTRIBUTE: { CODE: { _eq: "survey_units" } }
+        }
+        limit: $limit_number
+        offset: $offset_number
+        order_by: { VALUE: asc }
+      ) {
+        name: VALUE
+      }
+      statKinds: STAT_ATTRIBUTE_VALUES(
+        distinct_on: VALUE
+        where: {
+          STATLIST: { TABLELISTs: $where }
+          STAT_ATTRIBUTE: { CODE: { _eq: "stat_kind" } }
+        }
+        limit: $limit_number
+        offset: $offset_number
+        order_by: { VALUE: asc }
+      ) {
+        name: VALUE
+      }
+    }
+  `,
+  variables: {
+    where: BuilderCondition(items),
+  },
+});
+
 export type SurveyAttribute = {
   statcode: string;
   value: string;
