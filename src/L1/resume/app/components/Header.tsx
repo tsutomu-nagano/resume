@@ -9,6 +9,7 @@ import { RegionSelectorContainer as RegionSelector } from "./RegionSelector.cont
 import { TimeSelectorContainer as TimeSelector } from "./TimeSelector.container";
 import { SearchCountResultContainer as SearchCountResult } from "./SearchCountResult.container";
 import { GitHubLink } from "./GithubButton";
+import { NaturalLanguageSearch } from "./NaturalLanguageSearch";
 
 export function Header() {
   return (
@@ -70,6 +71,7 @@ export function Header() {
       <div className="ml-4">
         <SearchCountResult />
       </div>
+      <NaturalLanguageSearch />
       <SearchItems names={[""]} />
     </header>
   );

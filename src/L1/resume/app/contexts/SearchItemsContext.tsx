@@ -10,6 +10,7 @@ interface SearchItemContextType {
   getItemsArray: (kind?: string) => { kind: string; itemName: string }[];
   findItem: (kind: string, itemName: string) => boolean;
   addItem: (kind: string, itemName: string) => void;
+  addItems: (nextItems: { kind: string; itemName: string }[]) => void;
   removeItem: (kind: string, itemName: string) => void;
   selectSurvey: (surveyName: string) => void;
 

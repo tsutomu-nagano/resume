@@ -101,6 +101,33 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     navigate(params);
   };
 
+  const addItems = (nextItems: { kind: string; itemName: string }[]) => {
+    if (nextItems.length === 0) {
+      return;
+    }
+
+    resetSearch();
+    setItemSet((previousItems) => {
+      const newItems = new Map(previousItems);
+
+      for (const { kind, itemName } of nextItems) {
+        const currentItems = new Set(newItems.get(kind) || []);
+        currentItems.add(itemName);
+        newItems.set(kind, currentItems);
+      }
+
+      return newItems;
+    });
+
+    const params = new URLSearchParams(searchParams.toString());
+    for (const { kind, itemName } of nextItems) {
+      if (!params.getAll(kind).includes(itemName)) {
+        params.append(kind, itemName);
+      }
+    }
+    navigate(params);
+  };
+
   const removeItem = (kind: string, itemName: string) => {
     resetSearch();
     setItemSet((previousItems) => {
@@ -365,6 +392,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         getItemsArray,
         findItem,
         addItem,
+        addItems,
         removeItem,
         selectSurvey,
         view,
