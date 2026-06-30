@@ -29,7 +29,7 @@ interface StatKindSelectorProps {
   kind: string
 }
 
-export default function SurveyUnitSelector({ labelja, labelen = "", ref_names, resource_name, resource_field, kind }: SurveyUnitSelectorProps) {
+export default function SurveyUnitSelector({ labelja, labelen = "", ref_names, resource_name, resource_field, kind }: StatKindSelectorProps) {
 
     const kinds: string[] = [
         "基幹統計",

@@ -12,7 +12,7 @@ import { TagContainer as Tag } from './Tag.container';
 import { useSearchItem } from '../contexts/SearchItemsProvider';
 
 import { renderIconByKind, descriptionByKind } from "../common/convertor";
-import { SearchConditionCheckbox } from "./SearchConditionCheckbox"
+import { SearchConditionCheckbox } from "./SearchConditionCheckbox";
 import { SurveyUnitIcon } from "../../lib/surveyUnitIcons";
 
 interface SurveyUnitProps {
