@@ -3,7 +3,7 @@
 import type { GraphQLRequest } from "@/lib/queries";
 import { createContext } from "react";
 
-export type SearchResultView = "tables" | "surveys";
+export type SearchResultView = "tables" | "surveys" | "metadata";
 
 interface SearchItemContextType {
   items: Map<string, Set<string>>;
@@ -29,4 +29,6 @@ interface SearchItemContextType {
   error: Error | null;
 }
 
-export const SearchItemContext = createContext<SearchItemContextType | undefined>(undefined);
+export const SearchItemContext = createContext<
+  SearchItemContextType | undefined
+>(undefined);
