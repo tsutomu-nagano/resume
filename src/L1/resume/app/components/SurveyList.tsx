@@ -44,10 +44,6 @@ export default function SurveyList() {
               key={cardProps.statcode}
               {...cardProps}
               onSelect={() => selectSurvey(cardProps.statname)}
-              onSelectStatKind={(statKind) => addItem("stat_kind", statKind)}
-              onSelectSurveyUnit={(surveyUnit) =>
-                addItem("survey_unit", surveyUnit)
-              }
             />
           );
         })}

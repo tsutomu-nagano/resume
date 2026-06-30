@@ -5,7 +5,7 @@ import { BiHash, BiAward } from "react-icons/bi";
 import { RiLoopLeftFill } from "react-icons/ri";
 import { TbTable } from "react-icons/tb";
 import { SurveyUnitIcon } from "../../lib/surveyUnitIcons";
-import { Badge } from "./Badge";
+import { SearchConditionBadge } from "./SearchConditionBadge";
 
 type SurveyAttribute = {
   value: string;
@@ -22,8 +22,6 @@ interface SurveyCardProps {
   tableCount: number;
   attributes?: SurveyAttribute[];
   onSelect: () => void;
-  onSelectStatKind: (statKind: string) => void;
-  onSelectSurveyUnit: (surveyUnit: string) => void;
 }
 
 function truncate(value: string, length = 240) {
@@ -37,8 +35,6 @@ export function SurveyCard({
   tableCount,
   attributes = [],
   onSelect,
-  onSelectStatKind,
-  onSelectSurveyUnit,
 }: SurveyCardProps) {
   const description = attributes.find(
     (attribute) => attribute.attribute.code === "description",
@@ -87,11 +83,11 @@ export function SurveyCard({
           {statKind && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="flex items-center gap-2">統計の種類:</span>
-              <Badge
+              <SearchConditionBadge
                 key={statKind}
+                kind="stat_kind"
                 name={statKind}
                 icon={<BiAward />}
-                onClick={() => onSelectStatKind(statKind)}
               />
             </div>
           )}
@@ -99,11 +95,11 @@ export function SurveyCard({
             <div className="flex flex-wrap items-center gap-2">
               <span className="flex items-center gap-2">調査対象:</span>
               {surveyUnits.map((surveyUnit) => (
-                <Badge
+                <SearchConditionBadge
                   key={surveyUnit}
+                  kind="survey_unit"
                   name={surveyUnit}
                   icon={<SurveyUnitIcon value={surveyUnit} />}
-                  onClick={() => onSelectSurveyUnit(surveyUnit)}
                 />
               ))}
             </div>

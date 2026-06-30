@@ -1,5 +1,7 @@
 
 import type { ReactNode } from "react";
+import { useSearchItem } from '../contexts/SearchItemsProvider';
+import { useState, useEffect } from 'react'
 
 
 interface BadgeProps {
@@ -15,11 +17,11 @@ export function Badge({
   icon,
   onClick,
 }: BadgeProps) {
-  return (
+    return (
     <button
       type="button"
-      className={`badge badge-outline m-1 cursor-pointer gap-1.5 px-3 py-4 hover:bg-primary ${
-        isSelected ? "btn-primary" : "btn-outline"
+      className={`badge group m-1 cursor-pointer gap-1.5 px-3 py-4 ${
+        isSelected ? "badge-primary" : "badge-outline hover:bg-neutral hover:text-white"
       }`}
       onClick={onClick}
       aria-pressed={isSelected}
