@@ -27,7 +27,7 @@ export function SearchCountResult({
       >
         {renderIconByKind("stat")}
         統計調査
-        <span className="badge badge-sm">{stat}</span>
+        <span className="badge badge-neutral badge-outline badge-sm">{stat}</span>
       </button>
       <button
         type="button"
