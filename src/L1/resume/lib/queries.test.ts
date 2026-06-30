@@ -66,6 +66,7 @@ describe("survey queries", () => {
     );
 
     expect(print(request.query)).toContain("SearchSurveyAttributes");
+    expect(print(request.query)).not.toContain("distinct_on");
     expect(request.variables).toEqual({
       tableWhere: {},
       attributeCode: "stat_kind",

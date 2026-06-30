@@ -138,8 +138,24 @@ export function NaturalLanguageSearch() {
         }),
     );
 
-    const candidates = candidateResults
-      .flat()
+    const candidates = Array.from(
+      candidateResults
+        .flat()
+        .reduce((uniqueCandidates, candidate) => {
+          const key = `${candidate.kind}:${candidate.name}`;
+          const currentCandidate = uniqueCandidates.get(key);
+
+          if (
+            !currentCandidate ||
+            candidate.confidence > currentCandidate.confidence
+          ) {
+            uniqueCandidates.set(key, candidate);
+          }
+
+          return uniqueCandidates;
+        }, new Map<string, ResolvedCandidate>())
+        .values(),
+    )
       .sort((a, b) => b.confidence - a.confidence)
       .slice(0, 8);
 

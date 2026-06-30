@@ -176,7 +176,6 @@ export const GET_METADATA_LIST = (
         name: NAME
       }
       surveyUnits: STAT_ATTRIBUTE_VALUES(
-        distinct_on: VALUE
         where: {
           STATLIST: { TABLELISTs: $where }
           STAT_ATTRIBUTE: { CODE: { _eq: "survey_units" } }
@@ -188,7 +187,6 @@ export const GET_METADATA_LIST = (
         name: VALUE
       }
       statKinds: STAT_ATTRIBUTE_VALUES(
-        distinct_on: VALUE
         where: {
           STATLIST: { TABLELISTs: $where }
           STAT_ATTRIBUTE: { CODE: { _eq: "stat_kind" } }
@@ -400,7 +398,6 @@ const searchTagListQueries: Record<string, DocumentNode> = {
       $searchPattern: String!
     ) {
       items: STAT_ATTRIBUTE_VALUES(
-        distinct_on: VALUE
         order_by: { VALUE: asc }
         where: {
           STATLIST: { TABLELISTs: $tableWhere }
