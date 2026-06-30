@@ -38,7 +38,7 @@ export function SearchCountResult({
       >
         {renderIconByKind("db")}
         統計データ
-        <span className="badge badge-sm">{db}</span>
+        <span className="badge badge-outline badge-sm">{db}</span>
       </button>
       <button
         type="button"
