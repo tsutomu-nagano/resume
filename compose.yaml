@@ -8,14 +8,17 @@ services:
 
     env_file:
       - .env
-      - .env.local
 
     ports:
       - 3005:3000
 
     volumes:
       - ./src/L1/resume:/home
+      - resume_node_modules:/home/node_modules
 
     working_dir: /home
 
-    command: "/bin/bash"
+    command: sh -c "if [ ! -x node_modules/.bin/next ]; then npm install; fi; npm run dev -- -H 0.0.0.0"
+
+volumes:
+  resume_node_modules:
