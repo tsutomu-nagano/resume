@@ -6,6 +6,7 @@ import { createApolloClient } from "@lib/apolloClient";
 import {
   GET_SURVEY_ATTRIBUTE_STATCODES,
   GET_SURVEY_ATTRIBUTES,
+  GET_METADATA_LIST,
   GET_SURVEY_LIST,
   GET_TABLE_LIST,
   GET_TABLE_LIST_COUNT,
@@ -43,9 +44,13 @@ function getItemsFromSearchParams(searchParams: SearchParamsReader) {
 }
 
 function getResultView(searchParams: SearchParamsReader): SearchResultView {
-  return searchParams.get(RESULT_VIEW_PARAM) === "surveys"
-    ? "surveys"
-    : "tables";
+  const view = searchParams.get(RESULT_VIEW_PARAM);
+
+  if (view === "surveys" || view === "metadata") {
+    return view;
+  }
+
+  return "tables";
 }
 
 export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
@@ -164,10 +169,17 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     );
   };
 
-  const searchQuery = useMemo(
-    () => (view === "surveys" ? GET_SURVEY_LIST(items) : GET_TABLE_LIST(items)),
-    [items, view],
-  );
+  const searchQuery = useMemo(() => {
+    if (view === "surveys") {
+      return GET_SURVEY_LIST(items);
+    }
+
+    if (view === "metadata") {
+      return GET_METADATA_LIST(items);
+    }
+
+    return GET_TABLE_LIST(items);
+  }, [items, view]);
   const countQuery = useMemo(() => GET_TABLE_LIST_COUNT(items), [items]);
 
   const resolveSurveyAttributeItems = async () => {
@@ -238,7 +250,9 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       const query =
         view === "surveys"
           ? GET_SURVEY_LIST(resolvedItems)
-          : GET_TABLE_LIST(resolvedItems);
+          : view === "metadata"
+            ? GET_METADATA_LIST(resolvedItems)
+            : GET_TABLE_LIST(resolvedItems);
       const result = await client.query({
         ...query,
         variables: {
@@ -247,9 +261,38 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
           offset_number: offset,
         },
       });
+      const metadataResults =
+        view === "metadata"
+          ? [
+              ...((result.data.measures || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "measure" }),
+              ),
+              ...((result.data.dimensions || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "dimension" }),
+              ),
+              ...((result.data.themes || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "thema" }),
+              ),
+              ...((result.data.regions || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "region" }),
+              ),
+              ...((result.data.surveyUnits || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "survey_unit" }),
+              ),
+              ...((result.data.statKinds || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "stat_kind" }),
+              ),
+            ]
+          : [];
       const resultKey = view === "surveys" ? "surveylist" : "tablelist";
-      const idKey = view === "surveys" ? "statcode" : "statdispid";
-      const nextResults = result.data[resultKey] || [];
+      const idKey =
+        view === "surveys"
+          ? "statcode"
+          : view === "metadata"
+            ? "metadataId"
+            : "statdispid";
+      const nextResults =
+        view === "metadata" ? metadataResults : result.data[resultKey] || [];
 
       if (nextResults.length === 0) {
         setIsLast(true);
@@ -257,6 +300,15 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       }
 
       let enrichedResults = nextResults;
+
+      if (view === "metadata") {
+        enrichedResults = nextResults.map(
+          (item: { kind: string; name: string }) => ({
+            ...item,
+            metadataId: `${item.kind}:${item.name}`,
+          }),
+        );
+      }
 
       if (view === "surveys") {
         const statcodes = nextResults.map(
