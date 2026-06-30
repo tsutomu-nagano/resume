@@ -73,6 +73,29 @@ describe("survey queries", () => {
     });
   });
 
+  it("searches dimension classes by class name and item name", () => {
+    const request = GET_SEARCH_TAG_LIST(
+      "DIMENSIONLIST",
+      "CLASS_NAME",
+      ["TABLE_DIMENSIONs", "TABLELIST"],
+      "男",
+      new Map(),
+      "dimension",
+    );
+
+    const query = print(request.query);
+
+    expect(query).toContain("SearchDimensionList");
+    expect(query).toContain("CLASS_NAME");
+    expect(query).toContain("DIMENSION_ITEMs");
+    expect(query).toContain("NAME");
+    expect(request.variables).toEqual({
+      tableWhere: {},
+      attributeCode: "survey_units",
+      searchPattern: "%男%",
+    });
+  });
+
   it("resolves stat kinds to survey codes", () => {
     const request = GET_SURVEY_ATTRIBUTE_STATCODES(
       "stat_kind",
