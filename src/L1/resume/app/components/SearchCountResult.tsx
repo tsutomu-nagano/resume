@@ -37,8 +37,18 @@ export function SearchCountResult({
         onClick={() => onViewChange("tables")}
       >
         {renderIconByKind("db")}
-        統計表
+        統計データ
         <span className="badge badge-sm">{db}</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={view === "metadata"}
+        className={`btn btn-sm join-item ${view === "metadata" ? "btn-primary" : "btn-outline"}`}
+        onClick={() => onViewChange("metadata")}
+      >
+        {renderIconByKind("dimension")}
+        メタデータ
       </button>
     </div>
   );
