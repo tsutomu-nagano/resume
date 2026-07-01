@@ -1,6 +1,13 @@
 "use client";
 
-import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import {
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createApolloClient } from "@lib/apolloClient";
 import {
@@ -26,6 +33,11 @@ const ATTRIBUTE_FILTERS = [
 ] as const;
 
 type SearchParamsReader = Pick<URLSearchParams, "forEach" | "get">;
+type ResultCacheEntry = {
+  searchResult: any[];
+  offset: number;
+  isLast: boolean;
+};
 
 function getItemsFromSearchParams(searchParams: SearchParamsReader) {
   const newItems = new Map<string, Set<string>>();
@@ -53,6 +65,20 @@ function getResultView(searchParams: SearchParamsReader): SearchResultView {
   return "tables";
 }
 
+function getResultCacheKey(
+  view: SearchResultView,
+  items: Map<string, Set<string>>,
+) {
+  const itemKey = Array.from(items.entries())
+    .flatMap(([kind, values]) =>
+      Array.from(values).map((value) => `${kind}=${value}`),
+    )
+    .sort()
+    .join("&");
+
+  return `${view}:${itemKey}`;
+}
+
 export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -68,8 +94,21 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const [items, setItemSet] = useState<Map<string, Set<string>>>(() =>
     getItemsFromSearchParams(searchParams),
   );
+  const resultCache = useRef(new Map<string, ResultCacheEntry>());
 
   const client = createApolloClient();
+  const resultCacheKey = useMemo(
+    () => getResultCacheKey(view, items),
+    [items, view],
+  );
+
+  const rememberCurrentResults = () => {
+    resultCache.current.set(resultCacheKey, {
+      searchResult,
+      offset,
+      isLast,
+    });
+  };
 
   const resetSearch = () => {
     setSearchResult([]);
@@ -156,7 +195,21 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       return;
     }
 
-    resetSearch();
+    rememberCurrentResults();
+
+    const nextResultCacheKey = getResultCacheKey(nextView, items);
+    const cachedResult = resultCache.current.get(nextResultCacheKey);
+
+    if (cachedResult) {
+      setSearchResult(cachedResult.searchResult);
+      setOffset(cachedResult.offset);
+      setIsLast(cachedResult.isLast);
+      setError(null);
+      setLoading(false);
+    } else {
+      resetSearch();
+    }
+
     const params = new URLSearchParams(searchParams.toString());
     params.set(RESULT_VIEW_PARAM, nextView);
     navigate(params);
@@ -323,6 +376,11 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
       if (nextResults.length === 0) {
         setIsLast(true);
+        resultCache.current.set(resultCacheKey, {
+          searchResult,
+          offset,
+          isLast: true,
+        });
         return;
       }
 
@@ -366,12 +424,20 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
       setSearchResult((previousResults) => {
         const existingIds = new Set(previousResults.map((item) => item[idKey]));
-        return [
+        const nextSearchResult = [
           ...previousResults,
           ...enrichedResults.filter(
             (item: Record<string, unknown>) => !existingIds.has(item[idKey]),
           ),
         ];
+
+        resultCache.current.set(resultCacheKey, {
+          searchResult: nextSearchResult,
+          offset: offset + PAGE_SIZE,
+          isLast,
+        });
+
+        return nextSearchResult;
       });
       setOffset((previousOffset) => previousOffset + PAGE_SIZE);
     } catch (err) {
