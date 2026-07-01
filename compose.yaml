@@ -1,6 +1,6 @@
 services:
   app:
-    image: node:20
+    image: node:24
     container_name: resume-L1
 
     stdin_open: true

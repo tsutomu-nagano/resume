@@ -1,7 +1,7 @@
 // Drawer.tsx
 import { useQuery } from '@apollo/client';
 import React, { ReactNode, useEffect } from "react";
-import { GET_ITEMS } from "@/lib/queries"
+import { GET_ITEMS } from "@lib/queries"
 import { Drawer } from "./Drawer";
 import { LuComponent } from "react-icons/lu";
 

@@ -2,12 +2,13 @@ type GraphQLCondition = Record<string, unknown>;
 
 type EqualityConditionConfig = {
   kind: string;
-  tableName: string;
+  tableName?: string;
   columnName: string;
 };
 
 const equalityConditionConfigs: EqualityConditionConfig[] = [
   { kind: "stat", tableName: "STATLIST", columnName: "STATNAME" },
+  { kind: "statcode", columnName: "STATCODE" },
   { kind: "measure", tableName: "TABLE_MEASUREs", columnName: "NAME" },
   { kind: "thema", tableName: "TABLE_TAGs", columnName: "TAG_NAME" },
   { kind: "dimension", tableName: "TABLE_DIMENSIONs", columnName: "CLASS_NAME" },
@@ -24,13 +25,11 @@ function buildEqualityConditions(
     return [];
   }
 
-  return Array.from(itemsOfKind).map((item) => ({
-    [tableName]: {
-      [columnName]: {
-        _eq: item,
-      },
-    },
-  }));
+  return Array.from(itemsOfKind).map((item) => {
+    const comparison = { [columnName]: { _eq: item } };
+
+    return tableName ? { [tableName]: comparison } : comparison;
+  });
 }
 
 function buildTimeConditions(

@@ -3,7 +3,7 @@
 
 import { ReactNode } from 'react';
 import { ApolloProvider } from '@apollo/client';
-import { createApolloClient } from '@/lib/apolloClient';
+import { createApolloClient } from '@lib/apolloClient';
 import { SearchItemProvider } from '@contexts/SearchItemsProvider';
 import { Header } from '@components/Header'
 import { Suspense } from "react";

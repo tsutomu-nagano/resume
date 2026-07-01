@@ -7,7 +7,7 @@ describe("BuilderCondition", () => {
   });
 
   it("groups multiple equality values with _or", () => {
-    const items = new Map([["stat", new Set(["人口", "世帯"])]]); 
+    const items = new Map([["stat", new Set(["人口", "世帯"])]]);
 
     expect(BuilderCondition(items)).toEqual({
       _and: [
@@ -15,6 +15,21 @@ describe("BuilderCondition", () => {
           _or: [
             { STATLIST: { STATNAME: { _eq: "人口" } } },
             { STATLIST: { STATNAME: { _eq: "世帯" } } },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("filters tables by resolved survey codes", () => {
+    const items = new Map([["statcode", new Set(["00020111", "00020112"])]]);
+
+    expect(BuilderCondition(items)).toEqual({
+      _and: [
+        {
+          _or: [
+            { STATCODE: { _eq: "00020111" } },
+            { STATCODE: { _eq: "00020112" } },
           ],
         },
       ],

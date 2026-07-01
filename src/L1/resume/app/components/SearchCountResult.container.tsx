@@ -1,19 +1,25 @@
 "use client";
 
-import { useEffect } from 'react'
-import { useSearchItem } from '../contexts/SearchItemsProvider';
-import { renderIconByKind } from "../common/convertor"
+import { useSearchItem } from "../contexts/SearchItemsProvider";
 import { SearchCountResult } from "./SearchCountResult";
 
 export function SearchCountResultContainer() {
+  const { loading, error, countResult, setView, view } = useSearchItem();
 
-    const {loading, error, countResult } = useSearchItem();
+  if (loading && !countResult) {
+    return <span className="loading loading-spinner text-primary" />;
+  }
 
-    if (loading) return <span className="loading loading-spinner text-primary"></span>
-    if (error) return <p>Error: {error.message}</p>;
+  if (error) {
+    return <p>Error: {error.message}</p>;
+  }
 
-    return <SearchCountResult
-                stat={Number(countResult?.stat ?? 0)}
-                db={Number(countResult?.db ?? 0)}
-        />
-};
+  return (
+    <SearchCountResult
+      stat={Number(countResult?.stat ?? 0)}
+      db={Number(countResult?.db ?? 0)}
+      view={view}
+      onViewChange={setView}
+    />
+  );
+}
