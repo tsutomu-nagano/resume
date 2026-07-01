@@ -17,11 +17,11 @@ export default function MetadataList() {
   const didFetch = useRef(false);
 
   useEffect(() => {
-    if (!didFetch.current) {
+    if (!didFetch.current && searchResult.length === 0 && !isLast) {
       didFetch.current = true;
       void fetchMore();
     }
-  }, [fetchMore]);
+  }, [fetchMore, isLast, searchResult.length]);
 
   if (loading) {
     return <span className="loading loading-spinner text-primary" />;
