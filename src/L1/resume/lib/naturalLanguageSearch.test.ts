@@ -28,6 +28,9 @@ describe("extractNaturalLanguageEntities", () => {
         }),
       ]),
     );
+    expect(entities.flatMap((entity) => entity.kinds)).not.toEqual(
+      expect.arrayContaining(["survey_unit", "stat_kind"]),
+    );
   });
 
   it("normalizes Japanese era years", () => {

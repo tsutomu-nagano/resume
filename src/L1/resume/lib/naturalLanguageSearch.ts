@@ -18,8 +18,6 @@ export type NaturalLanguageEntity = {
 
 const candidateKinds: NaturalLanguageKind[] = [
   "stat",
-  "survey_unit",
-  "stat_kind",
   "measure",
   "dimension",
   "region",

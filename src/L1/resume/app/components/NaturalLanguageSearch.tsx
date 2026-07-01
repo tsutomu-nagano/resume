@@ -87,6 +87,7 @@ export function NaturalLanguageSearch() {
   const [selectedValues, setSelectedValues] = useState<Record<string, string>>(
     {},
   );
+  const [showAnalysisResult, setShowAnalysisResult] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const client = useMemo(() => createApolloClient(), []);
@@ -128,13 +129,15 @@ export function NaturalLanguageSearch() {
             ),
           );
 
-          return ((result.data.items || []) as { name: string }[])
-            .slice(0, 5)
-            .map((item) => ({
-              kind,
-              name: item.name,
-              confidence: scoreCandidate(entity.spanText, item.name),
-            }));
+          const resultItems = (
+            (result.data.items || []) as { name: string }[]
+          ).filter((item) => kind !== "stat" || item.name === entity.spanText);
+
+          return resultItems.slice(0, 5).map((item) => ({
+            kind,
+            name: item.name,
+            confidence: scoreCandidate(entity.spanText, item.name),
+          }));
         }),
     );
 
@@ -197,6 +200,7 @@ export function NaturalLanguageSearch() {
 
       setResolvedEntities(nextResolvedEntities);
       setSelectedValues(nextSelections);
+      setShowAnalysisResult(true);
     } catch (err) {
       setError(err as Error);
     } finally {
@@ -251,80 +255,99 @@ export function NaturalLanguageSearch() {
       {error && <p className="mt-2 text-sm text-error">{error.message}</p>}
 
       {resolvedEntities.length > 0 && (
-        <div className="mt-3 overflow-x-auto">
-          <table className="table table-sm">
-            <thead>
-              <tr>
-                <th>文章中の語</th>
-                <th>抽出種別</th>
-                <th>検索条件</th>
-                <th>状態</th>
-              </tr>
-            </thead>
-            <tbody>
-              {resolvedEntities.map((entity) => (
-                <tr key={entity.id}>
-                  <td className="font-medium">{entity.spanText}</td>
-                  <td>
-                    {entity.candidates[0]
-                      ? kind_en2ja(entity.candidates[0].kind)
-                      : entity.kinds
-                          .map((kind) => kind_en2ja(kind))
-                          .join(" / ")}
-                  </td>
-                  <td>
-                    {entity.candidates.length > 0 ? (
-                      <select
-                        className="select select-bordered select-sm w-full max-w-xs"
-                        value={selectedValues[entity.id] || ""}
-                        onChange={(event) =>
-                          setSelectedValues((previous) => ({
-                            ...previous,
-                            [entity.id]: event.target.value,
-                          }))
-                        }
-                      >
-                        {entity.candidates.map((candidate) => (
-                          <option
-                            key={`${candidate.kind}:${candidate.name}`}
-                            value={`${candidate.kind}:${candidate.name}`}
+        <div className="mt-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm text-base-content/70">自然言語処理の結果</p>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() =>
+                setShowAnalysisResult(
+                  (currentShowAnalysisResult) => !currentShowAnalysisResult,
+                )
+              }
+            >
+              {showAnalysisResult ? "結果を非表示" : "結果を表示"}
+            </button>
+          </div>
+
+          {showAnalysisResult && (
+            <div className="mt-2 overflow-x-auto">
+              <table className="table table-sm">
+                <thead>
+                  <tr>
+                    <th>文章中の語</th>
+                    <th>抽出種別</th>
+                    <th>検索条件</th>
+                    <th>状態</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {resolvedEntities.map((entity) => (
+                    <tr key={entity.id}>
+                      <td className="font-medium">{entity.spanText}</td>
+                      <td>
+                        {entity.candidates[0]
+                          ? kind_en2ja(entity.candidates[0].kind)
+                          : entity.kinds
+                              .map((kind) => kind_en2ja(kind))
+                              .join(" / ")}
+                      </td>
+                      <td>
+                        {entity.candidates.length > 0 ? (
+                          <select
+                            className="select select-bordered select-sm w-full max-w-xs"
+                            value={selectedValues[entity.id] || ""}
+                            onChange={(event) =>
+                              setSelectedValues((previous) => ({
+                                ...previous,
+                                [entity.id]: event.target.value,
+                              }))
+                            }
                           >
-                            {kind_en2ja(candidate.kind)}: {candidate.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span className="text-base-content/60">候補なし</span>
-                    )}
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${
-                        entity.status === "unresolved"
-                          ? "badge-error"
-                          : entity.status === "ambiguous"
-                            ? "badge-warning"
-                            : "badge-success"
-                      }`}
-                    >
-                      {entity.status === "unresolved"
-                        ? "未解決"
-                        : entity.status === "ambiguous"
-                          ? "候補あり"
-                          : "確定"}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <button
-            type="button"
-            className="btn btn-outline btn-sm mt-2"
-            onClick={handleApply}
-          >
-            選択した条件で検索
-          </button>
+                            {entity.candidates.map((candidate) => (
+                              <option
+                                key={`${candidate.kind}:${candidate.name}`}
+                                value={`${candidate.kind}:${candidate.name}`}
+                              >
+                                {kind_en2ja(candidate.kind)}: {candidate.name}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-base-content/60">候補なし</span>
+                        )}
+                      </td>
+                      <td>
+                        <span
+                          className={`badge ${
+                            entity.status === "unresolved"
+                              ? "badge-error"
+                              : entity.status === "ambiguous"
+                                ? "badge-warning"
+                                : "badge-success"
+                          }`}
+                        >
+                          {entity.status === "unresolved"
+                            ? "未解決"
+                            : entity.status === "ambiguous"
+                              ? "候補あり"
+                              : "確定"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm mt-2"
+                onClick={handleApply}
+              >
+                選択した条件で検索
+              </button>
+            </div>
+          )}
         </div>
       )}
     </section>
