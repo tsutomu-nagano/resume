@@ -5,10 +5,11 @@ interface InfiniteScrollContainerProps {
   children: React.ReactNode;
   fetchMore: () => void;
   isLast: boolean;
+  isFetchingMore: boolean;
 }
 
 export const InfiniteScrollContainer: React.FC<InfiniteScrollContainerProps> =
-  ({ children, fetchMore, isLast }) => {
+  ({ children, fetchMore, isLast, isFetchingMore }) => {
     // ボトム要素のRef、この Ref を監視(Observer)する
     let bottomBoundaryRef = React.useRef(null);
     const [needFetchMore, setNeedFetchMore] = React.useState(false);
@@ -35,17 +36,27 @@ export const InfiniteScrollContainer: React.FC<InfiniteScrollContainerProps> =
 
     React.useEffect(() => {
       if (needFetchMore) {
-        if (!isLast){
-          console.log("Inf");
-          fetchMore();
+        if (!isLast && !isFetchingMore) {
+          void fetchMore();
         }
         setNeedFetchMore(false);
       }
-    }, [needFetchMore, fetchMore, setNeedFetchMore]);
+    }, [needFetchMore, fetchMore, isFetchingMore, isLast, setNeedFetchMore]);
 
     return (
       <div>
         {children}
+        <div
+          aria-live="polite"
+          className="flex min-h-16 items-center justify-center py-6"
+        >
+          {isFetchingMore && (
+            <div className="flex items-center gap-3 text-sm text-base-content/70">
+              <span className="loading loading-spinner loading-sm text-primary" />
+              <span>追加データを読み込み中です</span>
+            </div>
+          )}
+        </div>
         <div ref={bottomBoundaryRef} />
       </div>
     );

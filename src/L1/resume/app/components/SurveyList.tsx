@@ -13,6 +13,7 @@ export default function SurveyList() {
     fetchMore,
     searchResult,
     isLast,
+    isFetchingMore,
     selectSurvey,
     addItem,
   } = useSearchItem();
@@ -34,7 +35,11 @@ export default function SurveyList() {
   }
 
   return (
-    <InfiniteScrollContainer fetchMore={fetchMore} isLast={isLast}>
+    <InfiniteScrollContainer
+      fetchMore={fetchMore}
+      isLast={isLast}
+      isFetchingMore={isFetchingMore}
+    >
       <div className="flex flex-col gap-y-6">
         {searchResult.map((survey: SurveyResult) => {
           const cardProps = toSurveyCardProps(survey);

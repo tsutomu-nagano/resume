@@ -12,8 +12,15 @@ type MetadataResult = {
 };
 
 export default function MetadataList() {
-  const { loading, error, fetchMore, searchResult, isLast, addItem } =
-    useSearchItem();
+  const {
+    loading,
+    error,
+    fetchMore,
+    searchResult,
+    isLast,
+    isFetchingMore,
+    addItem,
+  } = useSearchItem();
   const didFetch = useRef(false);
 
   useEffect(() => {
@@ -32,7 +39,11 @@ export default function MetadataList() {
   }
 
   return (
-    <InfiniteScrollContainer fetchMore={fetchMore} isLast={isLast}>
+    <InfiniteScrollContainer
+      fetchMore={fetchMore}
+      isLast={isLast}
+      isFetchingMore={isFetchingMore}
+    >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {(searchResult as MetadataResult[]).map((item) => (
           <MetadataCard

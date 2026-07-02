@@ -90,6 +90,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const [searchResult, setSearchResult] = useState<any[]>([]);
   const [countResult, setCountResult] = useState<any>();
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [items, setItemSet] = useState<Map<string, Set<string>>>(() =>
     getItemsFromSearchParams(searchParams),
@@ -116,6 +117,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     setIsLast(false);
     setError(null);
     setLoading(true);
+    setIsFetchingMore(false);
   };
 
   const navigate = (params: URLSearchParams) => {
@@ -325,6 +327,14 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   };
 
   const fetchMore = async () => {
+    if (isFetchingMore) {
+      return;
+    }
+
+    const isInitialFetch = searchResult.length === 0 && offset === 0;
+    setLoading(isInitialFetch);
+    setIsFetchingMore(!isInitialFetch);
+
     try {
       const resolvedItems = await resolveSurveyAttributeItems();
       const query =
@@ -444,6 +454,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       setError(err as Error);
     } finally {
       setLoading(false);
+      setIsFetchingMore(false);
     }
   };
 
@@ -469,6 +480,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         searchResult,
         countResult,
         loading,
+        isFetchingMore,
         error,
         fetchMore,
         fetchCount,

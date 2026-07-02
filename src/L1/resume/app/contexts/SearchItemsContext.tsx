@@ -27,6 +27,7 @@ interface SearchItemContextType {
   searchResult: any[];
   countResult: any;
   loading: boolean;
+  isFetchingMore: boolean;
   error: Error | null;
 }
 

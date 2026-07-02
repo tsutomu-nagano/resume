@@ -6,7 +6,8 @@ import { TableCard } from "./TableCard";
 import { InfiniteScrollContainer } from "./InfiniteScrollContainer";
 
 export default function TableList() {
-  const { loading, error, fetchMore, searchResult, isLast } = useSearchItem();
+  const { loading, error, fetchMore, searchResult, isLast, isFetchingMore } =
+    useSearchItem();
 
   const didEffect = useRef(false);
   useEffect(() => {
@@ -21,7 +22,11 @@ export default function TableList() {
   if (error) return <p>Error: {error.message}</p>;
 
   return (
-    <InfiniteScrollContainer fetchMore={fetchMore} isLast={isLast}>
+    <InfiniteScrollContainer
+      fetchMore={fetchMore}
+      isLast={isLast}
+      isFetchingMore={isFetchingMore}
+    >
       <div className="flex flex-col gap-y-10">
         {searchResult.map(
           (tbl: {
