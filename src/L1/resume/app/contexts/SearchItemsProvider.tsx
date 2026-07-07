@@ -102,6 +102,11 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     () => getResultCacheKey(view, items),
     [items, view],
   );
+  const activeResultCacheKey = useRef(resultCacheKey);
+
+  useEffect(() => {
+    activeResultCacheKey.current = resultCacheKey;
+  }, [resultCacheKey]);
 
   const rememberCurrentResults = () => {
     resultCache.current.set(resultCacheKey, {
@@ -331,6 +336,9 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       return;
     }
 
+    const requestResultCacheKey = resultCacheKey;
+    const isCurrentRequest = () =>
+      activeResultCacheKey.current === requestResultCacheKey;
     const isInitialFetch = searchResult.length === 0 && offset === 0;
     setLoading(isInitialFetch);
     setIsFetchingMore(!isInitialFetch);
@@ -351,6 +359,11 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
           offset_number: offset,
         },
       });
+
+      if (!isCurrentRequest()) {
+        return;
+      }
+
       const metadataResults =
         view === "metadata"
           ? [
@@ -386,7 +399,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
       if (nextResults.length === 0) {
         setIsLast(true);
-        resultCache.current.set(resultCacheKey, {
+        resultCache.current.set(requestResultCacheKey, {
           searchResult,
           offset,
           isLast: true,
@@ -414,6 +427,11 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
           const attributesResult = await client.query(
             GET_SURVEY_ATTRIBUTES(statcodes),
           );
+
+          if (!isCurrentRequest()) {
+            return;
+          }
+
           const attributesByStatcode = new Map<string, unknown[]>();
 
           for (const attribute of attributesResult.data.attributes || []) {
@@ -441,7 +459,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
           ),
         ];
 
-        resultCache.current.set(resultCacheKey, {
+        resultCache.current.set(requestResultCacheKey, {
           searchResult: nextSearchResult,
           offset: offset + PAGE_SIZE,
           isLast,
@@ -451,10 +469,16 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       });
       setOffset((previousOffset) => previousOffset + PAGE_SIZE);
     } catch (err) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+
       setError(err as Error);
     } finally {
-      setLoading(false);
-      setIsFetchingMore(false);
+      if (isCurrentRequest()) {
+        setLoading(false);
+        setIsFetchingMore(false);
+      }
     }
   };
 
