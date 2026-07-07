@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { toSurveyCardProps, type SurveyResult } from "../../lib/surveyResults";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 import { InfiniteScrollContainer } from "./InfiniteScrollContainer";
+import { ResultSkeletons } from "./ResultSkeletons";
 import { SurveyCard } from "./SurveyCard";
 
 export default function SurveyList() {
@@ -15,7 +16,6 @@ export default function SurveyList() {
     isLast,
     isFetchingMore,
     selectSurvey,
-    addItem,
   } = useSearchItem();
   const didFetch = useRef(false);
 
@@ -27,7 +27,7 @@ export default function SurveyList() {
   }, [fetchMore, isLast, searchResult.length]);
 
   if (loading) {
-    return <span className="loading loading-spinner text-primary" />;
+    return <ResultSkeletons view="surveys" />;
   }
 
   if (error) {

@@ -4,6 +4,7 @@ import { useRef, useEffect } from "react";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 import { TableCard } from "./TableCard";
 import { InfiniteScrollContainer } from "./InfiniteScrollContainer";
+import { ResultSkeletons } from "./ResultSkeletons";
 
 export default function TableList() {
   const { loading, error, fetchMore, searchResult, isLast, isFetchingMore } =
@@ -17,8 +18,7 @@ export default function TableList() {
     }
   }, [fetchMore, isLast, searchResult.length]);
 
-  if (loading)
-    return <span className="loading loading-spinner text-primary"></span>;
+  if (loading) return <ResultSkeletons view="tables" />;
   if (error) return <p>Error: {error.message}</p>;
 
   return (

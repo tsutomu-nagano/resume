@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 import { InfiniteScrollContainer } from "./InfiniteScrollContainer";
 import { MetadataCard } from "./MetadataCard";
+import { ResultSkeletons } from "./ResultSkeletons";
 
 type MetadataResult = {
   metadataId: string;
@@ -31,7 +32,7 @@ export default function MetadataList() {
   }, [fetchMore, isLast, searchResult.length]);
 
   if (loading) {
-    return <span className="loading loading-spinner text-primary" />;
+    return <ResultSkeletons view="metadata" />;
   }
 
   if (error) {
