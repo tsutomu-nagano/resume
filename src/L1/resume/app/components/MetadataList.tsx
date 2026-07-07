@@ -12,6 +12,20 @@ type MetadataResult = {
   name: string;
 };
 
+function isMetadataResult(value: unknown): value is MetadataResult {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const item = value as Partial<MetadataResult>;
+
+  return (
+    typeof item.metadataId === "string" &&
+    typeof item.kind === "string" &&
+    typeof item.name === "string"
+  );
+}
+
 export default function MetadataList() {
   const {
     loading,
@@ -46,7 +60,7 @@ export default function MetadataList() {
       isFetchingMore={isFetchingMore}
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {(searchResult as MetadataResult[]).map((item) => (
+        {searchResult.filter(isMetadataResult).map((item) => (
           <MetadataCard
             key={item.metadataId}
             kind={item.kind}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toSurveyCardProps } from "./surveyResults";
+import { isSurveyResult, toSurveyCardProps } from "./surveyResults";
 
 describe("toSurveyCardProps", () => {
   it("preserves overview attributes for survey cards", () => {
@@ -41,5 +41,15 @@ describe("toSurveyCardProps", () => {
         govlist: { govname: "テスト府省" },
       }),
     ).toMatchObject({ tableCount: 0, attributes: [] });
+  });
+
+  it("rejects non-survey rows", () => {
+    expect(
+      isSurveyResult({
+        statcode: "00020111",
+        statdispid: "000001",
+        title: "統計データ",
+      }),
+    ).toBe(false);
   });
 });

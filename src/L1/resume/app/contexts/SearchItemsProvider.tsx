@@ -38,6 +38,9 @@ type ResultCacheEntry = {
   offset: number;
   isLast: boolean;
 };
+type PendingResultCacheEntry = ResultCacheEntry & {
+  key: string;
+};
 
 function getItemsFromSearchParams(searchParams: SearchParamsReader) {
   const newItems = new Map<string, Set<string>>();
@@ -103,9 +106,23 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     [items, view],
   );
   const activeResultCacheKey = useRef(resultCacheKey);
+  const pendingResultCache = useRef<PendingResultCacheEntry | null>(null);
 
   useEffect(() => {
     activeResultCacheKey.current = resultCacheKey;
+
+    if (pendingResultCache.current?.key !== resultCacheKey) {
+      return;
+    }
+
+    const cachedResult = pendingResultCache.current;
+    pendingResultCache.current = null;
+    setSearchResult(cachedResult.searchResult);
+    setOffset(cachedResult.offset);
+    setIsLast(cachedResult.isLast);
+    setError(null);
+    setLoading(false);
+    setIsFetchingMore(false);
   }, [resultCacheKey]);
 
   const rememberCurrentResults = () => {
@@ -208,12 +225,13 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     const cachedResult = resultCache.current.get(nextResultCacheKey);
 
     if (cachedResult) {
-      setSearchResult(cachedResult.searchResult);
-      setOffset(cachedResult.offset);
-      setIsLast(cachedResult.isLast);
-      setError(null);
-      setLoading(false);
+      pendingResultCache.current = {
+        key: nextResultCacheKey,
+        ...cachedResult,
+      };
+      resetSearch();
     } else {
+      pendingResultCache.current = null;
       resetSearch();
     }
 

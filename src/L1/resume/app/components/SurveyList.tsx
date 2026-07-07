@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { toSurveyCardProps, type SurveyResult } from "../../lib/surveyResults";
+import {
+  isSurveyResult,
+  toSurveyCardProps,
+  type SurveyResult,
+} from "../../lib/surveyResults";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 import { InfiniteScrollContainer } from "./InfiniteScrollContainer";
 import { ResultSkeletons } from "./ResultSkeletons";
@@ -41,7 +45,7 @@ export default function SurveyList() {
       isFetchingMore={isFetchingMore}
     >
       <div className="flex flex-col gap-y-6">
-        {searchResult.map((survey: SurveyResult) => {
+        {searchResult.filter(isSurveyResult).map((survey: SurveyResult) => {
           const cardProps = toSurveyCardProps(survey);
 
           return (
