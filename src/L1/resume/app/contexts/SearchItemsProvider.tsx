@@ -82,6 +82,19 @@ function getResultCacheKey(
   return `${view}:${itemKey}`;
 }
 
+function getItemsWithoutKinds(
+  items: Map<string, Set<string>>,
+  kinds: string[],
+) {
+  const excludedKinds = new Set(kinds);
+
+  return new Map(
+    Array.from(items.entries())
+      .filter(([kind]) => !excludedKinds.has(kind))
+      .map(([kind, values]) => [kind, new Set(values)] as const),
+  );
+}
+
 export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -276,7 +289,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
   const searchQuery = useMemo(() => {
     if (view === "surveys") {
-      return GET_SURVEY_LIST(items);
+      return GET_SURVEY_LIST(getItemsWithoutKinds(items, ["stat"]));
     }
 
     if (view === "metadata") {
@@ -365,7 +378,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       const resolvedItems = await resolveSurveyAttributeItems();
       const query =
         view === "surveys"
-          ? GET_SURVEY_LIST(resolvedItems)
+          ? GET_SURVEY_LIST(getItemsWithoutKinds(resolvedItems, ["stat"]))
           : view === "metadata"
             ? GET_METADATA_LIST(resolvedItems)
             : GET_TABLE_LIST(resolvedItems);
