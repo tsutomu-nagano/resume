@@ -19,9 +19,9 @@ export default function SurveyList() {
     searchResult,
     isLast,
     isFetchingMore,
+    addItem,
     findItem,
     removeItem,
-    selectSurvey,
   } = useSearchItem();
   const didFetch = useRef(false);
 
@@ -49,13 +49,20 @@ export default function SurveyList() {
       <div className="flex flex-col gap-y-6">
         {searchResult.filter(isSurveyResult).map((survey: SurveyResult) => {
           const cardProps = toSurveyCardProps(survey);
+          const isSelected = findItem("stat", cardProps.statname);
 
           return (
             <SurveyCard
               key={cardProps.statcode}
               {...cardProps}
-              isSelected={findItem("stat", cardProps.statname)}
-              onSelect={() => selectSurvey(cardProps.statname)}
+              isSelected={isSelected}
+              onToggle={() => {
+                if (isSelected) {
+                  removeItem("stat", cardProps.statname);
+                } else {
+                  addItem("stat", cardProps.statname);
+                }
+              }}
               onDeselect={() => removeItem("stat", cardProps.statname)}
             />
           );

@@ -22,7 +22,7 @@ interface SurveyCardProps {
   tableCount: number;
   attributes?: SurveyAttribute[];
   isSelected: boolean;
-  onSelect: () => void;
+  onToggle: () => void;
   onDeselect: () => void;
 }
 
@@ -37,7 +37,7 @@ export function SurveyCard({
   tableCount,
   attributes = [],
   isSelected,
-  onSelect,
+  onToggle,
   onDeselect,
 }: SurveyCardProps) {
   const description = attributes.find(
@@ -64,11 +64,11 @@ export function SurveyCard({
       role="button"
       tabIndex={0}
       aria-pressed={isSelected}
-      onClick={onSelect}
+      onClick={onToggle}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onSelect();
+          onToggle();
         }
       }}
     >
@@ -148,9 +148,6 @@ export function SurveyCard({
                 選択解除
               </button>
             )}
-            <button type="button" className="btn btn-primary" onClick={onSelect}>
-              統計表を見る
-            </button>
           </div>
         </div>
       </div>
