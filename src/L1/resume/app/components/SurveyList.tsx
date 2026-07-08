@@ -19,6 +19,8 @@ export default function SurveyList() {
     searchResult,
     isLast,
     isFetchingMore,
+    findItem,
+    removeItem,
     selectSurvey,
   } = useSearchItem();
   const didFetch = useRef(false);
@@ -52,7 +54,9 @@ export default function SurveyList() {
             <SurveyCard
               key={cardProps.statcode}
               {...cardProps}
+              isSelected={findItem("stat", cardProps.statname)}
               onSelect={() => selectSurvey(cardProps.statname)}
+              onDeselect={() => removeItem("stat", cardProps.statname)}
             />
           );
         })}
