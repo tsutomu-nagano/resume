@@ -1,6 +1,7 @@
 "use client";
 
 import { useSearchItem } from "../contexts/SearchItemsProvider";
+import MetadataList from "./MetadataList";
 import SurveyList from "./SurveyList";
 import TableList from "./TableList";
 
@@ -11,9 +12,13 @@ export default function SearchResultList() {
     .sort()
     .join("&")}`;
 
-  return view === "surveys" ? (
-    <SurveyList key={resultKey} />
-  ) : (
-    <TableList key={resultKey} />
-  );
+  if (view === "surveys") {
+    return <SurveyList key={resultKey} />;
+  }
+
+  if (view === "metadata") {
+    return <MetadataList key={resultKey} />;
+  }
+
+  return <TableList key={resultKey} />;
 }

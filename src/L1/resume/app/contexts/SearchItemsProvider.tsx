@@ -1,11 +1,19 @@
 "use client";
 
-import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import {
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createApolloClient } from "@lib/apolloClient";
 import {
   GET_SURVEY_ATTRIBUTE_STATCODES,
   GET_SURVEY_ATTRIBUTES,
+  GET_METADATA_LIST,
   GET_SURVEY_LIST,
   GET_TABLE_LIST,
   GET_TABLE_LIST_COUNT,
@@ -25,6 +33,14 @@ const ATTRIBUTE_FILTERS = [
 ] as const;
 
 type SearchParamsReader = Pick<URLSearchParams, "forEach" | "get">;
+type ResultCacheEntry = {
+  searchResult: any[];
+  offset: number;
+  isLast: boolean;
+};
+type PendingResultCacheEntry = ResultCacheEntry & {
+  key: string;
+};
 
 function getItemsFromSearchParams(searchParams: SearchParamsReader) {
   const newItems = new Map<string, Set<string>>();
@@ -43,9 +59,40 @@ function getItemsFromSearchParams(searchParams: SearchParamsReader) {
 }
 
 function getResultView(searchParams: SearchParamsReader): SearchResultView {
-  return searchParams.get(RESULT_VIEW_PARAM) === "surveys"
-    ? "surveys"
-    : "tables";
+  const view = searchParams.get(RESULT_VIEW_PARAM);
+
+  if (view === "surveys" || view === "metadata") {
+    return view;
+  }
+
+  return "tables";
+}
+
+function getResultCacheKey(
+  view: SearchResultView,
+  items: Map<string, Set<string>>,
+) {
+  const itemKey = Array.from(items.entries())
+    .flatMap(([kind, values]) =>
+      Array.from(values).map((value) => `${kind}=${value}`),
+    )
+    .sort()
+    .join("&");
+
+  return `${view}:${itemKey}`;
+}
+
+function getItemsWithoutKinds(
+  items: Map<string, Set<string>>,
+  kinds: string[],
+) {
+  const excludedKinds = new Set(kinds);
+
+  return new Map(
+    Array.from(items.entries())
+      .filter(([kind]) => !excludedKinds.has(kind))
+      .map(([kind, values]) => [kind, new Set(values)] as const),
+  );
 }
 
 export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
@@ -59,12 +106,45 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const [searchResult, setSearchResult] = useState<any[]>([]);
   const [countResult, setCountResult] = useState<any>();
   const [loading, setLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [items, setItemSet] = useState<Map<string, Set<string>>>(() =>
     getItemsFromSearchParams(searchParams),
   );
+  const resultCache = useRef(new Map<string, ResultCacheEntry>());
 
   const client = createApolloClient();
+  const resultCacheKey = useMemo(
+    () => getResultCacheKey(view, items),
+    [items, view],
+  );
+  const activeResultCacheKey = useRef(resultCacheKey);
+  const pendingResultCache = useRef<PendingResultCacheEntry | null>(null);
+
+  useEffect(() => {
+    activeResultCacheKey.current = resultCacheKey;
+
+    if (pendingResultCache.current?.key !== resultCacheKey) {
+      return;
+    }
+
+    const cachedResult = pendingResultCache.current;
+    pendingResultCache.current = null;
+    setSearchResult(cachedResult.searchResult);
+    setOffset(cachedResult.offset);
+    setIsLast(cachedResult.isLast);
+    setError(null);
+    setLoading(false);
+    setIsFetchingMore(false);
+  }, [resultCacheKey]);
+
+  const rememberCurrentResults = () => {
+    resultCache.current.set(resultCacheKey, {
+      searchResult,
+      offset,
+      isLast,
+    });
+  };
 
   const resetSearch = () => {
     setSearchResult([]);
@@ -72,6 +152,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     setIsLast(false);
     setError(null);
     setLoading(true);
+    setIsFetchingMore(false);
   };
 
   const navigate = (params: URLSearchParams) => {
@@ -92,6 +173,33 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     const params = new URLSearchParams(searchParams.toString());
     if (!params.getAll(kind).includes(itemName)) {
       params.append(kind, itemName);
+    }
+    navigate(params);
+  };
+
+  const addItems = (nextItems: { kind: string; itemName: string }[]) => {
+    if (nextItems.length === 0) {
+      return;
+    }
+
+    resetSearch();
+    setItemSet((previousItems) => {
+      const newItems = new Map(previousItems);
+
+      for (const { kind, itemName } of nextItems) {
+        const currentItems = new Set(newItems.get(kind) || []);
+        currentItems.add(itemName);
+        newItems.set(kind, currentItems);
+      }
+
+      return newItems;
+    });
+
+    const params = new URLSearchParams(searchParams.toString());
+    for (const { kind, itemName } of nextItems) {
+      if (!params.getAll(kind).includes(itemName)) {
+        params.append(kind, itemName);
+      }
     }
     navigate(params);
   };
@@ -124,7 +232,22 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       return;
     }
 
-    resetSearch();
+    rememberCurrentResults();
+
+    const nextResultCacheKey = getResultCacheKey(nextView, items);
+    const cachedResult = resultCache.current.get(nextResultCacheKey);
+
+    if (cachedResult) {
+      pendingResultCache.current = {
+        key: nextResultCacheKey,
+        ...cachedResult,
+      };
+      resetSearch();
+    } else {
+      pendingResultCache.current = null;
+      resetSearch();
+    }
+
     const params = new URLSearchParams(searchParams.toString());
     params.set(RESULT_VIEW_PARAM, nextView);
     navigate(params);
@@ -164,10 +287,17 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     );
   };
 
-  const searchQuery = useMemo(
-    () => (view === "surveys" ? GET_SURVEY_LIST(items) : GET_TABLE_LIST(items)),
-    [items, view],
-  );
+  const searchQuery = useMemo(() => {
+    if (view === "surveys") {
+      return GET_SURVEY_LIST(getItemsWithoutKinds(items, ["stat"]));
+    }
+
+    if (view === "metadata") {
+      return GET_METADATA_LIST(items);
+    }
+
+    return GET_TABLE_LIST(items);
+  }, [items, view]);
   const countQuery = useMemo(() => GET_TABLE_LIST_COUNT(items), [items]);
 
   const resolveSurveyAttributeItems = async () => {
@@ -233,12 +363,25 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   };
 
   const fetchMore = async () => {
+    if (isFetchingMore) {
+      return;
+    }
+
+    const requestResultCacheKey = resultCacheKey;
+    const isCurrentRequest = () =>
+      activeResultCacheKey.current === requestResultCacheKey;
+    const isInitialFetch = searchResult.length === 0 && offset === 0;
+    setLoading(isInitialFetch);
+    setIsFetchingMore(!isInitialFetch);
+
     try {
       const resolvedItems = await resolveSurveyAttributeItems();
       const query =
         view === "surveys"
-          ? GET_SURVEY_LIST(resolvedItems)
-          : GET_TABLE_LIST(resolvedItems);
+          ? GET_SURVEY_LIST(getItemsWithoutKinds(resolvedItems, ["stat"]))
+          : view === "metadata"
+            ? GET_METADATA_LIST(resolvedItems)
+            : GET_TABLE_LIST(resolvedItems);
       const result = await client.query({
         ...query,
         variables: {
@@ -256,7 +399,63 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         return;
       }
 
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      const metadataResults =
+        view === "metadata"
+          ? [
+              ...((result.data.measures || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "measure" }),
+              ),
+              ...((result.data.dimensions || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "dimension" }),
+              ),
+              ...((result.data.themes || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "thema" }),
+              ),
+              ...((result.data.regions || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "region" }),
+              ),
+              ...((result.data.surveyUnits || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "survey_unit" }),
+              ),
+              ...((result.data.statKinds || []) as { name: string }[]).map(
+                (item) => ({ ...item, kind: "stat_kind" }),
+              ),
+            ]
+          : [];
+      const resultKey = view === "surveys" ? "surveylist" : "tablelist";
+      const idKey =
+        view === "surveys"
+          ? "statcode"
+          : view === "metadata"
+            ? "metadataId"
+            : "statdispid";
+      const nextResults =
+        view === "metadata" ? metadataResults : result.data[resultKey] || [];
+
+      if (nextResults.length === 0) {
+        setIsLast(true);
+        resultCache.current.set(requestResultCacheKey, {
+          searchResult,
+          offset,
+          isLast: true,
+        });
+        return;
+      }
+
       let enrichedResults = nextResults;
+
+      if (view === "metadata") {
+        enrichedResults = nextResults.map(
+          (item: { kind: string; name: string }) => ({
+            ...item,
+            metadataId: `${item.kind}:${item.name}`,
+          }),
+        );
+      }
 
       if (view === "surveys") {
         const statcodes = nextResults.map(
@@ -267,6 +466,11 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
           const attributesResult = await client.query(
             GET_SURVEY_ATTRIBUTES(statcodes),
           );
+
+          if (!isCurrentRequest()) {
+            return;
+          }
+
           const attributesByStatcode = new Map<string, unknown[]>();
 
           for (const attribute of attributesResult.data.attributes || []) {
@@ -287,18 +491,33 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
       setSearchResult((previousResults) => {
         const existingIds = new Set(previousResults.map((item) => item[idKey]));
-        return [
+        const nextSearchResult = [
           ...previousResults,
           ...enrichedResults.filter(
             (item: Record<string, unknown>) => !existingIds.has(item[idKey]),
           ),
         ];
+
+        resultCache.current.set(requestResultCacheKey, {
+          searchResult: nextSearchResult,
+          offset: offset + PAGE_SIZE,
+          isLast,
+        });
+
+        return nextSearchResult;
       });
       setOffset((previousOffset) => previousOffset + PAGE_SIZE);
     } catch (err) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+
       setError(err as Error);
     } finally {
-      setLoading(false);
+      if (isCurrentRequest()) {
+        setLoading(false);
+        setIsFetchingMore(false);
+      }
     }
   };
 
@@ -313,6 +532,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         getItemsArray,
         findItem,
         addItem,
+        addItems,
         removeItem,
         selectSurvey,
         view,
@@ -323,6 +543,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         searchResult,
         countResult,
         loading,
+        isFetchingMore,
         error,
         fetchMore,
         fetchCount,

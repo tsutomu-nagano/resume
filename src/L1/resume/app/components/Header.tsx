@@ -3,11 +3,13 @@
 import SearchItems from "./SearchItems";
 import SearchItemSelector from "./SearchItemSelector";
 import SurveyUnitSelector from "./SurveyUnitSelector";
+import StatKindSelector from "./StatKindSelector";
 
 import { RegionSelectorContainer as RegionSelector } from "./RegionSelector.container";
 import { TimeSelectorContainer as TimeSelector } from "./TimeSelector.container";
 import { SearchCountResultContainer as SearchCountResult } from "./SearchCountResult.container";
 import { GitHubLink } from "./GithubButton";
+import { NaturalLanguageSearch } from "./NaturalLanguageSearch";
 
 export function Header() {
   return (
@@ -30,7 +32,7 @@ export function Header() {
           resource_field="VALUE"
           kind="survey_unit"
         />
-        <SearchItemSelector
+        <StatKindSelector
           labelja="統計の種類"
           labelen=""
           ref_names={["STATLIST", "TABLELISTs"]}
@@ -69,6 +71,7 @@ export function Header() {
       <div className="ml-4">
         <SearchCountResult />
       </div>
+      <NaturalLanguageSearch />
       <SearchItems names={[""]} />
     </header>
   );

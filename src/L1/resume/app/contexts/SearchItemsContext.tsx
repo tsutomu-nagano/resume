@@ -3,13 +3,14 @@
 import type { GraphQLRequest } from "@/lib/queries";
 import { createContext } from "react";
 
-export type SearchResultView = "tables" | "surveys";
+export type SearchResultView = "tables" | "surveys" | "metadata";
 
 interface SearchItemContextType {
   items: Map<string, Set<string>>;
   getItemsArray: (kind?: string) => { kind: string; itemName: string }[];
   findItem: (kind: string, itemName: string) => boolean;
   addItem: (kind: string, itemName: string) => void;
+  addItems: (nextItems: { kind: string; itemName: string }[]) => void;
   removeItem: (kind: string, itemName: string) => void;
   selectSurvey: (surveyName: string) => void;
 
@@ -26,7 +27,10 @@ interface SearchItemContextType {
   searchResult: any[];
   countResult: any;
   loading: boolean;
+  isFetchingMore: boolean;
   error: Error | null;
 }
 
-export const SearchItemContext = createContext<SearchItemContextType | undefined>(undefined);
+export const SearchItemContext = createContext<
+  SearchItemContextType | undefined
+>(undefined);

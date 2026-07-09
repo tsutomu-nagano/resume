@@ -12,15 +12,15 @@ import { TagContainer as Tag } from './Tag.container';
 import { useSearchItem } from '../contexts/SearchItemsProvider';
 
 import { renderIconByKind, descriptionByKind } from "../common/convertor";
-import { SearchConditionCheckbox } from "./SearchConditionCheckbox";
+import { SearchConditionCheckbox } from "./SearchConditionCheckbox"
 import { SurveyUnitIcon } from "../../lib/surveyUnitIcons";
 
-interface SurveyUnitProps {
+interface StatKindProps {
   names: string[];
 }
 
 
-interface SurveyUnitSelectorProps {
+interface StatKindSelectorProps {
   labelja: string;
   labelen: string;
   ref_names: string[];
@@ -29,16 +29,14 @@ interface SurveyUnitSelectorProps {
   kind: string
 }
 
-export default function SurveyUnitSelector({ labelja, labelen = "", ref_names, resource_name, resource_field, kind }: SurveyUnitSelectorProps) {
+export default function SurveyUnitSelector({ labelja, labelen = "", ref_names, resource_name, resource_field, kind }: StatKindSelectorProps) {
 
-    const units: string[] = [
-        "個人",
-        "世帯",
-        "事業所",
-        "企業",
-        "法人・団体",
-        "地方公共団体",
-        "その他"
+    const kinds: string[] = [
+        "基幹統計",
+        "一般統計",
+        "業務統計",
+        "加工統計",
+        "その他",
     ]
 
 
@@ -64,11 +62,10 @@ export default function SurveyUnitSelector({ labelja, labelen = "", ref_names, r
             </>
           )} */}
 
-        <div className="divider divider-start divider-primary">調査対象</div>
+        <div className="divider divider-start divider-primary">統計の種類</div>
         <fieldset className="fieldset bg-base-100 border-base-300 p-4">
-            {units.map(( unit ) =>(
-            <SearchConditionCheckbox key={unit} kind="survey_unit" name={unit} icon={<SurveyUnitIcon value={unit} />
-} />
+            {kinds.map(( kind ) =>(
+            <SearchConditionCheckbox key={kind} kind="stat_kind" name={kind} />
             ))}
         </fieldset>
 

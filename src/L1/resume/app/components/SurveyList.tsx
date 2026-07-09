@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { toSurveyCardProps, type SurveyResult } from "../../lib/surveyResults";
+import {
+  isSurveyResult,
+  toSurveyCardProps,
+  type SurveyResult,
+} from "../../lib/surveyResults";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 import { InfiniteScrollContainer } from "./InfiniteScrollContainer";
+import { ResultSkeletons } from "./ResultSkeletons";
 import { SurveyCard } from "./SurveyCard";
 
 export default function SurveyList() {
@@ -13,20 +18,22 @@ export default function SurveyList() {
     fetchMore,
     searchResult,
     isLast,
-    selectSurvey,
+    isFetchingMore,
     addItem,
+    findItem,
+    removeItem,
   } = useSearchItem();
   const didFetch = useRef(false);
 
   useEffect(() => {
-    if (!didFetch.current) {
+    if (!didFetch.current && searchResult.length === 0 && !isLast) {
       didFetch.current = true;
       void fetchMore();
     }
-  }, [fetchMore]);
+  }, [fetchMore, isLast, searchResult.length]);
 
   if (loading) {
-    return <span className="loading loading-spinner text-primary" />;
+    return <ResultSkeletons view="surveys" />;
   }
 
   if (error) {
@@ -34,20 +41,29 @@ export default function SurveyList() {
   }
 
   return (
-    <InfiniteScrollContainer fetchMore={fetchMore} isLast={isLast}>
+    <InfiniteScrollContainer
+      fetchMore={fetchMore}
+      isLast={isLast}
+      isFetchingMore={isFetchingMore}
+    >
       <div className="flex flex-col gap-y-6">
-        {searchResult.map((survey: SurveyResult) => {
+        {searchResult.filter(isSurveyResult).map((survey: SurveyResult) => {
           const cardProps = toSurveyCardProps(survey);
+          const isSelected = findItem("stat", cardProps.statname);
 
           return (
             <SurveyCard
               key={cardProps.statcode}
               {...cardProps}
-              onSelect={() => selectSurvey(cardProps.statname)}
-              onSelectStatKind={(statKind) => addItem("stat_kind", statKind)}
-              onSelectSurveyUnit={(surveyUnit) =>
-                addItem("survey_unit", surveyUnit)
-              }
+              isSelected={isSelected}
+              onToggle={() => {
+                if (isSelected) {
+                  removeItem("stat", cardProps.statname);
+                } else {
+                  addItem("stat", cardProps.statname);
+                }
+              }}
+              onDeselect={() => removeItem("stat", cardProps.statname)}
             />
           );
         })}
