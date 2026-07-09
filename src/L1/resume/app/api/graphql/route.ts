@@ -1,6 +1,7 @@
 import { isReadOnlyGraphQLRequest } from "@/lib/graphqlRequestValidation";
 
 const DEFAULT_HASURA_GRAPHQL_ENDPOINT = "https://assuring-phoenix-83.hasura.app/v1/graphql";
+const HASURA_REQUEST_TIMEOUT_MS = 10_000;
 
 export const dynamic = "force-dynamic";
 
@@ -40,17 +41,40 @@ export async function POST(request: Request) {
     headers["x-hasura-role"] = role;
   }
 
-  const hasuraResponse = await fetch(endpoint, {
-    method: "POST",
-    headers,
-    body,
-    cache: "no-store",
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), HASURA_REQUEST_TIMEOUT_MS);
 
-  return new Response(await hasuraResponse.text(), {
-    status: hasuraResponse.status,
-    headers: {
-      "content-type": hasuraResponse.headers.get("content-type") || "application/json",
-    },
-  });
+  try {
+    const hasuraResponse = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body,
+      cache: "no-store",
+      signal: controller.signal,
+    });
+
+    return new Response(await hasuraResponse.text(), {
+      status: hasuraResponse.status,
+      headers: {
+        "content-type": hasuraResponse.headers.get("content-type") || "application/json",
+      },
+    });
+  } catch (error) {
+    const timedOut = error instanceof DOMException && error.name === "AbortError";
+
+    return Response.json(
+      {
+        errors: [
+          {
+            message: timedOut
+              ? "The GraphQL upstream request timed out."
+              : "Unable to reach the GraphQL upstream service.",
+          },
+        ],
+      },
+      { status: timedOut ? 504 : 502 }
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
 }

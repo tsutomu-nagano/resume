@@ -1,7 +1,5 @@
 
 import type { ReactNode } from "react";
-import { useSearchItem } from '../contexts/SearchItemsProvider';
-import { useState, useEffect } from 'react'
 
 
 interface BadgeProps {

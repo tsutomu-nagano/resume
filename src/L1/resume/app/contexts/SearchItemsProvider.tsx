@@ -390,6 +390,14 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
           offset_number: offset,
         },
       });
+      const resultKey = view === "surveys" ? "surveylist" : "tablelist";
+      const idKey = view === "surveys" ? "statcode" : "statdispid";
+      const nextResults = result.data[resultKey] || [];
+
+      if (nextResults.length === 0) {
+        setIsLast(true);
+        return;
+      }
 
       if (!isCurrentRequest()) {
         return;
