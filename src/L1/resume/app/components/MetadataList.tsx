@@ -45,6 +45,8 @@ export default function MetadataList() {
     isLast,
     isFetchingMore,
     addItem,
+    findItem,
+    removeItem,
   } = useSearchItem();
   const didFetch = useRef(false);
   const [hiddenKinds, setHiddenKinds] = useState<Set<string>>(() => new Set());
@@ -134,7 +136,15 @@ export default function MetadataList() {
             key={item.metadataId}
             kind={item.kind}
             name={item.name}
-            onSelect={addItem}
+            isSelected={findItem(item.kind, item.name)}
+            onToggle={() => {
+              if (findItem(item.kind, item.name)) {
+                removeItem(item.kind, item.name);
+              } else {
+                addItem(item.kind, item.name);
+              }
+            }}
+            onDeselect={() => removeItem(item.kind, item.name)}
           />
         ))}
       </div>

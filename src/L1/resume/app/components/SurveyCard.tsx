@@ -60,8 +60,8 @@ export function SurveyCard({
     <article
       className={`group card w-full cursor-pointer border-2 text-left shadow-xl transition hover:-translate-y-0.5 hover:bg-primary/5 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-primary/40 ${
         isSelected
-          ? "border-primary bg-primary/10"
-          : "border-base-300 bg-base-100 hover:border-primary/50"
+          ? "border-[#4A00FF] bg-[#4A00FF]/10"
+          : "border-base-300 bg-base-100 hover:border-[#4A00FF]/50"
       }`}
       role="button"
       tabIndex={0}
