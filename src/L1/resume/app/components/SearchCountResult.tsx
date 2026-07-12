@@ -6,6 +6,7 @@ import type { SearchResultView } from "../contexts/SearchItemsContext";
 interface SearchCountResultProps {
   stat: number;
   db: number;
+  metadata: number;
   view: SearchResultView;
   onViewChange: (view: SearchResultView) => void;
 }
@@ -13,6 +14,7 @@ interface SearchCountResultProps {
 export function SearchCountResult({
   stat,
   db,
+  metadata,
   view,
   onViewChange,
 }: SearchCountResultProps) {
@@ -49,6 +51,7 @@ export function SearchCountResult({
       >
         {renderIconByKind("dimension")}
         メタデータ
+        <span className="badge badge-outline badge-sm">{metadata}</span>
       </button>
     </div>
   );

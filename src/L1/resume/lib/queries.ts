@@ -127,6 +127,54 @@ export const GET_TABLE_LIST_COUNT = (
           db: count(distinct: true, column: STATDISPID)
         }
       }
+      metadata_measures: MEASURELIST_aggregate(
+        where: { TABLE_MEASUREs: { TABLELIST: $where } }
+      ) {
+        aggregate {
+          count(distinct: true, column: NAME)
+        }
+      }
+      metadata_dimensions: DIMENSIONLIST_aggregate(
+        where: { TABLE_DIMENSIONs: { TABLELIST: $where } }
+      ) {
+        aggregate {
+          count(distinct: true, column: CLASS_NAME)
+        }
+      }
+      metadata_themes: TAGLIST_aggregate(
+        where: { TABLE_TAGs: { TABLELIST: $where } }
+      ) {
+        aggregate {
+          count(distinct: true, column: TAG_NAME)
+        }
+      }
+      metadata_regions: REGIONLIST_aggregate(
+        where: { TABLE_REGIONs: { TABLELIST: $where } }
+      ) {
+        aggregate {
+          count(distinct: true, column: NAME)
+        }
+      }
+      metadata_survey_units: STAT_ATTRIBUTE_VALUES_aggregate(
+        where: {
+          STATLIST: { TABLELISTs: $where }
+          STAT_ATTRIBUTE: { CODE: { _eq: "survey_units" } }
+        }
+      ) {
+        aggregate {
+          count(distinct: true, column: VALUE)
+        }
+      }
+      metadata_stat_kinds: STAT_ATTRIBUTE_VALUES_aggregate(
+        where: {
+          STATLIST: { TABLELISTs: $where }
+          STAT_ATTRIBUTE: { CODE: { _eq: "stat_kind" } }
+        }
+      ) {
+        aggregate {
+          count(distinct: true, column: VALUE)
+        }
+      }
     }
   `,
   variables: {

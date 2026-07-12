@@ -2,6 +2,7 @@ import { print } from "graphql";
 import { describe, expect, it } from "vitest";
 import {
   GET_SEARCH_TAG_LIST,
+  GET_TABLE_LIST_COUNT,
   GET_SURVEY_ATTRIBUTE_STATCODES,
   GET_SURVEY_ATTRIBUTES,
   GET_SURVEY_LIST,
@@ -29,6 +30,24 @@ describe("survey queries", () => {
         ],
       },
     });
+  });
+
+  it("counts metadata search results with table results", () => {
+    const request = GET_TABLE_LIST_COUNT(new Map());
+    const query = print(request.query);
+
+    expect(query).toContain("metadata_measures: MEASURELIST_aggregate");
+    expect(query).toContain("metadata_dimensions: DIMENSIONLIST_aggregate");
+    expect(query).toContain("metadata_themes: TAGLIST_aggregate");
+    expect(query).toContain("metadata_regions: REGIONLIST_aggregate");
+    expect(query).toContain(
+      "metadata_survey_units: STAT_ATTRIBUTE_VALUES_aggregate",
+    );
+    expect(query).toContain(
+      "metadata_stat_kinds: STAT_ATTRIBUTE_VALUES_aggregate",
+    );
+    expect(query).toContain("count(distinct: true, column: VALUE)");
+    expect(request.variables).toEqual({ where: {} });
   });
 
   it("requests card attributes for the current survey page", () => {
