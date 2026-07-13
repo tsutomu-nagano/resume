@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { FiSearch } from "react-icons/fi";
 import { kind_en2ja, renderIconByKind } from "../common/convertor";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 import { InfiniteScrollContainer } from "./InfiniteScrollContainer";
@@ -47,9 +48,16 @@ export default function MetadataList() {
     addItem,
     findItem,
     removeItem,
+    countResult,
+    metadataSearchTerm,
+    setMetadataSearchTerm,
   } = useSearchItem();
   const didFetch = useRef(false);
   const [hiddenKinds, setHiddenKinds] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    didFetch.current = false;
+  }, [metadataSearchTerm]);
 
   useEffect(() => {
     if (!didFetch.current && searchResult.length === 0 && !isLast) {
@@ -82,11 +90,22 @@ export default function MetadataList() {
       counts.set(item.kind, (counts.get(item.kind) || 0) + 1);
     });
 
-    return Array.from(counts.entries()).sort(
-      ([leftKind], [rightKind]) =>
-        getMetadataKindOrder(leftKind) - getMetadataKindOrder(rightKind),
-    );
-  }, [metadataResults]);
+    const totalCounts = countResult?.metadataCounts || {};
+    const kinds = new Set([
+      ...metadataKindOrder.filter((kind) => Number(totalCounts[kind] ?? 0) > 0),
+      ...Array.from(counts.keys()),
+    ]);
+
+    return Array.from(kinds)
+      .map(
+        (kind) =>
+          [kind, Number(totalCounts[kind] ?? counts.get(kind) ?? 0)] as const,
+      )
+      .sort(
+        ([leftKind], [rightKind]) =>
+          getMetadataKindOrder(leftKind) - getMetadataKindOrder(rightKind),
+      );
+  }, [countResult?.metadataCounts, metadataResults]);
 
   const visibleResults = useMemo(
     () => metadataResults.filter((item) => !hiddenKinds.has(item.kind)),
@@ -107,10 +126,6 @@ export default function MetadataList() {
     });
   };
 
-  if (loading) {
-    return <ResultSkeletons view="metadata" />;
-  }
-
   if (error) {
     return <p>Error: {error.message}</p>;
   }
@@ -121,27 +136,57 @@ export default function MetadataList() {
       isLast={isLast}
       isFetchingMore={isFetchingMore}
     >
-      {metadataKinds.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
-          {metadataKinds.map(([kind, count]) => {
-            const isHidden = hiddenKinds.has(kind);
-
-            return (
-              <button
-                key={kind}
-                type="button"
-                aria-pressed={!isHidden}
-                className={`btn btn-sm gap-2 ${isHidden ? "btn-outline opacity-60" : "btn-primary"}`}
-                onClick={() => toggleKind(kind)}
-              >
-                {renderIconByKind(kind)}
-                <span>{kind_en2ja(kind)}</span>
-                <span className="badge badge-sm badge-outline">{count}</span>
-              </button>
-            );
-          })}
+      <div className="mb-4 space-y-3">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+          <label className="input input-bordered flex min-w-0 flex-1 items-center gap-2">
+            <input
+              type="search"
+              className="grow"
+              placeholder="メタデータ名で検索"
+              value={metadataSearchTerm}
+              onChange={(event) => setMetadataSearchTerm(event.target.value)}
+            />
+            {isFetchingMore || loading ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : (
+              <FiSearch className="text-base-content/50" />
+            )}
+          </label>
+          {metadataSearchTerm && (
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => setMetadataSearchTerm("")}
+            >
+              クリア
+            </button>
+          )}
         </div>
-      )}
+        {metadataKinds.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            {metadataKinds.map(([kind, count]) => {
+              const isHidden = hiddenKinds.has(kind);
+
+              return (
+                <button
+                  key={kind}
+                  type="button"
+                  aria-pressed={!isHidden}
+                  className={`btn btn-sm gap-2 ${isHidden ? "btn-outline opacity-60" : "btn-primary"}`}
+                  onClick={() => toggleKind(kind)}
+                >
+                  {renderIconByKind(kind)}
+                  <span>{kind_en2ja(kind)}</span>
+                  <span className="badge badge-sm badge-outline">{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      {loading && searchResult.length === 0 ? (
+        <ResultSkeletons view="metadata" />
+      ) : null}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {visibleResults.map((item) => (
           <MetadataCard
@@ -162,6 +207,11 @@ export default function MetadataList() {
       {metadataResults.length > 0 && visibleResults.length === 0 && (
         <p className="py-10 text-center text-sm text-base-content/60">
           表示するメタデータの種類を選択してください
+        </p>
+      )}
+      {!loading && metadataResults.length === 0 && metadataSearchTerm && (
+        <p className="py-10 text-center text-sm text-base-content/60">
+          一致するメタデータがありません
         </p>
       )}
     </InfiniteScrollContainer>

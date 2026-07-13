@@ -31,6 +31,8 @@ interface SearchItemContextType {
 
   view: SearchResultView;
   setView: (view: SearchResultView) => void;
+  metadataSearchTerm: string;
+  setMetadataSearchTerm: (searchTerm: string) => void;
   searchQuery: GraphQLRequest;
   searchHistoryNodes: SearchHistoryNode[];
   activeSearchNodeId: string | null;

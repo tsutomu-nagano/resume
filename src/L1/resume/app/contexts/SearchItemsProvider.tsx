@@ -230,6 +230,7 @@ function getResultView(searchParams: SearchParamsReader): SearchResultView {
 function getResultCacheKey(
   view: SearchResultView,
   items: Map<string, Set<string>>,
+  metadataSearchTerm = "",
 ) {
   const itemKey = Array.from(items.entries())
     .flatMap(([kind, values]) =>
@@ -238,7 +239,10 @@ function getResultCacheKey(
     .sort()
     .join("&");
 
-  return `${view}:${itemKey}`;
+  const metadataSearchKey =
+    view === "metadata" ? `:q=${metadataSearchTerm.trim()}` : "";
+
+  return `${view}:${itemKey}${metadataSearchKey}`;
 }
 
 function getItemsWithoutKinds(
@@ -267,6 +271,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [metadataSearchTerm, setMetadataSearchTermState] = useState("");
   const [items, setItemSet] = useState<Map<string, Set<string>>>(() =>
     getItemsFromSearchParams(searchParams),
   );
@@ -285,8 +290,9 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       getResultCacheKey(
         view,
         view === "surveys" ? getItemsWithoutKinds(items, ["stat"]) : items,
+        metadataSearchTerm,
       ),
-    [items, view],
+    [items, metadataSearchTerm, view],
   );
   const activeResultCacheKey = useRef(resultCacheKey);
   const pendingResultCache = useRef<PendingResultCacheEntry | null>(null);
@@ -662,6 +668,21 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     navigate(params);
   };
 
+  const setMetadataSearchTerm = (searchTerm: string) => {
+    setMetadataSearchTermState((currentSearchTerm) => {
+      if (currentSearchTerm === searchTerm) {
+        return currentSearchTerm;
+      }
+
+      if (view === "metadata") {
+        rememberCurrentResults();
+        resetSearch();
+      }
+
+      return searchTerm;
+    });
+  };
+
   const selectSurvey = (surveyName: string) => {
     if (items.get("stat")?.has(surveyName)) {
       return;
@@ -710,12 +731,17 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     }
 
     if (view === "metadata") {
-      return GET_METADATA_LIST(items);
+      return GET_METADATA_LIST(items, metadataSearchTerm);
     }
 
     return GET_TABLE_LIST(items);
-  }, [items, view]);
-  const countQuery = useMemo(() => GET_TABLE_LIST_COUNT(items), [items]);
+  }, [items, metadataSearchTerm, view]);
+  const activeMetadataSearchTerm =
+    view === "metadata" ? metadataSearchTerm : "";
+  const countQuery = useMemo(
+    () => GET_TABLE_LIST_COUNT(items, activeMetadataSearchTerm),
+    [activeMetadataSearchTerm, items],
+  );
 
   const resolveSurveyAttributeItems = async () => {
     const activeFilters = ATTRIBUTE_FILTERS.filter(
@@ -772,16 +798,27 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const fetchCount = async () => {
     try {
       const resolvedItems = await resolveSurveyAttributeItems();
-      const result = await client.query(GET_TABLE_LIST_COUNT(resolvedItems));
+      const result = await client.query(
+        GET_TABLE_LIST_COUNT(resolvedItems, activeMetadataSearchTerm),
+      );
       const metadataCount =
         Number(result.data.metadata_measures?.aggregate?.count ?? 0) +
         Number(result.data.metadata_dimensions?.aggregate?.count ?? 0) +
         Number(result.data.metadata_themes?.aggregate?.count ?? 0) +
         Number(result.data.metadata_regions?.aggregate?.count ?? 0);
+      const metadataCounts = {
+        measure: Number(result.data.metadata_measures?.aggregate?.count ?? 0),
+        dimension: Number(
+          result.data.metadata_dimensions?.aggregate?.count ?? 0,
+        ),
+        thema: Number(result.data.metadata_themes?.aggregate?.count ?? 0),
+        region: Number(result.data.metadata_regions?.aggregate?.count ?? 0),
+      };
 
       setCountResult({
         ...result.data.tablelist_aggregate.aggregate,
         metadata: metadataCount,
+        metadataCounts,
       });
     } catch (err) {
       setError(err as Error);
@@ -806,7 +843,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         view === "surveys"
           ? GET_SURVEY_LIST(getItemsWithoutKinds(resolvedItems, ["stat"]))
           : view === "metadata"
-            ? GET_METADATA_LIST(resolvedItems)
+            ? GET_METADATA_LIST(resolvedItems, metadataSearchTerm)
             : GET_TABLE_LIST(resolvedItems);
       const result = await client.query({
         ...query,
@@ -958,6 +995,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         selectSurvey,
         view,
         setView,
+        metadataSearchTerm,
+        setMetadataSearchTerm,
         searchQuery,
         searchHistoryNodes,
         activeSearchNodeId,

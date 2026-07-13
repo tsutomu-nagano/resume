@@ -1,6 +1,7 @@
 import { print } from "graphql";
 import { describe, expect, it } from "vitest";
 import {
+  GET_METADATA_LIST,
   GET_SEARCH_TAG_LIST,
   GET_TABLE_LIST_COUNT,
   GET_SURVEY_ATTRIBUTE_STATCODES,
@@ -42,7 +43,38 @@ describe("survey queries", () => {
     expect(query).toContain("metadata_regions: REGIONLIST_aggregate");
     expect(query).not.toContain("metadata_survey_units");
     expect(query).not.toContain("metadata_stat_kinds");
-    expect(request.variables).toEqual({ where: {} });
+    expect(request.variables).toEqual({
+      where: {},
+      measureWhere: { TABLE_MEASUREs: { TABLELIST: {} } },
+      dimensionWhere: { TABLE_DIMENSIONs: { TABLELIST: {} } },
+      themeWhere: { TABLE_TAGs: { TABLELIST: {} } },
+      regionWhere: { TABLE_REGIONs: { TABLELIST: {} } },
+    });
+  });
+
+  it("filters metadata list by text", () => {
+    const request = GET_METADATA_LIST(new Map(), "人口");
+    const query = print(request.query);
+
+    expect(query).toContain("GetMetadataList");
+    expect(request.variables).toEqual({
+      measureWhere: {
+        TABLE_MEASUREs: { TABLELIST: {} },
+        NAME: { _like: "%人口%" },
+      },
+      dimensionWhere: {
+        TABLE_DIMENSIONs: { TABLELIST: {} },
+        CLASS_NAME: { _like: "%人口%" },
+      },
+      themeWhere: {
+        TABLE_TAGs: { TABLELIST: {} },
+        TAG_NAME: { _like: "%人口%" },
+      },
+      regionWhere: {
+        TABLE_REGIONs: { TABLELIST: {} },
+        NAME: { _like: "%人口%" },
+      },
+    });
   });
 
   it("requests card attributes for the current survey page", () => {
