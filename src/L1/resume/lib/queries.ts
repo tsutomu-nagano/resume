@@ -378,6 +378,144 @@ export const GET_ITEMS = (
   };
 };
 
+export const GET_METADATA_SURVEYS = (
+  kind: string,
+  name: string,
+): GraphQLRequest => {
+  const attributeCode = kind === "stat_kind" ? "stat_kind" : "survey_units";
+  const tableWhereByKind: Record<string, Record<string, unknown>> = {
+    measure: { TABLE_MEASUREs: { NAME: { _eq: name } } },
+    dimension: { TABLE_DIMENSIONs: { CLASS_NAME: { _eq: name } } },
+    thema: { TABLE_TAGs: { TAG_NAME: { _eq: name } } },
+    region: { TABLE_REGIONs: { NAME: { _eq: name } } },
+  };
+
+  if (kind === "survey_unit" || kind === "stat_kind") {
+    return {
+      query: gql`
+        query GetMetadataSurveysByAttribute(
+          $attributeCode: String!
+          $value: String!
+        ) {
+          surveyValues: STAT_ATTRIBUTE_VALUES(
+            distinct_on: STATCODE
+            order_by: { STATCODE: asc }
+            where: {
+              STAT_ATTRIBUTE: { CODE: { _eq: $attributeCode } }
+              VALUE: { _eq: $value }
+            }
+          ) {
+            statcode: STATCODE
+            survey: STATLIST {
+              statname: STATNAME
+            }
+          }
+        }
+      `,
+      variables: {
+        attributeCode,
+        value: name,
+      },
+    };
+  }
+
+  const tableWhere = tableWhereByKind[kind];
+
+  if (!tableWhere) {
+    throw new Error(`Unsupported metadata kind: ${kind}`);
+  }
+
+  return {
+      query: gql`
+        query GetMetadataSurveys($tableWhere: TABLELIST_bool_exp!) {
+          surveys: STATLIST(
+          order_by: { STATNAME: asc }
+          where: { TABLELISTs: $tableWhere }
+        ) {
+          statcode: STATCODE
+          statname: STATNAME
+        }
+      }
+    `,
+    variables: {
+      tableWhere,
+    },
+  };
+};
+
+export const GET_METADATA_COUNTS = (
+  kind: string,
+  name: string,
+): GraphQLRequest => {
+  const attributeCode = kind === "stat_kind" ? "stat_kind" : "survey_units";
+  const tableWhereByKind: Record<string, Record<string, unknown>> = {
+    measure: { TABLE_MEASUREs: { NAME: { _eq: name } } },
+    dimension: { TABLE_DIMENSIONs: { CLASS_NAME: { _eq: name } } },
+    thema: { TABLE_TAGs: { TAG_NAME: { _eq: name } } },
+    region: { TABLE_REGIONs: { NAME: { _eq: name } } },
+  };
+
+  if (kind === "survey_unit" || kind === "stat_kind") {
+    return {
+      query: gql`
+        query GetMetadataCountsByAttribute(
+          $attributeCode: String!
+          $value: String!
+        ) {
+          surveyValues: STAT_ATTRIBUTE_VALUES(
+            distinct_on: STATCODE
+            order_by: { STATCODE: asc }
+            where: {
+              STAT_ATTRIBUTE: { CODE: { _eq: $attributeCode } }
+              VALUE: { _eq: $value }
+            }
+          ) {
+            statcode: STATCODE
+            survey: STATLIST {
+              tables: TABLELISTs_aggregate {
+                aggregate {
+                  count
+                }
+              }
+            }
+          }
+        }
+      `,
+      variables: {
+        attributeCode,
+        value: name,
+      },
+    };
+  }
+
+  const tableWhere = tableWhereByKind[kind];
+
+  if (!tableWhere) {
+    throw new Error(`Unsupported metadata kind: ${kind}`);
+  }
+
+  return {
+    query: gql`
+      query GetMetadataCounts($tableWhere: TABLELIST_bool_exp!) {
+        tables: TABLELIST_aggregate(where: $tableWhere) {
+          aggregate {
+            count
+          }
+        }
+        surveys: STATLIST(
+          order_by: { STATNAME: asc }
+          where: { TABLELISTs: $tableWhere }
+        ) {
+          statcode: STATCODE
+        }
+      }
+    `,
+    variables: {
+      tableWhere,
+    },
+  };
+};
+
 const searchTagListQueries: Record<string, DocumentNode> = {
   "STATLIST:STATNAME:TABLELISTs": gql`
     query SearchStatList(

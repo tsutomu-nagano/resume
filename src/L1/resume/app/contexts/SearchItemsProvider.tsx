@@ -910,11 +910,21 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
       setSearchResult((previousResults) => {
         const existingIds = new Set(previousResults.map((item) => item[idKey]));
+        const uniqueEnrichedResults = enrichedResults.filter(
+          (item: Record<string, unknown>) => {
+            const itemId = item[idKey];
+
+            if (existingIds.has(itemId)) {
+              return false;
+            }
+
+            existingIds.add(itemId);
+            return true;
+          },
+        );
         const nextSearchResult = [
           ...previousResults,
-          ...enrichedResults.filter(
-            (item: Record<string, unknown>) => !existingIds.has(item[idKey]),
-          ),
+          ...uniqueEnrichedResults,
         ];
 
         resultCache.current.set(requestResultCacheKey, {

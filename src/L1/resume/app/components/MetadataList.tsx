@@ -59,7 +59,15 @@ export default function MetadataList() {
   }, [fetchMore, isLast, searchResult.length]);
 
   const metadataResults = useMemo(
-    () => searchResult.filter(isMetadataResult),
+    () => {
+      const uniqueResults = new Map<string, MetadataResult>();
+
+      searchResult.filter(isMetadataResult).forEach((item) => {
+        uniqueResults.set(item.metadataId, item);
+      });
+
+      return Array.from(uniqueResults.values());
+    },
     [searchResult],
   );
 
@@ -144,7 +152,6 @@ export default function MetadataList() {
                 addItem(item.kind, item.name);
               }
             }}
-            onDeselect={() => removeItem(item.kind, item.name)}
           />
         ))}
       </div>
