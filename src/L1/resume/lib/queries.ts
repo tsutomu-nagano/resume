@@ -155,26 +155,6 @@ export const GET_TABLE_LIST_COUNT = (
           count(distinct: true, column: NAME)
         }
       }
-      metadata_survey_units: STAT_ATTRIBUTE_VALUES_aggregate(
-        where: {
-          STATLIST: { TABLELISTs: $where }
-          STAT_ATTRIBUTE: { CODE: { _eq: "survey_units" } }
-        }
-      ) {
-        aggregate {
-          count(distinct: true, column: VALUE)
-        }
-      }
-      metadata_stat_kinds: STAT_ATTRIBUTE_VALUES_aggregate(
-        where: {
-          STATLIST: { TABLELISTs: $where }
-          STAT_ATTRIBUTE: { CODE: { _eq: "stat_kind" } }
-        }
-      ) {
-        aggregate {
-          count(distinct: true, column: VALUE)
-        }
-      }
     }
   `,
   variables: {
@@ -222,28 +202,6 @@ export const GET_METADATA_LIST = (
         order_by: { NAME: asc }
       ) {
         name: NAME
-      }
-      surveyUnits: STAT_ATTRIBUTE_VALUES(
-        where: {
-          STATLIST: { TABLELISTs: $where }
-          STAT_ATTRIBUTE: { CODE: { _eq: "survey_units" } }
-        }
-        limit: $limit_number
-        offset: $offset_number
-        order_by: { VALUE: asc }
-      ) {
-        name: VALUE
-      }
-      statKinds: STAT_ATTRIBUTE_VALUES(
-        where: {
-          STATLIST: { TABLELISTs: $where }
-          STAT_ATTRIBUTE: { CODE: { _eq: "stat_kind" } }
-        }
-        limit: $limit_number
-        offset: $offset_number
-        order_by: { VALUE: asc }
-      ) {
-        name: VALUE
       }
     }
   `,

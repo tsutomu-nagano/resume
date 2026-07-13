@@ -777,9 +777,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         Number(result.data.metadata_measures?.aggregate?.count ?? 0) +
         Number(result.data.metadata_dimensions?.aggregate?.count ?? 0) +
         Number(result.data.metadata_themes?.aggregate?.count ?? 0) +
-        Number(result.data.metadata_regions?.aggregate?.count ?? 0) +
-        Number(result.data.metadata_survey_units?.aggregate?.count ?? 0) +
-        Number(result.data.metadata_stat_kinds?.aggregate?.count ?? 0);
+        Number(result.data.metadata_regions?.aggregate?.count ?? 0);
 
       setCountResult({
         ...result.data.tablelist_aggregate.aggregate,
@@ -836,12 +834,6 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
               ),
               ...((result.data.regions || []) as { name: string }[]).map(
                 (item) => ({ ...item, kind: "region" }),
-              ),
-              ...((result.data.surveyUnits || []) as { name: string }[]).map(
-                (item) => ({ ...item, kind: "survey_unit" }),
-              ),
-              ...((result.data.statKinds || []) as { name: string }[]).map(
-                (item) => ({ ...item, kind: "stat_kind" }),
               ),
             ]
           : [];

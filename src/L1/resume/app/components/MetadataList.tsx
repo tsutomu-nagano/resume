@@ -18,9 +18,9 @@ const metadataKindOrder = [
   "dimension",
   "thema",
   "region",
-  "survey_unit",
-  "stat_kind",
 ];
+
+const hiddenMetadataKinds = new Set(["survey_unit", "stat_kind"]);
 
 function isMetadataResult(value: unknown): value is MetadataResult {
   if (!value || typeof value !== "object") {
@@ -63,6 +63,10 @@ export default function MetadataList() {
       const uniqueResults = new Map<string, MetadataResult>();
 
       searchResult.filter(isMetadataResult).forEach((item) => {
+        if (hiddenMetadataKinds.has(item.kind)) {
+          return;
+        }
+
         uniqueResults.set(item.metadataId, item);
       });
 

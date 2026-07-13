@@ -40,13 +40,8 @@ describe("survey queries", () => {
     expect(query).toContain("metadata_dimensions: DIMENSIONLIST_aggregate");
     expect(query).toContain("metadata_themes: TAGLIST_aggregate");
     expect(query).toContain("metadata_regions: REGIONLIST_aggregate");
-    expect(query).toContain(
-      "metadata_survey_units: STAT_ATTRIBUTE_VALUES_aggregate",
-    );
-    expect(query).toContain(
-      "metadata_stat_kinds: STAT_ATTRIBUTE_VALUES_aggregate",
-    );
-    expect(query).toContain("count(distinct: true, column: VALUE)");
+    expect(query).not.toContain("metadata_survey_units");
+    expect(query).not.toContain("metadata_stat_kinds");
     expect(request.variables).toEqual({ where: {} });
   });
 
