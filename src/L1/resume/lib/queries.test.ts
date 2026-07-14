@@ -2,6 +2,7 @@ import { print } from "graphql";
 import { describe, expect, it } from "vitest";
 import {
   GET_METADATA_LIST,
+  GET_METADATA_SURVEYS,
   GET_SEARCH_TAG_LIST,
   GET_TABLE_LIST_COUNT,
   GET_SURVEY_ATTRIBUTE_STATCODES,
@@ -82,6 +83,17 @@ describe("survey queries", () => {
 
     expect(print(request.query)).toContain("STAT_ATTRIBUTE_VALUES");
     expect(request.variables).toEqual({ statcodes: ["00020111"] });
+  });
+
+  it("requests survey detail fields for metadata survey lists", () => {
+    const request = GET_METADATA_SURVEYS("measure", "人口");
+    const query = print(request.query);
+
+    expect(query).toContain("govlist: GOVLIST");
+    expect(query).toContain("table_count: TABLELISTs_aggregate");
+    expect(request.variables).toEqual({
+      tableWhere: { TABLE_MEASUREs: { NAME: { _eq: "人口" } } },
+    });
   });
 
   it("resolves selected survey units to survey codes", () => {

@@ -397,6 +397,14 @@ export const GET_METADATA_SURVEYS = (
             statcode: STATCODE
             survey: STATLIST {
               statname: STATNAME
+              govlist: GOVLIST {
+                govname: GOVNAME
+              }
+              table_count: TABLELISTs_aggregate {
+                aggregate {
+                  count
+                }
+              }
             }
           }
         }
@@ -415,14 +423,22 @@ export const GET_METADATA_SURVEYS = (
   }
 
   return {
-      query: gql`
-        query GetMetadataSurveys($tableWhere: TABLELIST_bool_exp!) {
-          surveys: STATLIST(
+    query: gql`
+      query GetMetadataSurveys($tableWhere: TABLELIST_bool_exp!) {
+        surveys: STATLIST(
           order_by: { STATNAME: asc }
           where: { TABLELISTs: $tableWhere }
         ) {
           statcode: STATCODE
           statname: STATNAME
+          govlist: GOVLIST {
+            govname: GOVNAME
+          }
+          table_count: TABLELISTs_aggregate(where: $tableWhere) {
+            aggregate {
+              count
+            }
+          }
         }
       }
     `,
