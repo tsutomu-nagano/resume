@@ -1,4 +1,7 @@
 # resume
+
+![ReSUME logo](./src/L1/resume/public/resume-logo.png)
+
 - `re`structure `s`tatistical data `u`sing `me`tadata
 
 ## Layer 1 
