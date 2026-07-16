@@ -4,6 +4,7 @@ import React, { ReactNode, useEffect } from "react";
 import { GET_ITEMS } from "@lib/queries"
 import { Drawer } from "./Drawer";
 import { LuComponent } from "react-icons/lu";
+import { MetadataSurveyList } from "./MetadataSurveyList";
 
 interface DimensionItemInfoProps {
   id: string; // Drawerの一意なID
@@ -74,6 +75,7 @@ export function DimensionItemInfo({
           ) : (
             <p>No items found.</p>
           )}
+          <MetadataSurveyList kind={kind} name={name} isOpen={isOpen} />
         </>
       }
     />

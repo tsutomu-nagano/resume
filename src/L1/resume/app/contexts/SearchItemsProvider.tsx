@@ -18,13 +18,20 @@ import {
   GET_TABLE_LIST,
   GET_TABLE_LIST_COUNT,
 } from "@lib/queries";
-import { SearchItemContext, SearchResultView } from "./SearchItemsContext";
+import {
+  SearchHistoryItem,
+  SearchHistoryNode,
+  SearchItemContext,
+  SearchResultView,
+} from "./SearchItemsContext";
 
 interface SearchItemProviderProps {
   children: ReactNode;
 }
 
 const RESULT_VIEW_PARAM = "view";
+const SEARCH_HISTORY_STORAGE_KEY = "resume:git-style-search-history";
+const ACTIVE_SEARCH_NODE_STORAGE_KEY = "resume:active-search-history-node";
 const PAGE_SIZE = 5;
 const NO_ATTRIBUTE_FILTER_MATCH = "__NO_ATTRIBUTE_FILTER_MATCH__";
 const ATTRIBUTE_FILTERS = [
@@ -40,6 +47,11 @@ type ResultCacheEntry = {
 };
 type PendingResultCacheEntry = ResultCacheEntry & {
   key: string;
+};
+
+type SearchHistoryDraft = {
+  nodes: SearchHistoryNode[];
+  activeNodeId: string | null;
 };
 
 function getItemsFromSearchParams(searchParams: SearchParamsReader) {
@@ -58,6 +70,153 @@ function getItemsFromSearchParams(searchParams: SearchParamsReader) {
   return newItems;
 }
 
+function cloneItems(items: Map<string, Set<string>>) {
+  return new Map(
+    Array.from(items.entries()).map(
+      ([kind, values]) => [kind, new Set(values)] as const,
+    ),
+  );
+}
+
+function getItemsArrayFromMap(items: Map<string, Set<string>>) {
+  return Array.from(items.entries()).flatMap(([kind, names]) =>
+    Array.from(names).map((itemName) => ({ kind, itemName })),
+  );
+}
+
+function getItemKey({ kind, itemName }: SearchHistoryItem) {
+  return `${kind}:${itemName}`;
+}
+
+function uniqueItems(items: SearchHistoryItem[]) {
+  const itemKeys = new Set<string>();
+
+  return items.filter((item) => {
+    const itemKey = getItemKey(item);
+
+    if (itemKeys.has(itemKey)) {
+      return false;
+    }
+
+    itemKeys.add(itemKey);
+    return true;
+  });
+}
+
+function getItemsMapFromArray(items: SearchHistoryItem[]) {
+  const nextItems = new Map<string, Set<string>>();
+
+  for (const { kind, itemName } of items) {
+    const values = new Set(nextItems.get(kind) || []);
+    values.add(itemName);
+    nextItems.set(kind, values);
+  }
+
+  return nextItems;
+}
+
+function areItemsEqual(
+  leftItems: Map<string, Set<string>>,
+  rightItems: Map<string, Set<string>>,
+) {
+  return (
+    getResultCacheKey("tables", leftItems) ===
+    getResultCacheKey("tables", rightItems)
+  );
+}
+
+function getAddedItems(
+  parentItems: SearchHistoryItem[],
+  nextItems: SearchHistoryItem[],
+) {
+  const parentItemKeys = new Set(parentItems.map((item) => getItemKey(item)));
+
+  return uniqueItems(nextItems).filter(
+    (item) => !parentItemKeys.has(getItemKey(item)),
+  );
+}
+
+function getSearchNodeName(items: SearchHistoryItem[]) {
+  if (items.length === 0) {
+    return "条件なし";
+  }
+
+  return items
+    .slice(0, 3)
+    .map(({ itemName }) => itemName)
+    .join(" AND ");
+}
+
+function getSearchExpression(items: SearchHistoryItem[]) {
+  const itemsByKind = items.reduce<Record<string, string[]>>(
+    (previousItems, { kind, itemName }) => {
+      previousItems[kind] = [...(previousItems[kind] || []), itemName];
+      return previousItems;
+    },
+    {},
+  );
+
+  return Object.values(itemsByKind)
+    .map((values) => `(${values.join(" OR ")})`)
+    .join(" AND ");
+}
+
+function createSearchNode({
+  parentId,
+  parentItems,
+  items,
+  resultCount,
+  view,
+}: {
+  parentId: string | null;
+  parentItems: SearchHistoryItem[];
+  items: SearchHistoryItem[];
+  resultCount: number | null;
+  view: SearchResultView;
+}): SearchHistoryNode {
+  const now = new Date().toISOString();
+  const uniqueNodeItems = uniqueItems(items);
+
+  return {
+    id:
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    parentId,
+    name: getSearchNodeName(uniqueNodeItems),
+    items: uniqueNodeItems,
+    addedItems: getAddedItems(parentItems, uniqueNodeItems),
+    resultCount,
+    view,
+    createdAt: now,
+    updatedAt: now,
+    memo: getSearchExpression(items),
+  };
+}
+
+function loadSearchHistory(): SearchHistoryDraft {
+  if (typeof window === "undefined") {
+    return { nodes: [], activeNodeId: null };
+  }
+
+  try {
+    const nodes = JSON.parse(
+      window.localStorage.getItem(SEARCH_HISTORY_STORAGE_KEY) || "[]",
+    );
+    const activeNodeId = window.localStorage.getItem(
+      ACTIVE_SEARCH_NODE_STORAGE_KEY,
+    );
+
+    if (!Array.isArray(nodes)) {
+      return { nodes: [], activeNodeId: null };
+    }
+
+    return { nodes, activeNodeId };
+  } catch {
+    return { nodes: [], activeNodeId: null };
+  }
+}
+
 function getResultView(searchParams: SearchParamsReader): SearchResultView {
   const view = searchParams.get(RESULT_VIEW_PARAM);
 
@@ -71,6 +230,7 @@ function getResultView(searchParams: SearchParamsReader): SearchResultView {
 function getResultCacheKey(
   view: SearchResultView,
   items: Map<string, Set<string>>,
+  metadataSearchTerm = "",
 ) {
   const itemKey = Array.from(items.entries())
     .flatMap(([kind, values]) =>
@@ -79,7 +239,10 @@ function getResultCacheKey(
     .sort()
     .join("&");
 
-  return `${view}:${itemKey}`;
+  const metadataSearchKey =
+    view === "metadata" ? `:q=${metadataSearchTerm.trim()}` : "";
+
+  return `${view}:${itemKey}${metadataSearchKey}`;
 }
 
 function getItemsWithoutKinds(
@@ -108,18 +271,64 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [metadataSearchTerm, setMetadataSearchTermState] = useState("");
   const [items, setItemSet] = useState<Map<string, Set<string>>>(() =>
     getItemsFromSearchParams(searchParams),
   );
+  const [searchHistoryNodes, setSearchHistoryNodes] = useState<
+    SearchHistoryNode[]
+  >([]);
+  const [activeSearchNodeId, setActiveSearchNodeId] = useState<string | null>(
+    null,
+  );
+  const [hasLoadedSearchHistory, setHasLoadedSearchHistory] = useState(false);
   const resultCache = useRef(new Map<string, ResultCacheEntry>());
 
   const client = createApolloClient();
   const resultCacheKey = useMemo(
-    () => getResultCacheKey(view, items),
-    [items, view],
+    () =>
+      getResultCacheKey(
+        view,
+        view === "surveys" ? getItemsWithoutKinds(items, ["stat"]) : items,
+        metadataSearchTerm,
+      ),
+    [items, metadataSearchTerm, view],
   );
   const activeResultCacheKey = useRef(resultCacheKey);
   const pendingResultCache = useRef<PendingResultCacheEntry | null>(null);
+
+  useEffect(() => {
+    const { nodes, activeNodeId } = loadSearchHistory();
+    setSearchHistoryNodes(nodes);
+    setActiveSearchNodeId(activeNodeId);
+    setHasLoadedSearchHistory(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedSearchHistory) {
+      return;
+    }
+
+    window.localStorage.setItem(
+      SEARCH_HISTORY_STORAGE_KEY,
+      JSON.stringify(searchHistoryNodes),
+    );
+  }, [hasLoadedSearchHistory, searchHistoryNodes]);
+
+  useEffect(() => {
+    if (!hasLoadedSearchHistory) {
+      return;
+    }
+
+    if (activeSearchNodeId) {
+      window.localStorage.setItem(
+        ACTIVE_SEARCH_NODE_STORAGE_KEY,
+        activeSearchNodeId,
+      );
+    } else {
+      window.localStorage.removeItem(ACTIVE_SEARCH_NODE_STORAGE_KEY);
+    }
+  }, [activeSearchNodeId, hasLoadedSearchHistory]);
 
   useEffect(() => {
     activeResultCacheKey.current = resultCacheKey;
@@ -160,10 +369,196 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     router.push(query ? `${pathname}?${query}` : pathname);
   };
 
-  const addItem = (kind: string, itemName: string) => {
+  const navigateToItems = (
+    nextItems: Map<string, Set<string>>,
+    nextView: SearchResultView,
+  ) => {
+    const params = new URLSearchParams();
+
+    for (const { kind, itemName } of getItemsArrayFromMap(nextItems)) {
+      params.append(kind, itemName);
+    }
+
+    if (nextView !== "tables") {
+      params.set(RESULT_VIEW_PARAM, nextView);
+    }
+
+    navigate(params);
+  };
+
+  const getActiveSearchNode = () =>
+    searchHistoryNodes.find((node) => node.id === activeSearchNodeId) || null;
+
+  const getCurrentResultCount = () => {
+    if (view === "surveys") {
+      return typeof countResult?.stat === "number" ? countResult.stat : null;
+    }
+
+    if (view === "tables") {
+      return typeof countResult?.db === "number" ? countResult.db : null;
+    }
+
+    return null;
+  };
+
+  useEffect(() => {
+    const resultCount = getCurrentResultCount();
+
+    if (!activeSearchNodeId || resultCount === null) {
+      return;
+    }
+
+    setSearchHistoryNodes((previousNodes) =>
+      previousNodes.map((node) => {
+        const isCurrentNode =
+          node.id === activeSearchNodeId &&
+          node.view === view &&
+          areItemsEqual(getItemsMapFromArray(node.items), items);
+
+        if (!isCurrentNode || node.resultCount === resultCount) {
+          return node;
+        }
+
+        return {
+          ...node,
+          resultCount,
+          updatedAt: new Date().toISOString(),
+        };
+      }),
+    );
+  }, [activeSearchNodeId, countResult, items, view]);
+
+  const commitSearchNode = () => {
+    const itemsArray = getItemsArrayFromMap(items);
+    const activeNode = getActiveSearchNode();
+
+    if (
+      activeNode &&
+      areItemsEqual(getItemsMapFromArray(activeNode.items), items)
+    ) {
+      return;
+    }
+
+    const parentId = activeNode?.id || null;
+    const parentItems = activeNode?.items || [];
+
+    setSearchHistoryNodes((previousNodes) => {
+      const duplicateNode = previousNodes.find(
+        (node) =>
+          node.parentId === parentId &&
+          getResultCacheKey(node.view, getItemsMapFromArray(node.items)) ===
+            getResultCacheKey(view, items),
+      );
+
+      if (duplicateNode) {
+        setActiveSearchNodeId(duplicateNode.id);
+        return previousNodes;
+      }
+
+      const nextNode = createSearchNode({
+        parentId,
+        parentItems,
+        items: itemsArray,
+        resultCount: getCurrentResultCount(),
+        view,
+      });
+
+      setActiveSearchNodeId(nextNode.id);
+      return [...previousNodes, nextNode];
+    });
+  };
+
+  const updateSearchNodeConditions = (nodeId: string) => {
+    const targetNode = searchHistoryNodes.find((node) => node.id === nodeId);
+
+    if (!targetNode) {
+      return;
+    }
+
+    const currentItems = getItemsArrayFromMap(items);
+    const mergedItems = uniqueItems([...targetNode.items, ...currentItems]);
+    const parentNode = targetNode.parentId
+      ? searchHistoryNodes.find((node) => node.id === targetNode.parentId)
+      : null;
+    const parentItems = parentNode?.items || [];
+    const mergedItemsMap = getItemsMapFromArray(mergedItems);
+    const resultCount = areItemsEqual(mergedItemsMap, items)
+      ? getCurrentResultCount()
+      : null;
+
+    setSearchHistoryNodes((previousNodes) =>
+      previousNodes.map((node) =>
+        node.id === targetNode.id
+          ? {
+              ...node,
+              items: mergedItems,
+              addedItems: getAddedItems(parentItems, mergedItems),
+              resultCount: resultCount ?? node.resultCount,
+              view,
+              memo: getSearchExpression(mergedItems),
+              updatedAt: new Date().toISOString(),
+            }
+          : node,
+      ),
+    );
+  };
+
+  const checkoutSearchNode = (nodeId: string) => {
+    const node = searchHistoryNodes.find(
+      (searchNode) => searchNode.id === nodeId,
+    );
+
+    if (!node) {
+      return;
+    }
+
+    const nextItems = getItemsMapFromArray(node.items);
+    rememberCurrentResults();
     resetSearch();
+    setItemSet(nextItems);
+    setActiveSearchNodeId(node.id);
+    navigateToItems(nextItems, node.view);
+  };
+
+  const renameSearchNode = (nodeId: string, name: string) => {
+    const nextName = name.trim();
+
+    if (!nextName) {
+      return;
+    }
+
+    setSearchHistoryNodes((previousNodes) =>
+      previousNodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, name: nextName, updatedAt: new Date().toISOString() }
+          : node,
+      ),
+    );
+  };
+
+  const clearSearchHistory = () => {
+    setSearchHistoryNodes([]);
+    setActiveSearchNodeId(null);
+  };
+
+  const shouldResetSearchForItems = (nextItems: { kind: string }[]) =>
+    !(view === "surveys" && nextItems.every(({ kind }) => kind === "stat"));
+
+  const addItem = (kind: string, itemName: string) => {
+    if (items.get(kind)?.has(itemName)) {
+      return;
+    }
+
+    if (shouldResetSearchForItems([{ kind }])) {
+      resetSearch();
+    }
+
     setItemSet((previousItems) => {
-      const newItems = new Map(previousItems);
+      if (previousItems.get(kind)?.has(itemName)) {
+        return previousItems;
+      }
+
+      const newItems = cloneItems(previousItems);
       const currentItems = new Set(newItems.get(kind) || []);
       currentItems.add(itemName);
       newItems.set(kind, currentItems);
@@ -178,25 +573,42 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   };
 
   const addItems = (nextItems: { kind: string; itemName: string }[]) => {
-    if (nextItems.length === 0) {
+    const itemsToAdd = nextItems.filter(
+      ({ kind, itemName }) => !items.get(kind)?.has(itemName),
+    );
+
+    if (itemsToAdd.length === 0) {
       return;
     }
 
-    resetSearch();
-    setItemSet((previousItems) => {
-      const newItems = new Map(previousItems);
+    if (shouldResetSearchForItems(itemsToAdd)) {
+      resetSearch();
+    }
 
-      for (const { kind, itemName } of nextItems) {
+    setItemSet((previousItems) => {
+      const newItems = cloneItems(previousItems);
+      let hasChanged = false;
+
+      for (const { kind, itemName } of itemsToAdd) {
+        if (newItems.get(kind)?.has(itemName)) {
+          continue;
+        }
+
         const currentItems = new Set(newItems.get(kind) || []);
         currentItems.add(itemName);
         newItems.set(kind, currentItems);
+        hasChanged = true;
+      }
+
+      if (!hasChanged) {
+        return previousItems;
       }
 
       return newItems;
     });
 
     const params = new URLSearchParams(searchParams.toString());
-    for (const { kind, itemName } of nextItems) {
+    for (const { kind, itemName } of itemsToAdd) {
       if (!params.getAll(kind).includes(itemName)) {
         params.append(kind, itemName);
       }
@@ -205,9 +617,12 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   };
 
   const removeItem = (kind: string, itemName: string) => {
-    resetSearch();
+    if (shouldResetSearchForItems([{ kind }])) {
+      resetSearch();
+    }
+
     setItemSet((previousItems) => {
-      const newItems = new Map(previousItems);
+      const newItems = cloneItems(previousItems);
       const currentItems = new Set(newItems.get(kind) || []);
       currentItems.delete(itemName);
 
@@ -253,10 +668,33 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     navigate(params);
   };
 
+  const setMetadataSearchTerm = (searchTerm: string) => {
+    setMetadataSearchTermState((currentSearchTerm) => {
+      if (currentSearchTerm === searchTerm) {
+        return currentSearchTerm;
+      }
+
+      if (view === "metadata") {
+        rememberCurrentResults();
+        resetSearch();
+      }
+
+      return searchTerm;
+    });
+  };
+
   const selectSurvey = (surveyName: string) => {
+    if (items.get("stat")?.has(surveyName)) {
+      return;
+    }
+
     resetSearch();
     setItemSet((previousItems) => {
-      const newItems = new Map(previousItems);
+      if (previousItems.get("stat")?.has(surveyName)) {
+        return previousItems;
+      }
+
+      const newItems = cloneItems(previousItems);
       const surveys = new Set(newItems.get("stat") || []);
       surveys.add(surveyName);
       newItems.set("stat", surveys);
@@ -293,12 +731,17 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     }
 
     if (view === "metadata") {
-      return GET_METADATA_LIST(items);
+      return GET_METADATA_LIST(items, metadataSearchTerm);
     }
 
     return GET_TABLE_LIST(items);
-  }, [items, view]);
-  const countQuery = useMemo(() => GET_TABLE_LIST_COUNT(items), [items]);
+  }, [items, metadataSearchTerm, view]);
+  const activeMetadataSearchTerm =
+    view === "metadata" ? metadataSearchTerm : "";
+  const countQuery = useMemo(
+    () => GET_TABLE_LIST_COUNT(items, activeMetadataSearchTerm),
+    [activeMetadataSearchTerm, items],
+  );
 
   const resolveSurveyAttributeItems = async () => {
     const activeFilters = ATTRIBUTE_FILTERS.filter(
@@ -355,8 +798,28 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const fetchCount = async () => {
     try {
       const resolvedItems = await resolveSurveyAttributeItems();
-      const result = await client.query(GET_TABLE_LIST_COUNT(resolvedItems));
-      setCountResult(result.data.tablelist_aggregate.aggregate);
+      const result = await client.query(
+        GET_TABLE_LIST_COUNT(resolvedItems, activeMetadataSearchTerm),
+      );
+      const metadataCount =
+        Number(result.data.metadata_measures?.aggregate?.count ?? 0) +
+        Number(result.data.metadata_dimensions?.aggregate?.count ?? 0) +
+        Number(result.data.metadata_themes?.aggregate?.count ?? 0) +
+        Number(result.data.metadata_regions?.aggregate?.count ?? 0);
+      const metadataCounts = {
+        measure: Number(result.data.metadata_measures?.aggregate?.count ?? 0),
+        dimension: Number(
+          result.data.metadata_dimensions?.aggregate?.count ?? 0,
+        ),
+        thema: Number(result.data.metadata_themes?.aggregate?.count ?? 0),
+        region: Number(result.data.metadata_regions?.aggregate?.count ?? 0),
+      };
+
+      setCountResult({
+        ...result.data.tablelist_aggregate.aggregate,
+        metadata: metadataCount,
+        metadataCounts,
+      });
     } catch (err) {
       setError(err as Error);
     }
@@ -380,7 +843,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         view === "surveys"
           ? GET_SURVEY_LIST(getItemsWithoutKinds(resolvedItems, ["stat"]))
           : view === "metadata"
-            ? GET_METADATA_LIST(resolvedItems)
+            ? GET_METADATA_LIST(resolvedItems, metadataSearchTerm)
             : GET_TABLE_LIST(resolvedItems);
       const result = await client.query({
         ...query,
@@ -390,15 +853,6 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
           offset_number: offset,
         },
       });
-      const resultKey = view === "surveys" ? "surveylist" : "tablelist";
-      const idKey = view === "surveys" ? "statcode" : "statdispid";
-      const nextResults = result.data[resultKey] || [];
-
-      if (nextResults.length === 0) {
-        setIsLast(true);
-        return;
-      }
-
       if (!isCurrentRequest()) {
         return;
       }
@@ -417,12 +871,6 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
               ),
               ...((result.data.regions || []) as { name: string }[]).map(
                 (item) => ({ ...item, kind: "region" }),
-              ),
-              ...((result.data.surveyUnits || []) as { name: string }[]).map(
-                (item) => ({ ...item, kind: "survey_unit" }),
-              ),
-              ...((result.data.statKinds || []) as { name: string }[]).map(
-                (item) => ({ ...item, kind: "stat_kind" }),
               ),
             ]
           : [];
@@ -491,11 +939,21 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
       setSearchResult((previousResults) => {
         const existingIds = new Set(previousResults.map((item) => item[idKey]));
+        const uniqueEnrichedResults = enrichedResults.filter(
+          (item: Record<string, unknown>) => {
+            const itemId = item[idKey];
+
+            if (existingIds.has(itemId)) {
+              return false;
+            }
+
+            existingIds.add(itemId);
+            return true;
+          },
+        );
         const nextSearchResult = [
           ...previousResults,
-          ...enrichedResults.filter(
-            (item: Record<string, unknown>) => !existingIds.has(item[idKey]),
-          ),
+          ...uniqueEnrichedResults,
         ];
 
         resultCache.current.set(requestResultCacheKey, {
@@ -537,7 +995,16 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         selectSurvey,
         view,
         setView,
+        metadataSearchTerm,
+        setMetadataSearchTerm,
         searchQuery,
+        searchHistoryNodes,
+        activeSearchNodeId,
+        commitSearchNode,
+        updateSearchNodeConditions,
+        checkoutSearchNode,
+        renameSearchNode,
+        clearSearchHistory,
         offset,
         setOffset,
         searchResult,

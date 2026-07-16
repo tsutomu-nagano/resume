@@ -15,7 +15,14 @@ export function Header() {
   return (
     <header className="flex flex-col gap-2">
       <div className="navbar bg-base-100">
-        <a className="btn btn-ghost text-xl">ReSUME L1</a>
+        <a className="btn btn-ghost h-14 px-2" aria-label="ReSUME L1">
+          <img
+            src="/resume-logo.png"
+            alt="ReSUME L1"
+            className="h-12 w-auto object-contain"
+          />
+          <span className="badge badge-primary badge-sm translate-y-1">L1</span>
+        </a>
         <SearchItemSelector
           labelja="統計調査"
           labelen=""

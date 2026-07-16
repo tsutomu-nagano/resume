@@ -18,6 +18,7 @@ export function SearchCountResultContainer() {
     <SearchCountResult
       stat={Number(countResult?.stat ?? 0)}
       db={Number(countResult?.db ?? 0)}
+      metadata={Number(countResult?.metadata ?? 0)}
       view={view}
       onViewChange={setView}
     />

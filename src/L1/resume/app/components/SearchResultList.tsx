@@ -7,7 +7,11 @@ import TableList from "./TableList";
 
 export default function SearchResultList() {
   const { getItemsArray, view } = useSearchItem();
-  const resultKey = `${view}:${getItemsArray()
+  const resultKeyItems =
+    view === "surveys"
+      ? getItemsArray().filter(({ kind }) => kind !== "stat")
+      : getItemsArray();
+  const resultKey = `${view}:${resultKeyItems
     .map(({ kind, itemName }) => `${kind}=${itemName}`)
     .sort()
     .join("&")}`;

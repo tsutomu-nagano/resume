@@ -18,6 +18,7 @@ export function Drawer({
   id,
   title,
   children,
+  sidebarContent,
   isOpen,
   onToggle,
 }: DrawerProps) {
@@ -51,7 +52,7 @@ export function Drawer({
         <ul className="menu bg-base-200 text-base-content min-h-full w-2/5 p-4">
           <h1 className="text-3xl font-bold">{title}</h1>
           <div className="divider divider-primary" />
-          {children || (
+          {children || sidebarContent || (
             <>
               <li>
                 <a>Sidebar Item 1</a>
