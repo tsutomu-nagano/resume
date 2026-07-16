@@ -39,7 +39,8 @@ export default function SearchItemSelector({
 
   const [searchTerm, setSearchTerm] = useState("");
   const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const client = createApolloClient();
@@ -58,6 +59,10 @@ export default function SearchItemSelector({
   );
 
   const handleSearch = async () => {
+    setLoading(true);
+    setError(null);
+    setHasSearched(true);
+
     try {
       const { data } = await client.query(searchQuery);
       setData(data);
@@ -122,24 +127,44 @@ export default function SearchItemSelector({
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleKeyDown}
             />
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 16 16"
-              fill="currentColor"
-              className="h-4 w-4 opacity-70"
-            >
-              <path
-                fillRule="evenodd"
-                d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
-                clipRule="evenodd"
-              />
-            </svg>
+            {loading ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                className="h-4 w-4 opacity-70"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            )}
           </label>
+          {loading ? (
+            <div className="mt-2 flex items-center gap-2 text-sm text-base-content/60">
+              <span className="loading loading-dots loading-xs" />
+              検索中です
+            </div>
+          ) : null}
+          {error ? (
+            <p className="mt-2 text-sm text-error">
+              検索に失敗しました。もう一度お試しください。
+            </p>
+          ) : null}
           <div className="flex flex-wrap">
             {data?.items.map((item: { name: string }) => (
               <Tag key={item.name} name={item.name} kind={kind} simple={true} />
             ))}
           </div>
+          {!loading && hasSearched && data?.items.length === 0 ? (
+            <p className="mt-2 text-sm text-base-content/60">
+              該当する候補はありません。
+            </p>
+          ) : null}
         </div>
       </div>
     </div>

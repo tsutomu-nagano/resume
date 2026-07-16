@@ -1,4 +1,8 @@
-# resume
+
+<div align="center">
+  <img src="./src/L1/resume/public/resume-logo.png" alt="ReSUME logo" width="480">
+</div>
+
 - `re`structure `s`tatistical data `u`sing `me`tadata
 
 ## Layer 1 

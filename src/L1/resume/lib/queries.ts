@@ -118,33 +118,65 @@ export const GET_SURVEY_LIST = (
 
 export const GET_TABLE_LIST_COUNT = (
   items: Map<string, Set<string>>,
+  metadataSearchTerm = "",
 ): GraphQLRequest => ({
   query: gql`
-    query GetTableListCount($where: TABLELIST_bool_exp!) {
+    query GetTableListCount(
+      $where: TABLELIST_bool_exp!
+      $measureWhere: MEASURELIST_bool_exp!
+      $dimensionWhere: DIMENSIONLIST_bool_exp!
+      $themeWhere: TAGLIST_bool_exp!
+      $regionWhere: REGIONLIST_bool_exp!
+    ) {
       tablelist_aggregate: TABLELIST_aggregate(where: $where) {
         aggregate {
           stat: count(distinct: true, column: STATCODE)
           db: count(distinct: true, column: STATDISPID)
         }
       }
+      metadata_measures: MEASURELIST_aggregate(where: $measureWhere) {
+        aggregate {
+          count(distinct: true, column: NAME)
+        }
+      }
+      metadata_dimensions: DIMENSIONLIST_aggregate(where: $dimensionWhere) {
+        aggregate {
+          count(distinct: true, column: CLASS_NAME)
+        }
+      }
+      metadata_themes: TAGLIST_aggregate(where: $themeWhere) {
+        aggregate {
+          count(distinct: true, column: TAG_NAME)
+        }
+      }
+      metadata_regions: REGIONLIST_aggregate(where: $regionWhere) {
+        aggregate {
+          count(distinct: true, column: NAME)
+        }
+      }
     }
   `,
   variables: {
     where: BuilderCondition(items),
+    ...buildMetadataWhereVariables(items, metadataSearchTerm),
   },
 });
 
 export const GET_METADATA_LIST = (
   items: Map<string, Set<string>>,
+  searchTerm = "",
 ): GraphQLRequest => ({
   query: gql`
     query GetMetadataList(
-      $where: TABLELIST_bool_exp!
+      $measureWhere: MEASURELIST_bool_exp!
+      $dimensionWhere: DIMENSIONLIST_bool_exp!
+      $themeWhere: TAGLIST_bool_exp!
+      $regionWhere: REGIONLIST_bool_exp!
       $limit_number: Int
       $offset_number: Int
     ) {
       measures: MEASURELIST(
-        where: { TABLE_MEASUREs: { TABLELIST: $where } }
+        where: $measureWhere
         limit: $limit_number
         offset: $offset_number
         order_by: { NAME: asc }
@@ -152,7 +184,7 @@ export const GET_METADATA_LIST = (
         name: NAME
       }
       dimensions: DIMENSIONLIST(
-        where: { TABLE_DIMENSIONs: { TABLELIST: $where } }
+        where: $dimensionWhere
         limit: $limit_number
         offset: $offset_number
         order_by: { CLASS_NAME: asc }
@@ -160,7 +192,7 @@ export const GET_METADATA_LIST = (
         name: CLASS_NAME
       }
       themes: TAGLIST(
-        where: { TABLE_TAGs: { TABLELIST: $where } }
+        where: $themeWhere
         limit: $limit_number
         offset: $offset_number
         order_by: { TAG_NAME: asc }
@@ -168,41 +200,46 @@ export const GET_METADATA_LIST = (
         name: TAG_NAME
       }
       regions: REGIONLIST(
-        where: { TABLE_REGIONs: { TABLELIST: $where } }
+        where: $regionWhere
         limit: $limit_number
         offset: $offset_number
         order_by: { NAME: asc }
       ) {
         name: NAME
       }
-      surveyUnits: STAT_ATTRIBUTE_VALUES(
-        where: {
-          STATLIST: { TABLELISTs: $where }
-          STAT_ATTRIBUTE: { CODE: { _eq: "survey_units" } }
-        }
-        limit: $limit_number
-        offset: $offset_number
-        order_by: { VALUE: asc }
-      ) {
-        name: VALUE
-      }
-      statKinds: STAT_ATTRIBUTE_VALUES(
-        where: {
-          STATLIST: { TABLELISTs: $where }
-          STAT_ATTRIBUTE: { CODE: { _eq: "stat_kind" } }
-        }
-        limit: $limit_number
-        offset: $offset_number
-        order_by: { VALUE: asc }
-      ) {
-        name: VALUE
-      }
     }
   `,
   variables: {
-    where: BuilderCondition(items),
+    ...buildMetadataWhereVariables(items, searchTerm),
   },
 });
+
+function buildMetadataWhereVariables(
+  items: Map<string, Set<string>>,
+  searchTerm: string,
+) {
+  const tableWhere = BuilderCondition(items);
+  const searchPattern = searchTerm.trim() ? `%${searchTerm.trim()}%` : null;
+
+  return {
+    measureWhere: {
+      TABLE_MEASUREs: { TABLELIST: tableWhere },
+      ...(searchPattern ? { NAME: { _like: searchPattern } } : {}),
+    },
+    dimensionWhere: {
+      TABLE_DIMENSIONs: { TABLELIST: tableWhere },
+      ...(searchPattern ? { CLASS_NAME: { _like: searchPattern } } : {}),
+    },
+    themeWhere: {
+      TABLE_TAGs: { TABLELIST: tableWhere },
+      ...(searchPattern ? { TAG_NAME: { _like: searchPattern } } : {}),
+    },
+    regionWhere: {
+      TABLE_REGIONs: { TABLELIST: tableWhere },
+      ...(searchPattern ? { NAME: { _like: searchPattern } } : {}),
+    },
+  };
+}
 
 export type SurveyAttribute = {
   statcode: string;
@@ -326,6 +363,160 @@ export const GET_ITEMS = (
     query,
     variables: {
       className: name,
+    },
+  };
+};
+
+export const GET_METADATA_SURVEYS = (
+  kind: string,
+  name: string,
+): GraphQLRequest => {
+  const attributeCode = kind === "stat_kind" ? "stat_kind" : "survey_units";
+  const tableWhereByKind: Record<string, Record<string, unknown>> = {
+    measure: { TABLE_MEASUREs: { NAME: { _eq: name } } },
+    dimension: { TABLE_DIMENSIONs: { CLASS_NAME: { _eq: name } } },
+    thema: { TABLE_TAGs: { TAG_NAME: { _eq: name } } },
+    region: { TABLE_REGIONs: { NAME: { _eq: name } } },
+  };
+
+  if (kind === "survey_unit" || kind === "stat_kind") {
+    return {
+      query: gql`
+        query GetMetadataSurveysByAttribute(
+          $attributeCode: String!
+          $value: String!
+        ) {
+          surveyValues: STAT_ATTRIBUTE_VALUES(
+            distinct_on: STATCODE
+            order_by: { STATCODE: asc }
+            where: {
+              STAT_ATTRIBUTE: { CODE: { _eq: $attributeCode } }
+              VALUE: { _eq: $value }
+            }
+          ) {
+            statcode: STATCODE
+            survey: STATLIST {
+              statname: STATNAME
+              govlist: GOVLIST {
+                govname: GOVNAME
+              }
+              table_count: TABLELISTs_aggregate {
+                aggregate {
+                  count
+                }
+              }
+            }
+          }
+        }
+      `,
+      variables: {
+        attributeCode,
+        value: name,
+      },
+    };
+  }
+
+  const tableWhere = tableWhereByKind[kind];
+
+  if (!tableWhere) {
+    throw new Error(`Unsupported metadata kind: ${kind}`);
+  }
+
+  return {
+    query: gql`
+      query GetMetadataSurveys($tableWhere: TABLELIST_bool_exp!) {
+        surveys: STATLIST(
+          order_by: { STATNAME: asc }
+          where: { TABLELISTs: $tableWhere }
+        ) {
+          statcode: STATCODE
+          statname: STATNAME
+          govlist: GOVLIST {
+            govname: GOVNAME
+          }
+          table_count: TABLELISTs_aggregate(where: $tableWhere) {
+            aggregate {
+              count
+            }
+          }
+        }
+      }
+    `,
+    variables: {
+      tableWhere,
+    },
+  };
+};
+
+export const GET_METADATA_COUNTS = (
+  kind: string,
+  name: string,
+): GraphQLRequest => {
+  const attributeCode = kind === "stat_kind" ? "stat_kind" : "survey_units";
+  const tableWhereByKind: Record<string, Record<string, unknown>> = {
+    measure: { TABLE_MEASUREs: { NAME: { _eq: name } } },
+    dimension: { TABLE_DIMENSIONs: { CLASS_NAME: { _eq: name } } },
+    thema: { TABLE_TAGs: { TAG_NAME: { _eq: name } } },
+    region: { TABLE_REGIONs: { NAME: { _eq: name } } },
+  };
+
+  if (kind === "survey_unit" || kind === "stat_kind") {
+    return {
+      query: gql`
+        query GetMetadataCountsByAttribute(
+          $attributeCode: String!
+          $value: String!
+        ) {
+          surveyValues: STAT_ATTRIBUTE_VALUES(
+            distinct_on: STATCODE
+            order_by: { STATCODE: asc }
+            where: {
+              STAT_ATTRIBUTE: { CODE: { _eq: $attributeCode } }
+              VALUE: { _eq: $value }
+            }
+          ) {
+            statcode: STATCODE
+            survey: STATLIST {
+              tables: TABLELISTs_aggregate {
+                aggregate {
+                  count
+                }
+              }
+            }
+          }
+        }
+      `,
+      variables: {
+        attributeCode,
+        value: name,
+      },
+    };
+  }
+
+  const tableWhere = tableWhereByKind[kind];
+
+  if (!tableWhere) {
+    throw new Error(`Unsupported metadata kind: ${kind}`);
+  }
+
+  return {
+    query: gql`
+      query GetMetadataCounts($tableWhere: TABLELIST_bool_exp!) {
+        tables: TABLELIST_aggregate(where: $tableWhere) {
+          aggregate {
+            count
+          }
+        }
+        surveys: STATLIST(
+          order_by: { STATNAME: asc }
+          where: { TABLELISTs: $tableWhere }
+        ) {
+          statcode: STATCODE
+        }
+      }
+    `,
+    variables: {
+      tableWhere,
     },
   };
 };

@@ -1,7 +1,10 @@
 import { print } from "graphql";
 import { describe, expect, it } from "vitest";
 import {
+  GET_METADATA_LIST,
+  GET_METADATA_SURVEYS,
   GET_SEARCH_TAG_LIST,
+  GET_TABLE_LIST_COUNT,
   GET_SURVEY_ATTRIBUTE_STATCODES,
   GET_SURVEY_ATTRIBUTES,
   GET_SURVEY_LIST,
@@ -31,11 +34,66 @@ describe("survey queries", () => {
     });
   });
 
+  it("counts metadata search results with table results", () => {
+    const request = GET_TABLE_LIST_COUNT(new Map());
+    const query = print(request.query);
+
+    expect(query).toContain("metadata_measures: MEASURELIST_aggregate");
+    expect(query).toContain("metadata_dimensions: DIMENSIONLIST_aggregate");
+    expect(query).toContain("metadata_themes: TAGLIST_aggregate");
+    expect(query).toContain("metadata_regions: REGIONLIST_aggregate");
+    expect(query).not.toContain("metadata_survey_units");
+    expect(query).not.toContain("metadata_stat_kinds");
+    expect(request.variables).toEqual({
+      where: {},
+      measureWhere: { TABLE_MEASUREs: { TABLELIST: {} } },
+      dimensionWhere: { TABLE_DIMENSIONs: { TABLELIST: {} } },
+      themeWhere: { TABLE_TAGs: { TABLELIST: {} } },
+      regionWhere: { TABLE_REGIONs: { TABLELIST: {} } },
+    });
+  });
+
+  it("filters metadata list by text", () => {
+    const request = GET_METADATA_LIST(new Map(), "人口");
+    const query = print(request.query);
+
+    expect(query).toContain("GetMetadataList");
+    expect(request.variables).toEqual({
+      measureWhere: {
+        TABLE_MEASUREs: { TABLELIST: {} },
+        NAME: { _like: "%人口%" },
+      },
+      dimensionWhere: {
+        TABLE_DIMENSIONs: { TABLELIST: {} },
+        CLASS_NAME: { _like: "%人口%" },
+      },
+      themeWhere: {
+        TABLE_TAGs: { TABLELIST: {} },
+        TAG_NAME: { _like: "%人口%" },
+      },
+      regionWhere: {
+        TABLE_REGIONs: { TABLELIST: {} },
+        NAME: { _like: "%人口%" },
+      },
+    });
+  });
+
   it("requests card attributes for the current survey page", () => {
     const request = GET_SURVEY_ATTRIBUTES(["00020111"]);
 
     expect(print(request.query)).toContain("STAT_ATTRIBUTE_VALUES");
     expect(request.variables).toEqual({ statcodes: ["00020111"] });
+  });
+
+  it("requests survey detail fields for metadata survey lists", () => {
+    const request = GET_METADATA_SURVEYS("measure", "人口");
+    const query = print(request.query);
+
+    expect(query).toContain("govlist: GOVLIST");
+    expect(query).toContain("table_count: TABLELISTs_aggregate");
+    expect(request.variables).toEqual({
+      tableWhere: { TABLE_MEASUREs: { NAME: { _eq: "人口" } } },
+    });
   });
 
   it("resolves selected survey units to survey codes", () => {
