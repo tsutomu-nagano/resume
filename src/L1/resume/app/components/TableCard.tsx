@@ -40,9 +40,9 @@ export function TableCard({ statdispid, statcode, cycle, survey_date, title, yea
   };
 
   return (
-    <div className="card bg-base-100 w-200 shadow-xl">
-      <div className="card-body">
-        <div className="flex flex-row gap-5 mb-5">
+    <div className="card w-full border border-base-300 bg-base-100 shadow-xl">
+      <div className="card-body gap-4 p-4 sm:p-8">
+        <div className="mb-2 flex flex-wrap gap-x-5 gap-y-2 text-sm">
           <div className="flex flex-row items-center gap-2">
             <BiHash />
             <span>{statcode}</span>
@@ -66,7 +66,7 @@ export function TableCard({ statdispid, statcode, cycle, survey_date, title, yea
             </div>
           ))}
         </div>
-        <h2 className="card-title mb-5">{title}</h2>
+        <h2 className="card-title mb-2 text-base leading-7 sm:text-xl">{title}</h2>
         <div className="flex flex-wrap flex-row gap-3">
           {tags?.map((tag: { tag_name: string; }) => (
             <Tag key={tag.tag_name} name={tag.tag_name} kind="thema" />
@@ -82,8 +82,8 @@ export function TableCard({ statdispid, statcode, cycle, survey_date, title, yea
           ))} */}
         </div>
 
-        <div className="card-actions justify-end mt-5">
-          <button className="btn btn-primary btn-outline ml-auto" onClick={handleClick}><TbDatabaseShare />e-Statで表示する</button>
+        <div className="card-actions mt-3 justify-end">
+          <button className="btn btn-primary btn-outline w-full sm:ml-auto sm:w-auto" onClick={handleClick}><TbDatabaseShare />e-Statで表示する</button>
         </div>
       </div>
     </div>

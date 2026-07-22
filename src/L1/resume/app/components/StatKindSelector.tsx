@@ -41,13 +41,13 @@ export default function SurveyUnitSelector({ labelja, labelen = "", ref_names, r
 
 
   return (
-    <div className="dropdown">
-      <div tabIndex={0} role="button" className="flex flex-row flex-nowrap gap-2 whitespace-nowrap btn btn-outline m-1">
+    <div className="dropdown w-full sm:w-auto">
+      <div tabIndex={0} role="button" className="btn btn-outline m-0 flex w-full flex-row flex-nowrap gap-2 whitespace-nowrap sm:m-1 sm:w-auto">
         {renderIconByKind(kind)}{labelja}から探す<FaChevronDown />
       </div>
       <div
         tabIndex={0}
-        className="dropdown-content card card-compact bg-base-100 z-[1] w-80 p-2 shadow">
+        className="dropdown-content card card-compact z-[1] w-[calc(100vw-1.5rem)] max-w-80 border border-base-300 bg-base-100 p-2 shadow sm:w-80">
         <div className="card-body">
           <span>{descriptionByKind(kind)}</span>
           
@@ -83,5 +83,4 @@ export default function SurveyUnitSelector({ labelja, labelen = "", ref_names, r
     </div>
   );
 }
-
 

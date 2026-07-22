@@ -12,9 +12,9 @@ interface StatCardProps {
 
 export function StatCard({ statcode, statname, govname }: StatCardProps) {
   return (
-    <div className="card bg-base-100 w-200 shadow-xl">
-      <div className="card-body">
-        <div className="flex flex-row gap-5">
+    <div className="card w-full border border-base-300 bg-base-100 shadow-xl">
+      <div className="card-body gap-4 p-4 sm:p-8">
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
           <div className="flex flex-row items-center gap-2">
               <BiHash />
               <span>{statcode}</span>
@@ -24,7 +24,7 @@ export function StatCard({ statcode, statname, govname }: StatCardProps) {
               <span>{govname}</span>
           </div>
         </div>
-        <h2 className="card-title">{statname}</h2>
+        <h2 className="card-title text-base leading-7 sm:text-xl">{statname}</h2>
         <div className="card-actions justify-end">
           <button className="btn btn-primary">Buy Now</button>
         </div>

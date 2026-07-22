@@ -199,7 +199,7 @@ function SurveyDetailSideDrawer({
   }
 
   return createPortal(
-    <aside className="fixed bottom-0 right-[40%] top-0 z-50 flex w-[min(34rem,45vw)] flex-col overflow-y-auto border-r border-base-300 bg-base-100 p-5 text-base-content shadow-2xl">
+    <aside className="fixed inset-y-0 left-0 z-50 flex w-[min(34rem,92vw)] flex-col overflow-y-auto border-r border-base-300 bg-base-100 p-4 text-base-content shadow-2xl sm:p-5 lg:left-auto lg:right-[40%] lg:w-[min(34rem,45vw)]">
       <div className="flex items-start gap-3">
         <LuClipboardList className="mt-1 size-5 shrink-0 text-primary" />
         <div className="min-w-0 flex-1">

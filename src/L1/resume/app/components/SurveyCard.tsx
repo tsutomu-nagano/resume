@@ -74,8 +74,8 @@ export function SurveyCard({
         }
       }}
     >
-      <div className="card-body gap-4">
-        <div className="flex flex-row flex-wrap items-center gap-5 text-sm">
+      <div className="card-body gap-4 p-4 sm:p-8">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
           <div className="flex flex-row items-center gap-2">
             <BiHash />
             <span>{statcode}</span>
@@ -91,12 +91,12 @@ export function SurveyCard({
             </span>
           )}
           {isSelected && <span className="badge badge-primary">選択中</span>}
-          <span className="ml-auto inline-flex items-center gap-1 rounded border border-primary/40 bg-base-100/90 px-2 py-1 text-xs text-primary opacity-0 transition group-hover:opacity-100 group-focus:opacity-100">
+          <span className="hidden items-center gap-1 rounded border border-primary/40 bg-base-100/90 px-2 py-1 text-xs text-primary opacity-0 transition group-hover:opacity-100 group-focus:opacity-100 sm:ml-auto sm:inline-flex">
             <MousePointerClick className="size-3" />
             {isSelected ? "クリックで選択解除" : "クリックで検索条件に追加"}
           </span>
         </div>
-        <h2 className="card-title">{statname}</h2>
+        <h2 className="card-title text-base leading-7 sm:text-xl">{statname}</h2>
 
         {description && (
           <p className="text-sm leading-6 text-base-content/80">
@@ -136,7 +136,7 @@ export function SurveyCard({
         </div>
 
         <div
-          className="card-actions mt-2 items-center justify-between"
+          className="card-actions mt-2 flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between"
           onClick={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
         >
@@ -148,7 +148,7 @@ export function SurveyCard({
             {isSelected && (
               <button
                 type="button"
-                className="btn btn-outline btn-primary"
+                className="btn btn-outline btn-primary w-full sm:w-auto"
                 onClick={onDeselect}
               >
                 選択解除

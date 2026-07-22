@@ -49,7 +49,7 @@ export function Drawer({
           className="drawer-overlay"
           onClick={() => {onToggle()}}
         ></label>
-        <ul className="menu bg-base-200 text-base-content min-h-full w-2/5 p-4">
+        <ul className="menu min-h-full w-[min(24rem,90vw)] bg-base-200 p-4 text-base-content sm:w-2/5">
           <h1 className="text-3xl font-bold">{title}</h1>
           <div className="divider divider-primary" />
           {children || sidebarContent || (

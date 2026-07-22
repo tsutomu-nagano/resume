@@ -55,32 +55,32 @@ export function TimeSelector({ onSubmit }: TimeSelectorProps) {
   };
 
   return (
-    <div className="dropdown">
-      <div tabIndex={0} role="button" className="flex flex-row flex-nowrap gap-2 whitespace-nowrap btn btn-outline m-1">
+    <div className="dropdown w-full sm:w-auto">
+      <div tabIndex={0} role="button" className="btn btn-outline m-0 flex w-full flex-row flex-nowrap gap-2 whitespace-nowrap sm:m-1 sm:w-auto">
         {renderIconByKind(kind)}{labelja}から探す<FaChevronDown />
       </div>
       <div
         tabIndex={0}
-        className="dropdown-content card card-compact bg-base-100 z-[1] w-[400px] p-2 shadow">
+        className="dropdown-content card card-compact z-[1] w-[calc(100vw-1.5rem)] max-w-[400px] border border-base-300 bg-base-100 p-2 shadow sm:w-[min(400px,calc(100vw-2rem))]">
         <div className="card-body">
 
           <form onSubmit={handleSubmit(handleFormSubmit)}>
             <fieldset className="fieldset">
-              <div className="flex flex-row items-center gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <label className={`input input-bordered flex items-center gap-2 ${errors.fromYear ? 'border-red-500 bg-red-500/25' : ''}`}>
                   <input
                     type="text"
-                    className="w-20"
+                    className="w-full min-w-0 sm:w-20"
                     placeholder="開始年"
                     {...register("fromYear")}
                   />
                   <FaCircleExclamation className={errors.fromYear ? "text-red-500" : "opacity-0"} />
                 </label>
-                <span className="align-baseline">〜</span>
+                <span className="hidden align-baseline sm:inline">〜</span>
                 <label className={`input input-bordered flex items-center gap-2 ${errors.toYear ? 'border-red-500 bg-red-500/25' : ''}`}>
                   <input
                     type="text"
-                    className="w-20 bg-transparent"
+                    className="w-full min-w-0 bg-transparent sm:w-20"
                     placeholder="終了年"
                     {...register("toYear")}
                   />
@@ -99,5 +99,4 @@ export function TimeSelector({ onSubmit }: TimeSelectorProps) {
     </div>
   );
 }
-
 

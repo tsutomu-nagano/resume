@@ -24,17 +24,19 @@ export default function SearchItems({ names }: SearchItemsProps) {
   };
 
   return (
-    <div className="bg-base-100 w-full p-4 shadow-xl flex flex-row gap-2 items-center">
-      <span>検索条件</span>
+    <div className="flex w-full min-w-0 flex-col gap-3 rounded-md border border-base-300 bg-base-100 p-3 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:p-4">
+      <span className="shrink-0 font-medium">検索条件</span>
+      <div className="flex min-w-0 flex-1 flex-wrap gap-2">
       {Array.from(items.entries()).map(([kind, names])  => (
         Array.from(names).map(name => (
           <Tag key={name} name={name} kind={kind} />
         ))
       ))}
+      </div>
       {/* Open the modal using document.getElementById('ID').showModal() method */}
-      <button className="btn btn-outline items-center ml-auto" onClick={handleClick}><GrGraphQl />graphQLを表示</button>
+      <button className="btn btn-outline w-full items-center sm:ml-auto sm:w-auto" onClick={handleClick}><GrGraphQl />graphQLを表示</button>
       <dialog id="view_graphQL" className="modal">
-        <div className="modal-box whitespace-pre-wrap">
+        <div className="modal-box max-w-[calc(100vw-2rem)] overflow-x-auto whitespace-pre-wrap">
         {print(searchQuery.query)}
           {searchQuery.variables && (
             <>
@@ -51,4 +53,3 @@ export default function SearchItems({ names }: SearchItemsProps) {
     </div>
   );
 }
-

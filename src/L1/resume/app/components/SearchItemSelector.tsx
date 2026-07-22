@@ -80,11 +80,11 @@ export default function SearchItemSelector({
   };
 
   return (
-    <div className="dropdown">
+    <div className="dropdown w-full sm:w-auto">
       <div
         tabIndex={0}
         role="button"
-        className="flex flex-row flex-nowrap gap-2 whitespace-nowrap btn btn-outline m-1"
+        className="btn btn-outline m-0 flex w-full flex-row flex-nowrap gap-2 whitespace-nowrap sm:m-1 sm:w-auto"
       >
         {renderIconByKind(kind)}
         {labelja}から探す
@@ -92,7 +92,7 @@ export default function SearchItemSelector({
       </div>
       <div
         tabIndex={0}
-        className="dropdown-content card card-compact bg-base-100 z-[1] w-[700px] p-2 shadow"
+        className="dropdown-content card card-compact z-[1] w-[calc(100vw-1.5rem)] max-w-[700px] border border-base-300 bg-base-100 p-2 shadow sm:w-[min(700px,calc(100vw-2rem))]"
       >
         <div className="card-body">
           <span>{descriptionByKind(kind)}</span>
@@ -118,10 +118,10 @@ export default function SearchItemSelector({
           <div className="divider divider-start divider-primary">
             キーワードで検索
           </div>
-          <label className="input input-bordered flex items-center gap-2">
+          <label className="input input-bordered flex min-w-0 items-center gap-2">
             <input
               type="text"
-              className="grow"
+              className="min-w-0 grow"
               placeholder="Search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

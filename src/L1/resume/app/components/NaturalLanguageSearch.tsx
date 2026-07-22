@@ -226,7 +226,7 @@ export function NaturalLanguageSearch() {
   };
 
   return (
-    <section className="mx-4 rounded-md border border-base-300 bg-base-100 p-3">
+    <section className="mx-0 rounded-md border border-base-300 bg-base-100 p-3 sm:mx-4">
       <div className="flex flex-col gap-3 lg:flex-row">
         <label className="input input-bordered flex flex-1 items-center gap-2">
           <input
