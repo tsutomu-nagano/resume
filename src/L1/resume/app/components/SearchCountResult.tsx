@@ -19,38 +19,48 @@ export function SearchCountResult({
   onViewChange,
 }: SearchCountResultProps) {
   return (
-    <div className="join" role="tablist" aria-label="検索結果の表示単位">
+    <div
+      className="join join-vertical w-full sm:join-horizontal sm:w-auto"
+      role="tablist"
+      aria-label="検索結果の表示単位"
+    >
       <button
         type="button"
         role="tab"
         aria-selected={view === "surveys"}
-        className={`btn btn-sm join-item ${view === "surveys" ? "btn-primary" : "btn-outline"}`}
+        className={`btn btn-sm join-item w-full justify-between sm:w-auto sm:justify-center ${view === "surveys" ? "btn-primary" : "btn-outline"}`}
         onClick={() => onViewChange("surveys")}
       >
-        {renderIconByKind("stat")}
-        統計調査
+        <span className="flex min-w-0 items-center gap-2">
+          {renderIconByKind("stat")}
+          <span className="truncate">統計調査</span>
+        </span>
         <span className="badge badge-outline badge-sm">{stat}</span>
       </button>
       <button
         type="button"
         role="tab"
         aria-selected={view === "tables"}
-        className={`btn btn-sm join-item ${view === "tables" ? "btn-primary" : "btn-outline"}`}
+        className={`btn btn-sm join-item w-full justify-between sm:w-auto sm:justify-center ${view === "tables" ? "btn-primary" : "btn-outline"}`}
         onClick={() => onViewChange("tables")}
       >
-        {renderIconByKind("db")}
-        統計データ
+        <span className="flex min-w-0 items-center gap-2">
+          {renderIconByKind("db")}
+          <span className="truncate">統計データ</span>
+        </span>
         <span className="badge badge-outline badge-sm">{db}</span>
       </button>
       <button
         type="button"
         role="tab"
         aria-selected={view === "metadata"}
-        className={`btn btn-sm join-item ${view === "metadata" ? "btn-primary" : "btn-outline"}`}
+        className={`btn btn-sm join-item w-full justify-between sm:w-auto sm:justify-center ${view === "metadata" ? "btn-primary" : "btn-outline"}`}
         onClick={() => onViewChange("metadata")}
       >
-        {renderIconByKind("dimension")}
-        メタデータ
+        <span className="flex min-w-0 items-center gap-2">
+          {renderIconByKind("dimension")}
+          <span className="truncate">メタデータ</span>
+        </span>
         <span className="badge badge-outline badge-sm">{metadata}</span>
       </button>
     </div>
