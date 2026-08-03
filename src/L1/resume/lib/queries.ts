@@ -51,6 +51,17 @@ const tableListFields = gql`
   }
 `;
 
+function buildDimensionTableWhere(name: string) {
+  return {
+    TABLE_DIMENSIONs: {
+      _or: [
+        { CLASS_NAME: { _eq: name } },
+        { DIMENSION_ITEMs: { NAME: { _eq: name } } },
+      ],
+    },
+  };
+}
+
 export const GET_TABLE_LIST = (
   items: Map<string, Set<string>>,
 ): GraphQLRequest => ({
@@ -228,7 +239,14 @@ function buildMetadataWhereVariables(
     },
     dimensionWhere: {
       TABLE_DIMENSIONs: { TABLELIST: tableWhere },
-      ...(searchPattern ? { CLASS_NAME: { _like: searchPattern } } : {}),
+      ...(searchPattern
+        ? {
+            _or: [
+              { CLASS_NAME: { _like: searchPattern } },
+              { DIMENSION_ITEMs: { NAME: { _like: searchPattern } } },
+            ],
+          }
+        : {}),
     },
     themeWhere: {
       TABLE_TAGs: { TABLELIST: tableWhere },
@@ -374,7 +392,7 @@ export const GET_METADATA_SURVEYS = (
   const attributeCode = kind === "stat_kind" ? "stat_kind" : "survey_units";
   const tableWhereByKind: Record<string, Record<string, unknown>> = {
     measure: { TABLE_MEASUREs: { NAME: { _eq: name } } },
-    dimension: { TABLE_DIMENSIONs: { CLASS_NAME: { _eq: name } } },
+    dimension: buildDimensionTableWhere(name),
     thema: { TABLE_TAGs: { TAG_NAME: { _eq: name } } },
     region: { TABLE_REGIONs: { NAME: { _eq: name } } },
   };
@@ -455,7 +473,7 @@ export const GET_METADATA_COUNTS = (
   const attributeCode = kind === "stat_kind" ? "stat_kind" : "survey_units";
   const tableWhereByKind: Record<string, Record<string, unknown>> = {
     measure: { TABLE_MEASUREs: { NAME: { _eq: name } } },
-    dimension: { TABLE_DIMENSIONs: { CLASS_NAME: { _eq: name } } },
+    dimension: buildDimensionTableWhere(name),
     thema: { TABLE_TAGs: { TAG_NAME: { _eq: name } } },
     region: { TABLE_REGIONs: { NAME: { _eq: name } } },
   };

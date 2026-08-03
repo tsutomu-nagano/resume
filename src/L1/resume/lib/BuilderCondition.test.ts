@@ -36,6 +36,23 @@ describe("BuilderCondition", () => {
     });
   });
 
+  it("filters dimensions by class name or item name", () => {
+    const items = new Map([["dimension", new Set(["男"])]]);
+
+    expect(BuilderCondition(items)).toEqual({
+      _and: [
+        {
+          TABLE_DIMENSIONs: {
+            _or: [
+              { CLASS_NAME: { _eq: "男" } },
+              { DIMENSION_ITEMs: { NAME: { _eq: "男" } } },
+            ],
+          },
+        },
+      ],
+    });
+  });
+
   it("builds a bounded year range", () => {
     const items = new Map([["time", new Set(["2020-2022"])]]);
 

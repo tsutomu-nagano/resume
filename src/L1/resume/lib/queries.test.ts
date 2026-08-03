@@ -65,7 +65,10 @@ describe("survey queries", () => {
       },
       dimensionWhere: {
         TABLE_DIMENSIONs: { TABLELIST: {} },
-        CLASS_NAME: { _like: "%人口%" },
+        _or: [
+          { CLASS_NAME: { _like: "%人口%" } },
+          { DIMENSION_ITEMs: { NAME: { _like: "%人口%" } } },
+        ],
       },
       themeWhere: {
         TABLE_TAGs: { TABLELIST: {} },
@@ -93,6 +96,21 @@ describe("survey queries", () => {
     expect(query).toContain("table_count: TABLELISTs_aggregate");
     expect(request.variables).toEqual({
       tableWhere: { TABLE_MEASUREs: { NAME: { _eq: "人口" } } },
+    });
+  });
+
+  it("requests dimension metadata surveys by class name or item name", () => {
+    const request = GET_METADATA_SURVEYS("dimension", "男");
+
+    expect(request.variables).toEqual({
+      tableWhere: {
+        TABLE_DIMENSIONs: {
+          _or: [
+            { CLASS_NAME: { _eq: "男" } },
+            { DIMENSION_ITEMs: { NAME: { _eq: "男" } } },
+          ],
+        },
+      },
     });
   });
 

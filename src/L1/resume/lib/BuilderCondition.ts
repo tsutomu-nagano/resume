@@ -4,6 +4,8 @@ type EqualityConditionConfig = {
   kind: string;
   tableName?: string;
   columnName: string;
+  itemTableName?: string;
+  itemColumnName?: string;
 };
 
 const equalityConditionConfigs: EqualityConditionConfig[] = [
@@ -11,13 +13,25 @@ const equalityConditionConfigs: EqualityConditionConfig[] = [
   { kind: "statcode", columnName: "STATCODE" },
   { kind: "measure", tableName: "TABLE_MEASUREs", columnName: "NAME" },
   { kind: "thema", tableName: "TABLE_TAGs", columnName: "TAG_NAME" },
-  { kind: "dimension", tableName: "TABLE_DIMENSIONs", columnName: "CLASS_NAME" },
+  {
+    kind: "dimension",
+    tableName: "TABLE_DIMENSIONs",
+    columnName: "CLASS_NAME",
+    itemTableName: "DIMENSION_ITEMs",
+    itemColumnName: "NAME",
+  },
   { kind: "region", tableName: "TABLE_REGIONs", columnName: "NAME" },
 ];
 
 function buildEqualityConditions(
   items: Map<string, Set<string>>,
-  { kind, tableName, columnName }: EqualityConditionConfig
+  {
+    kind,
+    tableName,
+    columnName,
+    itemTableName,
+    itemColumnName,
+  }: EqualityConditionConfig,
 ): GraphQLCondition[] {
   const itemsOfKind = items.get(kind);
 
@@ -27,6 +41,16 @@ function buildEqualityConditions(
 
   return Array.from(itemsOfKind).map((item) => {
     const comparison = { [columnName]: { _eq: item } };
+    const itemComparison =
+      itemTableName && itemColumnName
+        ? { [itemTableName]: { [itemColumnName]: { _eq: item } } }
+        : undefined;
+
+    if (itemComparison) {
+      const condition = { _or: [comparison, itemComparison] };
+
+      return tableName ? { [tableName]: condition } : condition;
+    }
 
     return tableName ? { [tableName]: comparison } : comparison;
   });
@@ -36,7 +60,7 @@ function buildTimeConditions(
   items: Map<string, Set<string>>,
   kind: string,
   tableName: string,
-  columnName: string
+  columnName: string,
 ): GraphQLCondition[] {
   const itemsOfKind = items.get(kind);
 
@@ -76,7 +100,9 @@ function buildTimeConditions(
   return conditions;
 }
 
-function groupOrConditions(conditions: GraphQLCondition[]): GraphQLCondition | undefined {
+function groupOrConditions(
+  conditions: GraphQLCondition[],
+): GraphQLCondition | undefined {
   if (conditions.length === 0) {
     return undefined;
   }
@@ -88,13 +114,19 @@ function groupOrConditions(conditions: GraphQLCondition[]): GraphQLCondition | u
   return { _or: conditions };
 }
 
-export function BuilderCondition(items: Map<string, Set<string>>): GraphQLCondition {
+export function BuilderCondition(
+  items: Map<string, Set<string>>,
+): GraphQLCondition {
   const conditions = [
     ...equalityConditionConfigs.map((config) =>
-      groupOrConditions(buildEqualityConditions(items, config))
+      groupOrConditions(buildEqualityConditions(items, config)),
     ),
-    groupOrConditions(buildTimeConditions(items, "time", "TABLE_TIMEs", "YEAR")),
-  ].filter((condition): condition is GraphQLCondition => condition !== undefined);
+    groupOrConditions(
+      buildTimeConditions(items, "time", "TABLE_TIMEs", "YEAR"),
+    ),
+  ].filter(
+    (condition): condition is GraphQLCondition => condition !== undefined,
+  );
 
   if (conditions.length === 0) {
     return {};
