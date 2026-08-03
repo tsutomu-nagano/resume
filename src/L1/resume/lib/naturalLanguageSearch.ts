@@ -41,18 +41,41 @@ const stopWords = new Set([
   "調べる",
 ]);
 
+function normalizeDigits(value: string): string {
+  return value.replace(/[０-９]/g, (char) =>
+    String.fromCharCode(char.charCodeAt(0) - 0xfee0),
+  );
+}
+
 function normalizeYear(value: string): number | undefined {
-  const westernYear = value.match(/(\d{4})\s*(?:年|年度)?/);
+  const normalizedValue = normalizeDigits(value.trim());
+  const currentYear = new Date().getFullYear();
+  const relativeYears: Record<string, number> = {
+    去年: currentYear - 1,
+    昨年: currentYear - 1,
+    一昨年: currentYear - 2,
+  };
+  const relativeYear = relativeYears[normalizedValue];
+  if (relativeYear) {
+    return relativeYear;
+  }
+
+  const yearsAgo = normalizedValue.match(/(\d+)\s*年前/);
+  if (yearsAgo) {
+    return currentYear - Number(yearsAgo[1]);
+  }
+
+  const westernYear = normalizedValue.match(/(\d{4})\s*(?:年|年度)?/);
   if (westernYear) {
     return Number(westernYear[1]);
   }
 
-  const reiwaYear = value.match(/令和\s*(元|\d+)\s*(?:年|年度)?/);
+  const reiwaYear = normalizedValue.match(/令和\s*(元|\d+)\s*(?:年|年度)?/);
   if (reiwaYear) {
     return 2018 + (reiwaYear[1] === "元" ? 1 : Number(reiwaYear[1]));
   }
 
-  const heiseiYear = value.match(/平成\s*(元|\d+)\s*(?:年|年度)?/);
+  const heiseiYear = normalizedValue.match(/平成\s*(元|\d+)\s*(?:年|年度)?/);
   if (heiseiYear) {
     return 1988 + (heiseiYear[1] === "元" ? 1 : Number(heiseiYear[1]));
   }
@@ -62,10 +85,17 @@ function normalizeYear(value: string): number | undefined {
 
 function extractTimeEntities(text: string): NaturalLanguageEntity[] {
   const entities: NaturalLanguageEntity[] = [];
+  const yearExpression =
+    String.raw`(?:[0-9０-９]{4}|令和\s*(?:元|[0-9０-９]+)|平成\s*(?:元|[0-9０-９]+)|[0-9０-９]+\s*年前|去年|昨年|一昨年)`;
   const rangePattern =
-    /((?:\d{4}|令和\s*(?:元|\d+)|平成\s*(?:元|\d+))\s*(?:年|年度)?)\s*(?:から|以降|[-~〜～])\s*((?:\d{4}|令和\s*(?:元|\d+)|平成\s*(?:元|\d+))\s*(?:年|年度)?|現在|今)/g;
-  const singlePattern =
-    /(?:\d{4}|令和\s*(?:元|\d+)|平成\s*(?:元|\d+))\s*(?:年|年度)?/g;
+    new RegExp(
+      `(${yearExpression}\\s*(?:年|年度)?)\\s*(?:から|以降|[-~〜～])\\s*(${yearExpression}\\s*(?:年|年度)?|現在|今)`,
+      "g",
+    );
+  const singlePattern = new RegExp(
+    `${yearExpression}\\s*(?:年|年度)?`,
+    "g",
+  );
 
   for (const match of text.matchAll(rangePattern)) {
     const start = match.index ?? 0;
