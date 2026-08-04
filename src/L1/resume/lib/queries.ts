@@ -7,6 +7,8 @@ export interface GraphQLRequest {
   variables?: Record<string, unknown>;
 }
 
+export type DimensionSearchMode = "class" | "item" | "both";
+
 function getItemsWithoutKind(
   items: Map<string, Set<string>>,
   kind: string,
@@ -54,10 +56,7 @@ const tableListFields = gql`
 function buildDimensionTableWhere(name: string) {
   return {
     TABLE_DIMENSIONs: {
-      _or: [
-        { CLASS_NAME: { _eq: name } },
-        { DIMENSION_ITEMs: { NAME: { _eq: name } } },
-      ],
+      CLASS_NAME: { _eq: name },
     },
   };
 }
@@ -130,6 +129,7 @@ export const GET_SURVEY_LIST = (
 export const GET_TABLE_LIST_COUNT = (
   items: Map<string, Set<string>>,
   metadataSearchTerm = "",
+  dimensionSearchMode: DimensionSearchMode = "both",
 ): GraphQLRequest => ({
   query: gql`
     query GetTableListCount(
@@ -169,13 +169,18 @@ export const GET_TABLE_LIST_COUNT = (
   `,
   variables: {
     where: BuilderCondition(items),
-    ...buildMetadataWhereVariables(items, metadataSearchTerm),
+    ...buildMetadataWhereVariables(
+      items,
+      metadataSearchTerm,
+      dimensionSearchMode,
+    ),
   },
 });
 
 export const GET_METADATA_LIST = (
   items: Map<string, Set<string>>,
   searchTerm = "",
+  dimensionSearchMode: DimensionSearchMode = "both",
 ): GraphQLRequest => ({
   query: gql`
     query GetMetadataList(
@@ -201,6 +206,9 @@ export const GET_METADATA_LIST = (
         order_by: { CLASS_NAME: asc }
       ) {
         name: CLASS_NAME
+        matching_items: DIMENSION_ITEMs(where: $dimensionItemWhere, limit: 5) {
+          name: NAME
+        }
       }
       themes: TAGLIST(
         where: $themeWhere
@@ -221,16 +229,29 @@ export const GET_METADATA_LIST = (
     }
   `,
   variables: {
-    ...buildMetadataWhereVariables(items, searchTerm),
+    ...buildMetadataWhereVariables(items, searchTerm, dimensionSearchMode),
   },
 });
 
 function buildMetadataWhereVariables(
   items: Map<string, Set<string>>,
   searchTerm: string,
+  dimensionSearchMode: DimensionSearchMode = "both",
 ) {
   const tableWhere = BuilderCondition(items);
   const searchPattern = searchTerm.trim() ? `%${searchTerm.trim()}%` : null;
+  const dimensionNameSearch =
+    searchPattern && dimensionSearchMode !== "item"
+      ? { CLASS_NAME: { _like: searchPattern } }
+      : null;
+  const dimensionItemSearch =
+    searchPattern && dimensionSearchMode !== "class"
+      ? { DIMENSION_ITEMs: { NAME: { _like: searchPattern } } }
+      : null;
+  const dimensionTextConditions = [
+    dimensionNameSearch,
+    dimensionItemSearch,
+  ].filter(Boolean);
 
   return {
     measureWhere: {
@@ -239,15 +260,16 @@ function buildMetadataWhereVariables(
     },
     dimensionWhere: {
       TABLE_DIMENSIONs: { TABLELIST: tableWhere },
-      ...(searchPattern
-        ? {
-            _or: [
-              { CLASS_NAME: { _like: searchPattern } },
-              { DIMENSION_ITEMs: { NAME: { _like: searchPattern } } },
-            ],
-          }
-        : {}),
+      ...(dimensionTextConditions.length > 1
+        ? { _or: dimensionTextConditions }
+        : dimensionTextConditions.length === 1
+          ? dimensionTextConditions[0]
+          : {}),
     },
+    dimensionItemWhere:
+      searchPattern && dimensionSearchMode !== "class"
+        ? { NAME: { _like: searchPattern } }
+        : {},
     themeWhere: {
       TABLE_TAGs: { TABLELIST: tableWhere },
       ...(searchPattern ? { TAG_NAME: { _like: searchPattern } } : {}),

@@ -15,6 +15,11 @@ import { MetadataSurveyList } from "./MetadataSurveyList";
 interface MetadataCardProps {
   kind: string;
   name: string;
+  matchReason?: {
+    matchedByClass: boolean;
+    matchedByItem: boolean;
+    matchedItemNames: string[];
+  } | null;
   isSelected: boolean;
   onToggle: () => void;
 }
@@ -22,6 +27,7 @@ interface MetadataCardProps {
 export function MetadataCard({
   kind,
   name,
+  matchReason,
   isSelected,
   onToggle,
 }: MetadataCardProps) {
@@ -63,6 +69,29 @@ export function MetadataCard({
             {isSelected && <span className="badge badge-primary">選択中</span>}
           </div>
           <h2 className="card-title text-base leading-relaxed">{name}</h2>
+          {matchReason ? (
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              {matchReason.matchedByClass ? (
+                <span className="badge badge-info badge-outline">
+                  事項名に一致
+                </span>
+              ) : null}
+              {matchReason.matchedByItem ? (
+                <span className="badge badge-secondary badge-outline">
+                  項目名に一致
+                </span>
+              ) : null}
+              {matchReason.matchedItemNames.slice(0, 3).map((itemName) => (
+                <span
+                  key={itemName}
+                  className="badge badge-ghost max-w-full truncate"
+                  title={itemName}
+                >
+                  {itemName}
+                </span>
+              ))}
+            </div>
+          ) : null}
           <MetadataCardCounts kind={kind} name={name} />
           <div
             className="card-actions justify-end"
@@ -105,7 +134,11 @@ export function MetadataCard({
               <li>
                 <a>Custom Sidebar Item 2</a>
               </li>
-              <MetadataSurveyList kind={kind} name={name} isOpen={isDrawerOpen} />
+              <MetadataSurveyList
+                kind={kind}
+                name={name}
+                isOpen={isDrawerOpen}
+              />
             </>
           }
         />

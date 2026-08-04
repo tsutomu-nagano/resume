@@ -1,6 +1,7 @@
 "use client";
 
 import type { GraphQLRequest } from "@/lib/queries";
+import type { DimensionSearchMode } from "@/lib/queries";
 import { createContext } from "react";
 
 export type SearchResultView = "tables" | "surveys" | "metadata";
@@ -33,6 +34,8 @@ interface SearchItemContextType {
   setView: (view: SearchResultView) => void;
   metadataSearchTerm: string;
   setMetadataSearchTerm: (searchTerm: string) => void;
+  dimensionSearchMode: DimensionSearchMode;
+  setDimensionSearchMode: (searchMode: DimensionSearchMode) => void;
   searchQuery: GraphQLRequest;
   searchHistoryNodes: SearchHistoryNode[];
   activeSearchNodeId: string | null;

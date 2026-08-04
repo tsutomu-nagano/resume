@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FiSearch } from "react-icons/fi";
+import type { DimensionSearchMode } from "@/lib/queries";
 import { kind_en2ja, renderIconByKind } from "../common/convertor";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 import { InfiniteScrollContainer } from "./InfiniteScrollContainer";
@@ -12,14 +13,10 @@ type MetadataResult = {
   metadataId: string;
   kind: string;
   name: string;
+  matching_items?: { name: string }[];
 };
 
-const metadataKindOrder = [
-  "measure",
-  "dimension",
-  "thema",
-  "region",
-];
+const metadataKindOrder = ["measure", "dimension", "thema", "region"];
 
 const hiddenMetadataKinds = new Set(["survey_unit", "stat_kind"]);
 
@@ -51,13 +48,15 @@ export default function MetadataList() {
     countResult,
     metadataSearchTerm,
     setMetadataSearchTerm,
+    dimensionSearchMode,
+    setDimensionSearchMode,
   } = useSearchItem();
   const didFetch = useRef(false);
   const [hiddenKinds, setHiddenKinds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     didFetch.current = false;
-  }, [metadataSearchTerm]);
+  }, [dimensionSearchMode, metadataSearchTerm]);
 
   useEffect(() => {
     if (!didFetch.current && searchResult.length === 0 && !isLast) {
@@ -66,22 +65,19 @@ export default function MetadataList() {
     }
   }, [fetchMore, isLast, searchResult.length]);
 
-  const metadataResults = useMemo(
-    () => {
-      const uniqueResults = new Map<string, MetadataResult>();
+  const metadataResults = useMemo(() => {
+    const uniqueResults = new Map<string, MetadataResult>();
 
-      searchResult.filter(isMetadataResult).forEach((item) => {
-        if (hiddenMetadataKinds.has(item.kind)) {
-          return;
-        }
+    searchResult.filter(isMetadataResult).forEach((item) => {
+      if (hiddenMetadataKinds.has(item.kind)) {
+        return;
+      }
 
-        uniqueResults.set(item.metadataId, item);
-      });
+      uniqueResults.set(item.metadataId, item);
+    });
 
-      return Array.from(uniqueResults.values());
-    },
-    [searchResult],
-  );
+    return Array.from(uniqueResults.values());
+  }, [searchResult]);
 
   const metadataKinds = useMemo(() => {
     const counts = new Map<string, number>();
@@ -162,6 +158,22 @@ export default function MetadataList() {
             </button>
           )}
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm text-base-content/70">
+            分類事項の検索対象
+          </span>
+          {dimensionSearchOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={dimensionSearchMode === option.value}
+              className={`btn btn-sm ${dimensionSearchMode === option.value ? "btn-primary" : "btn-outline"}`}
+              onClick={() => setDimensionSearchMode(option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
         {metadataKinds.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
             {metadataKinds.map(([kind, count]) => {
@@ -193,6 +205,11 @@ export default function MetadataList() {
             key={item.metadataId}
             kind={item.kind}
             name={item.name}
+            matchReason={getDimensionMatchReason(
+              item,
+              metadataSearchTerm,
+              dimensionSearchMode,
+            )}
             isSelected={findItem(item.kind, item.name)}
             onToggle={() => {
               if (findItem(item.kind, item.name)) {
@@ -221,4 +238,39 @@ export default function MetadataList() {
 function getMetadataKindOrder(kind: string) {
   const index = metadataKindOrder.indexOf(kind);
   return index === -1 ? metadataKindOrder.length : index;
+}
+
+const dimensionSearchOptions: { value: DimensionSearchMode; label: string }[] =
+  [
+    { value: "both", label: "事項名と項目名" },
+    { value: "class", label: "事項名" },
+    { value: "item", label: "項目名" },
+  ];
+
+function getDimensionMatchReason(
+  item: MetadataResult,
+  searchTerm: string,
+  dimensionSearchMode: DimensionSearchMode,
+) {
+  if (item.kind !== "dimension" || !searchTerm.trim()) {
+    return null;
+  }
+
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const matchedByClass =
+    dimensionSearchMode !== "item" &&
+    item.name.toLowerCase().includes(normalizedSearchTerm);
+  const matchedItemNames = (item.matching_items || []).map(({ name }) => name);
+  const matchedByItem =
+    dimensionSearchMode !== "class" && matchedItemNames.length > 0;
+
+  if (!matchedByClass && !matchedByItem) {
+    return null;
+  }
+
+  return {
+    matchedByClass,
+    matchedByItem,
+    matchedItemNames,
+  };
 }

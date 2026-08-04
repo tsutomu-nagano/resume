@@ -11,6 +11,7 @@ import {
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createApolloClient } from "@lib/apolloClient";
 import {
+  DimensionSearchMode,
   GET_SURVEY_ATTRIBUTE_STATCODES,
   GET_SURVEY_ATTRIBUTES,
   GET_METADATA_LIST,
@@ -231,6 +232,7 @@ function getResultCacheKey(
   view: SearchResultView,
   items: Map<string, Set<string>>,
   metadataSearchTerm = "",
+  dimensionSearchMode: DimensionSearchMode = "both",
 ) {
   const itemKey = Array.from(items.entries())
     .flatMap(([kind, values]) =>
@@ -241,8 +243,10 @@ function getResultCacheKey(
 
   const metadataSearchKey =
     view === "metadata" ? `:q=${metadataSearchTerm.trim()}` : "";
+  const dimensionSearchModeKey =
+    view === "metadata" ? `:dimension=${dimensionSearchMode}` : "";
 
-  return `${view}:${itemKey}${metadataSearchKey}`;
+  return `${view}:${itemKey}${metadataSearchKey}${dimensionSearchModeKey}`;
 }
 
 function getItemsWithoutKinds(
@@ -272,6 +276,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [metadataSearchTerm, setMetadataSearchTermState] = useState("");
+  const [dimensionSearchMode, setDimensionSearchModeState] =
+    useState<DimensionSearchMode>("both");
   const [items, setItemSet] = useState<Map<string, Set<string>>>(() =>
     getItemsFromSearchParams(searchParams),
   );
@@ -291,8 +297,9 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         view,
         view === "surveys" ? getItemsWithoutKinds(items, ["stat"]) : items,
         metadataSearchTerm,
+        dimensionSearchMode,
       ),
-    [items, metadataSearchTerm, view],
+    [dimensionSearchMode, items, metadataSearchTerm, view],
   );
   const activeResultCacheKey = useRef(resultCacheKey);
   const pendingResultCache = useRef<PendingResultCacheEntry | null>(null);
@@ -683,6 +690,21 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     });
   };
 
+  const setDimensionSearchMode = (searchMode: DimensionSearchMode) => {
+    setDimensionSearchModeState((currentSearchMode) => {
+      if (currentSearchMode === searchMode) {
+        return currentSearchMode;
+      }
+
+      if (view === "metadata") {
+        rememberCurrentResults();
+        resetSearch();
+      }
+
+      return searchMode;
+    });
+  };
+
   const selectSurvey = (surveyName: string) => {
     if (items.get("stat")?.has(surveyName)) {
       return;
@@ -731,16 +753,23 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     }
 
     if (view === "metadata") {
-      return GET_METADATA_LIST(items, metadataSearchTerm);
+      return GET_METADATA_LIST(items, metadataSearchTerm, dimensionSearchMode);
     }
 
     return GET_TABLE_LIST(items);
-  }, [items, metadataSearchTerm, view]);
+  }, [dimensionSearchMode, items, metadataSearchTerm, view]);
   const activeMetadataSearchTerm =
     view === "metadata" ? metadataSearchTerm : "";
+  const activeDimensionSearchMode =
+    view === "metadata" ? dimensionSearchMode : "both";
   const countQuery = useMemo(
-    () => GET_TABLE_LIST_COUNT(items, activeMetadataSearchTerm),
-    [activeMetadataSearchTerm, items],
+    () =>
+      GET_TABLE_LIST_COUNT(
+        items,
+        activeMetadataSearchTerm,
+        activeDimensionSearchMode,
+      ),
+    [activeDimensionSearchMode, activeMetadataSearchTerm, items],
   );
 
   const resolveSurveyAttributeItems = async () => {
@@ -799,7 +828,11 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     try {
       const resolvedItems = await resolveSurveyAttributeItems();
       const result = await client.query(
-        GET_TABLE_LIST_COUNT(resolvedItems, activeMetadataSearchTerm),
+        GET_TABLE_LIST_COUNT(
+          resolvedItems,
+          activeMetadataSearchTerm,
+          activeDimensionSearchMode,
+        ),
       );
       const metadataCount =
         Number(result.data.metadata_measures?.aggregate?.count ?? 0) +
@@ -843,7 +876,11 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         view === "surveys"
           ? GET_SURVEY_LIST(getItemsWithoutKinds(resolvedItems, ["stat"]))
           : view === "metadata"
-            ? GET_METADATA_LIST(resolvedItems, metadataSearchTerm)
+            ? GET_METADATA_LIST(
+                resolvedItems,
+                metadataSearchTerm,
+                dimensionSearchMode,
+              )
             : GET_TABLE_LIST(resolvedItems);
       const result = await client.query({
         ...query,
@@ -863,9 +900,12 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
               ...((result.data.measures || []) as { name: string }[]).map(
                 (item) => ({ ...item, kind: "measure" }),
               ),
-              ...((result.data.dimensions || []) as { name: string }[]).map(
-                (item) => ({ ...item, kind: "dimension" }),
-              ),
+              ...(
+                (result.data.dimensions || []) as {
+                  name: string;
+                  matching_items?: { name: string }[];
+                }[]
+              ).map((item) => ({ ...item, kind: "dimension" })),
               ...((result.data.themes || []) as { name: string }[]).map(
                 (item) => ({ ...item, kind: "thema" }),
               ),
@@ -951,10 +991,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
             return true;
           },
         );
-        const nextSearchResult = [
-          ...previousResults,
-          ...uniqueEnrichedResults,
-        ];
+        const nextSearchResult = [...previousResults, ...uniqueEnrichedResults];
 
         resultCache.current.set(requestResultCacheKey, {
           searchResult: nextSearchResult,
@@ -997,6 +1034,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         setView,
         metadataSearchTerm,
         setMetadataSearchTerm,
+        dimensionSearchMode,
+        setDimensionSearchMode,
         searchQuery,
         searchHistoryNodes,
         activeSearchNodeId,

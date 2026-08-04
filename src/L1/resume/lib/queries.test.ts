@@ -48,6 +48,7 @@ describe("survey queries", () => {
       where: {},
       measureWhere: { TABLE_MEASUREs: { TABLELIST: {} } },
       dimensionWhere: { TABLE_DIMENSIONs: { TABLELIST: {} } },
+      dimensionItemWhere: {},
       themeWhere: { TABLE_TAGs: { TABLELIST: {} } },
       regionWhere: { TABLE_REGIONs: { TABLELIST: {} } },
     });
@@ -70,6 +71,7 @@ describe("survey queries", () => {
           { DIMENSION_ITEMs: { NAME: { _like: "%人口%" } } },
         ],
       },
+      dimensionItemWhere: { NAME: { _like: "%人口%" } },
       themeWhere: {
         TABLE_TAGs: { TABLELIST: {} },
         TAG_NAME: { _like: "%人口%" },
@@ -78,6 +80,30 @@ describe("survey queries", () => {
         TABLE_REGIONs: { TABLELIST: {} },
         NAME: { _like: "%人口%" },
       },
+    });
+  });
+
+  it("filters dimension metadata by class name only", () => {
+    const request = GET_METADATA_LIST(new Map(), "性別", "class");
+
+    expect(request.variables).toMatchObject({
+      dimensionWhere: {
+        TABLE_DIMENSIONs: { TABLELIST: {} },
+        CLASS_NAME: { _like: "%性別%" },
+      },
+      dimensionItemWhere: {},
+    });
+  });
+
+  it("filters dimension metadata by item name only", () => {
+    const request = GET_METADATA_LIST(new Map(), "男", "item");
+
+    expect(request.variables).toMatchObject({
+      dimensionWhere: {
+        TABLE_DIMENSIONs: { TABLELIST: {} },
+        DIMENSION_ITEMs: { NAME: { _like: "%男%" } },
+      },
+      dimensionItemWhere: { NAME: { _like: "%男%" } },
     });
   });
 
@@ -99,16 +125,13 @@ describe("survey queries", () => {
     });
   });
 
-  it("requests dimension metadata surveys by class name or item name", () => {
+  it("requests dimension metadata surveys by class name", () => {
     const request = GET_METADATA_SURVEYS("dimension", "男");
 
     expect(request.variables).toEqual({
       tableWhere: {
         TABLE_DIMENSIONs: {
-          _or: [
-            { CLASS_NAME: { _eq: "男" } },
-            { DIMENSION_ITEMs: { NAME: { _eq: "男" } } },
-          ],
+          CLASS_NAME: { _eq: "男" },
         },
       },
     });

@@ -4,8 +4,6 @@ type EqualityConditionConfig = {
   kind: string;
   tableName?: string;
   columnName: string;
-  itemTableName?: string;
-  itemColumnName?: string;
 };
 
 const equalityConditionConfigs: EqualityConditionConfig[] = [
@@ -17,21 +15,13 @@ const equalityConditionConfigs: EqualityConditionConfig[] = [
     kind: "dimension",
     tableName: "TABLE_DIMENSIONs",
     columnName: "CLASS_NAME",
-    itemTableName: "DIMENSION_ITEMs",
-    itemColumnName: "NAME",
   },
   { kind: "region", tableName: "TABLE_REGIONs", columnName: "NAME" },
 ];
 
 function buildEqualityConditions(
   items: Map<string, Set<string>>,
-  {
-    kind,
-    tableName,
-    columnName,
-    itemTableName,
-    itemColumnName,
-  }: EqualityConditionConfig,
+  { kind, tableName, columnName }: EqualityConditionConfig,
 ): GraphQLCondition[] {
   const itemsOfKind = items.get(kind);
 
@@ -41,17 +31,6 @@ function buildEqualityConditions(
 
   return Array.from(itemsOfKind).map((item) => {
     const comparison = { [columnName]: { _eq: item } };
-    const itemComparison =
-      itemTableName && itemColumnName
-        ? { [itemTableName]: { [itemColumnName]: { _eq: item } } }
-        : undefined;
-
-    if (itemComparison) {
-      const condition = { _or: [comparison, itemComparison] };
-
-      return tableName ? { [tableName]: condition } : condition;
-    }
-
     return tableName ? { [tableName]: comparison } : comparison;
   });
 }
