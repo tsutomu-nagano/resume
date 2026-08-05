@@ -59,6 +59,10 @@ describe("survey queries", () => {
     const query = print(request.query);
 
     expect(query).toContain("GetMetadataList");
+    expect(query).toContain("$dimensionItemWhere: DIMENSION_ITEM_bool_exp!");
+    expect(query).toContain(
+      "matching_items: DIMENSION_ITEMs(where: $dimensionItemWhere, limit: 5)",
+    );
     expect(request.variables).toEqual({
       measureWhere: {
         TABLE_MEASUREs: { TABLELIST: {} },

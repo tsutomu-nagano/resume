@@ -186,6 +186,7 @@ export const GET_METADATA_LIST = (
     query GetMetadataList(
       $measureWhere: MEASURELIST_bool_exp!
       $dimensionWhere: DIMENSIONLIST_bool_exp!
+      $dimensionItemWhere: DIMENSION_ITEM_bool_exp!
       $themeWhere: TAGLIST_bool_exp!
       $regionWhere: REGIONLIST_bool_exp!
       $limit_number: Int
