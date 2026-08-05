@@ -40,6 +40,7 @@ describe("survey queries", () => {
 
     expect(query).toContain("metadata_measures: MEASURELIST_aggregate");
     expect(query).toContain("metadata_dimensions: DIMENSIONLIST_aggregate");
+    expect(query).not.toContain("metadata_dimension_items");
     expect(query).toContain("metadata_themes: TAGLIST_aggregate");
     expect(query).toContain("metadata_regions: REGIONLIST_aggregate");
     expect(query).not.toContain("metadata_survey_units");
@@ -63,6 +64,9 @@ describe("survey queries", () => {
     expect(query).toContain(
       "matching_items: DIMENSION_ITEMs(where: $dimensionItemWhere, limit: 5)",
     );
+    expect(query).toContain("item_dimensions: DIMENSIONLIST");
+    expect(query).toContain("where: $dimensionItemMatchedWhere");
+    expect(query).not.toContain("_or");
     expect(request.variables).toEqual({
       measureWhere: {
         TABLE_MEASUREs: { TABLELIST: {} },
@@ -70,10 +74,11 @@ describe("survey queries", () => {
       },
       dimensionWhere: {
         TABLE_DIMENSIONs: { TABLELIST: {} },
-        _or: [
-          { CLASS_NAME: { _like: "%人口%" } },
-          { DIMENSION_ITEMs: { NAME: { _like: "%人口%" } } },
-        ],
+        CLASS_NAME: { _like: "%人口%" },
+      },
+      dimensionItemMatchedWhere: {
+        TABLE_DIMENSIONs: { TABLELIST: {} },
+        DIMENSION_ITEMs: { NAME: { _like: "%人口%" } },
       },
       dimensionItemWhere: { NAME: { _like: "%人口%" } },
       themeWhere: {

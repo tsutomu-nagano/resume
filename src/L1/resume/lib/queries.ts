@@ -130,12 +130,17 @@ export const GET_TABLE_LIST_COUNT = (
   items: Map<string, Set<string>>,
   metadataSearchTerm = "",
   dimensionSearchMode: DimensionSearchMode = "both",
-): GraphQLRequest => ({
-  query: gql`
+): GraphQLRequest => {
+  const usesSplitDimensionSearch =
+    metadataSearchTerm.trim() && dimensionSearchMode === "both";
+
+  return {
+    query: gql`
     query GetTableListCount(
       $where: TABLELIST_bool_exp!
       $measureWhere: MEASURELIST_bool_exp!
       $dimensionWhere: DIMENSIONLIST_bool_exp!
+      ${usesSplitDimensionSearch ? "$dimensionItemMatchedWhere: DIMENSIONLIST_bool_exp!" : ""}
       $themeWhere: TAGLIST_bool_exp!
       $regionWhere: REGIONLIST_bool_exp!
     ) {
@@ -155,6 +160,15 @@ export const GET_TABLE_LIST_COUNT = (
           count(distinct: true, column: CLASS_NAME)
         }
       }
+      ${
+        usesSplitDimensionSearch
+          ? `metadata_dimension_items: DIMENSIONLIST_aggregate(where: $dimensionItemMatchedWhere) {
+        aggregate {
+          count(distinct: true, column: CLASS_NAME)
+        }
+      }`
+          : ""
+      }
       metadata_themes: TAGLIST_aggregate(where: $themeWhere) {
         aggregate {
           count(distinct: true, column: TAG_NAME)
@@ -167,25 +181,31 @@ export const GET_TABLE_LIST_COUNT = (
       }
     }
   `,
-  variables: {
-    where: BuilderCondition(items),
-    ...buildMetadataWhereVariables(
-      items,
-      metadataSearchTerm,
-      dimensionSearchMode,
-    ),
-  },
-});
+    variables: {
+      where: BuilderCondition(items),
+      ...buildMetadataWhereVariables(
+        items,
+        metadataSearchTerm,
+        dimensionSearchMode,
+      ),
+    },
+  };
+};
 
 export const GET_METADATA_LIST = (
   items: Map<string, Set<string>>,
   searchTerm = "",
   dimensionSearchMode: DimensionSearchMode = "both",
-): GraphQLRequest => ({
-  query: gql`
+): GraphQLRequest => {
+  const usesSplitDimensionSearch =
+    searchTerm.trim() && dimensionSearchMode === "both";
+
+  return {
+    query: gql`
     query GetMetadataList(
       $measureWhere: MEASURELIST_bool_exp!
       $dimensionWhere: DIMENSIONLIST_bool_exp!
+      ${usesSplitDimensionSearch ? "$dimensionItemMatchedWhere: DIMENSIONLIST_bool_exp!" : ""}
       $dimensionItemWhere: DIMENSION_ITEM_bool_exp!
       $themeWhere: TAGLIST_bool_exp!
       $regionWhere: REGIONLIST_bool_exp!
@@ -211,6 +231,21 @@ export const GET_METADATA_LIST = (
           name: NAME
         }
       }
+      ${
+        usesSplitDimensionSearch
+          ? `item_dimensions: DIMENSIONLIST(
+        where: $dimensionItemMatchedWhere
+        limit: $limit_number
+        offset: $offset_number
+        order_by: { CLASS_NAME: asc }
+      ) {
+        name: CLASS_NAME
+        matching_items: DIMENSION_ITEMs(where: $dimensionItemWhere, limit: 5) {
+          name: NAME
+        }
+      }`
+          : ""
+      }
       themes: TAGLIST(
         where: $themeWhere
         limit: $limit_number
@@ -229,10 +264,11 @@ export const GET_METADATA_LIST = (
       }
     }
   `,
-  variables: {
-    ...buildMetadataWhereVariables(items, searchTerm, dimensionSearchMode),
-  },
-});
+    variables: {
+      ...buildMetadataWhereVariables(items, searchTerm, dimensionSearchMode),
+    },
+  };
+};
 
 function buildMetadataWhereVariables(
   items: Map<string, Set<string>>,
@@ -249,10 +285,8 @@ function buildMetadataWhereVariables(
     searchPattern && dimensionSearchMode !== "class"
       ? { DIMENSION_ITEMs: { NAME: { _like: searchPattern } } }
       : null;
-  const dimensionTextConditions = [
-    dimensionNameSearch,
-    dimensionItemSearch,
-  ].filter(Boolean);
+  const usesSplitDimensionSearch =
+    Boolean(searchPattern) && dimensionSearchMode === "both";
 
   return {
     measureWhere: {
@@ -261,12 +295,18 @@ function buildMetadataWhereVariables(
     },
     dimensionWhere: {
       TABLE_DIMENSIONs: { TABLELIST: tableWhere },
-      ...(dimensionTextConditions.length > 1
-        ? { _or: dimensionTextConditions }
-        : dimensionTextConditions.length === 1
-          ? dimensionTextConditions[0]
-          : {}),
+      ...(usesSplitDimensionSearch
+        ? dimensionNameSearch || {}
+        : dimensionNameSearch || dimensionItemSearch || {}),
     },
+    ...(usesSplitDimensionSearch
+      ? {
+          dimensionItemMatchedWhere: {
+            TABLE_DIMENSIONs: { TABLELIST: tableWhere },
+            ...(dimensionItemSearch || {}),
+          },
+        }
+      : {}),
     dimensionItemWhere:
       searchPattern && dimensionSearchMode !== "class"
         ? { NAME: { _like: searchPattern } }

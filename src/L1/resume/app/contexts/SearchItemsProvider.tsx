@@ -837,13 +837,14 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       const metadataCount =
         Number(result.data.metadata_measures?.aggregate?.count ?? 0) +
         Number(result.data.metadata_dimensions?.aggregate?.count ?? 0) +
+        Number(result.data.metadata_dimension_items?.aggregate?.count ?? 0) +
         Number(result.data.metadata_themes?.aggregate?.count ?? 0) +
         Number(result.data.metadata_regions?.aggregate?.count ?? 0);
       const metadataCounts = {
         measure: Number(result.data.metadata_measures?.aggregate?.count ?? 0),
         dimension: Number(
           result.data.metadata_dimensions?.aggregate?.count ?? 0,
-        ),
+        ) + Number(result.data.metadata_dimension_items?.aggregate?.count ?? 0),
         thema: Number(result.data.metadata_themes?.aggregate?.count ?? 0),
         region: Number(result.data.metadata_regions?.aggregate?.count ?? 0),
       };
@@ -902,6 +903,12 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
               ),
               ...(
                 (result.data.dimensions || []) as {
+                  name: string;
+                  matching_items?: { name: string }[];
+                }[]
+              ).map((item) => ({ ...item, kind: "dimension" })),
+              ...(
+                (result.data.item_dimensions || []) as {
                   name: string;
                   matching_items?: { name: string }[];
                 }[]
