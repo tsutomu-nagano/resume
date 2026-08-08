@@ -11,36 +11,46 @@ interface InfiniteScrollContainerProps {
 export const InfiniteScrollContainer: React.FC<InfiniteScrollContainerProps> =
   ({ children, fetchMore, isLast, isFetchingMore }) => {
     // ボトム要素のRef、この Ref を監視(Observer)する
-    let bottomBoundaryRef = React.useRef(null);
+    const bottomBoundaryRef = React.useRef<HTMLDivElement | null>(null);
     const [needFetchMore, setNeedFetchMore] = React.useState(false);
 
-    const scrollObserver = React.useCallback(
-      (node: any) => {
-        new IntersectionObserver((entries) => {
-          entries.forEach((en) => {
-            if (en.isIntersecting) {
-              // 時間がかかる重い処理はここに置かないように注意
-              setNeedFetchMore(true);
-            }
-          });
-        }).observe(node);
-      },
-      [fetchMore]
-    );
-
     React.useEffect(() => {
-      if (bottomBoundaryRef.current) {
-        scrollObserver(bottomBoundaryRef.current);
+      const node = bottomBoundaryRef.current;
+
+      if (!node) {
+        return;
       }
-    }, [scrollObserver, bottomBoundaryRef]);
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // 時間がかかる重い処理はここに置かないように注意
+            setNeedFetchMore(true);
+          }
+        });
+      });
+
+      observer.observe(node);
+
+      return () => observer.disconnect();
+    }, []);
 
     React.useEffect(() => {
-      if (needFetchMore) {
-        if (!isLast && !isFetchingMore) {
-          void fetchMore();
-        }
+      if (!needFetchMore) {
+        return;
+      }
+
+      if (isLast) {
         setNeedFetchMore(false);
+        return;
       }
+
+      if (isFetchingMore) {
+        return;
+      }
+
+      void fetchMore();
+      setNeedFetchMore(false);
     }, [needFetchMore, fetchMore, isFetchingMore, isLast, setNeedFetchMore]);
 
     return (

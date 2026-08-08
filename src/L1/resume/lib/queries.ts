@@ -141,6 +141,7 @@ export const GET_TABLE_LIST_COUNT = (
       $measureWhere: MEASURELIST_bool_exp!
       $dimensionWhere: DIMENSIONLIST_bool_exp!
       ${usesSplitDimensionSearch ? "$dimensionItemMatchedWhere: DIMENSIONLIST_bool_exp!" : ""}
+      ${usesSplitDimensionSearch ? "$dimensionOverlapWhere: DIMENSIONLIST_bool_exp!" : ""}
       $themeWhere: TAGLIST_bool_exp!
       $regionWhere: REGIONLIST_bool_exp!
     ) {
@@ -163,6 +164,11 @@ export const GET_TABLE_LIST_COUNT = (
       ${
         usesSplitDimensionSearch
           ? `metadata_dimension_items: DIMENSIONLIST_aggregate(where: $dimensionItemMatchedWhere) {
+        aggregate {
+          count(distinct: true, column: CLASS_NAME)
+        }
+      }
+      metadata_dimension_overlaps: DIMENSIONLIST_aggregate(where: $dimensionOverlapWhere) {
         aggregate {
           count(distinct: true, column: CLASS_NAME)
         }
@@ -303,6 +309,11 @@ function buildMetadataWhereVariables(
       ? {
           dimensionItemMatchedWhere: {
             TABLE_DIMENSIONs: { TABLELIST: tableWhere },
+            ...(dimensionItemSearch || {}),
+          },
+          dimensionOverlapWhere: {
+            TABLE_DIMENSIONs: { TABLELIST: tableWhere },
+            ...(dimensionNameSearch || {}),
             ...(dimensionItemSearch || {}),
           },
         }

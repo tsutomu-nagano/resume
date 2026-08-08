@@ -832,17 +832,18 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         return;
       }
 
+      const dimensionCount =
+        Number(result.data.metadata_dimensions?.aggregate?.count ?? 0) +
+        Number(result.data.metadata_dimension_items?.aggregate?.count ?? 0) -
+        Number(result.data.metadata_dimension_overlaps?.aggregate?.count ?? 0);
       const metadataCount =
         Number(result.data.metadata_measures?.aggregate?.count ?? 0) +
-        Number(result.data.metadata_dimensions?.aggregate?.count ?? 0) +
-        Number(result.data.metadata_dimension_items?.aggregate?.count ?? 0) +
+        dimensionCount +
         Number(result.data.metadata_themes?.aggregate?.count ?? 0) +
         Number(result.data.metadata_regions?.aggregate?.count ?? 0);
       const metadataCounts = {
         measure: Number(result.data.metadata_measures?.aggregate?.count ?? 0),
-        dimension: Number(
-          result.data.metadata_dimensions?.aggregate?.count ?? 0,
-        ) + Number(result.data.metadata_dimension_items?.aggregate?.count ?? 0),
+        dimension: dimensionCount,
         thema: Number(result.data.metadata_themes?.aggregate?.count ?? 0),
         region: Number(result.data.metadata_regions?.aggregate?.count ?? 0),
       };

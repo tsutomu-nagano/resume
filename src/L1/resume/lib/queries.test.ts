@@ -41,6 +41,7 @@ describe("survey queries", () => {
     expect(query).toContain("metadata_measures: MEASURELIST_aggregate");
     expect(query).toContain("metadata_dimensions: DIMENSIONLIST_aggregate");
     expect(query).not.toContain("metadata_dimension_items");
+    expect(query).not.toContain("metadata_dimension_overlaps");
     expect(query).toContain("metadata_themes: TAGLIST_aggregate");
     expect(query).toContain("metadata_regions: REGIONLIST_aggregate");
     expect(query).not.toContain("metadata_survey_units");
@@ -80,6 +81,11 @@ describe("survey queries", () => {
         TABLE_DIMENSIONs: { TABLELIST: {} },
         DIMENSION_ITEMs: { NAME: { _like: "%人口%" } },
       },
+      dimensionOverlapWhere: {
+        TABLE_DIMENSIONs: { TABLELIST: {} },
+        CLASS_NAME: { _like: "%人口%" },
+        DIMENSION_ITEMs: { NAME: { _like: "%人口%" } },
+      },
       dimensionItemWhere: { NAME: { _like: "%人口%" } },
       themeWhere: {
         TABLE_TAGs: { TABLELIST: {} },
@@ -88,6 +94,29 @@ describe("survey queries", () => {
       regionWhere: {
         TABLE_REGIONs: { TABLELIST: {} },
         NAME: { _like: "%人口%" },
+      },
+    });
+  });
+
+  it("counts split dimension metadata without double-counting overlaps", () => {
+    const request = GET_TABLE_LIST_COUNT(new Map(), "人口");
+    const query = print(request.query);
+
+    expect(query).toContain("metadata_dimension_items");
+    expect(query).toContain("metadata_dimension_overlaps");
+    expect(request.variables).toMatchObject({
+      dimensionWhere: {
+        TABLE_DIMENSIONs: { TABLELIST: {} },
+        CLASS_NAME: { _like: "%人口%" },
+      },
+      dimensionItemMatchedWhere: {
+        TABLE_DIMENSIONs: { TABLELIST: {} },
+        DIMENSION_ITEMs: { NAME: { _like: "%人口%" } },
+      },
+      dimensionOverlapWhere: {
+        TABLE_DIMENSIONs: { TABLELIST: {} },
+        CLASS_NAME: { _like: "%人口%" },
+        DIMENSION_ITEMs: { NAME: { _like: "%人口%" } },
       },
     });
   });
