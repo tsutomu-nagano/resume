@@ -364,6 +364,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
   const resetSearch = () => {
     setSearchResult([]);
+    setCountResult(undefined);
     setOffset(0);
     setIsLast(false);
     setError(null);
@@ -762,16 +763,6 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     view === "metadata" ? metadataSearchTerm : "";
   const activeDimensionSearchMode =
     view === "metadata" ? dimensionSearchMode : "both";
-  const countQuery = useMemo(
-    () =>
-      GET_TABLE_LIST_COUNT(
-        items,
-        activeMetadataSearchTerm,
-        activeDimensionSearchMode,
-      ),
-    [activeDimensionSearchMode, activeMetadataSearchTerm, items],
-  );
-
   const resolveSurveyAttributeItems = async () => {
     const activeFilters = ATTRIBUTE_FILTERS.filter(
       ({ kind }) => (items.get(kind)?.size || 0) > 0,
@@ -824,7 +815,10 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     return resolvedItems;
   };
 
-  const fetchCount = async () => {
+  const fetchCountForKey = async (requestResultCacheKey: string) => {
+    const isCurrentRequest = () =>
+      activeResultCacheKey.current === requestResultCacheKey;
+
     try {
       const resolvedItems = await resolveSurveyAttributeItems();
       const result = await client.query(
@@ -834,16 +828,22 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
           activeDimensionSearchMode,
         ),
       );
+      if (!isCurrentRequest()) {
+        return;
+      }
+
+      const dimensionCount =
+        Number(result.data.metadata_dimensions?.aggregate?.count ?? 0) +
+        Number(result.data.metadata_dimension_items?.aggregate?.count ?? 0) -
+        Number(result.data.metadata_dimension_overlaps?.aggregate?.count ?? 0);
       const metadataCount =
         Number(result.data.metadata_measures?.aggregate?.count ?? 0) +
-        Number(result.data.metadata_dimensions?.aggregate?.count ?? 0) +
+        dimensionCount +
         Number(result.data.metadata_themes?.aggregate?.count ?? 0) +
         Number(result.data.metadata_regions?.aggregate?.count ?? 0);
       const metadataCounts = {
         measure: Number(result.data.metadata_measures?.aggregate?.count ?? 0),
-        dimension: Number(
-          result.data.metadata_dimensions?.aggregate?.count ?? 0,
-        ),
+        dimension: dimensionCount,
         thema: Number(result.data.metadata_themes?.aggregate?.count ?? 0),
         region: Number(result.data.metadata_regions?.aggregate?.count ?? 0),
       };
@@ -854,9 +854,15 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         metadataCounts,
       });
     } catch (err) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+
       setError(err as Error);
     }
   };
+
+  const fetchCount = async () => fetchCountForKey(resultCacheKey);
 
   const fetchMore = async () => {
     if (isFetchingMore) {
@@ -902,6 +908,12 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
               ),
               ...(
                 (result.data.dimensions || []) as {
+                  name: string;
+                  matching_items?: { name: string }[];
+                }[]
+              ).map((item) => ({ ...item, kind: "dimension" })),
+              ...(
+                (result.data.item_dimensions || []) as {
                   name: string;
                   matching_items?: { name: string }[];
                 }[]
@@ -1017,8 +1029,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   };
 
   useEffect(() => {
-    void fetchCount();
-  }, [countQuery]);
+    void fetchCountForKey(resultCacheKey);
+  }, [resultCacheKey]);
 
   return (
     <SearchItemContext.Provider

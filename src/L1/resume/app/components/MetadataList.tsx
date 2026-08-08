@@ -45,7 +45,6 @@ export default function MetadataList() {
     addItem,
     findItem,
     removeItem,
-    countResult,
     metadataSearchTerm,
     setMetadataSearchTerm,
     dimensionSearchMode,
@@ -86,22 +85,17 @@ export default function MetadataList() {
       counts.set(item.kind, (counts.get(item.kind) || 0) + 1);
     });
 
-    const totalCounts = countResult?.metadataCounts || {};
     const kinds = new Set([
-      ...metadataKindOrder.filter((kind) => Number(totalCounts[kind] ?? 0) > 0),
       ...Array.from(counts.keys()),
     ]);
 
     return Array.from(kinds)
-      .map(
-        (kind) =>
-          [kind, Number(totalCounts[kind] ?? counts.get(kind) ?? 0)] as const,
-      )
+      .map((kind) => [kind, Number(counts.get(kind) ?? 0)] as const)
       .sort(
         ([leftKind], [rightKind]) =>
           getMetadataKindOrder(leftKind) - getMetadataKindOrder(rightKind),
       );
-  }, [countResult?.metadataCounts, metadataResults]);
+  }, [metadataResults]);
 
   const visibleResults = useMemo(
     () => metadataResults.filter((item) => !hiddenKinds.has(item.kind)),
