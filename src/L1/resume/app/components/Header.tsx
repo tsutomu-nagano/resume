@@ -78,7 +78,7 @@ export function Header() {
           </div>
           <button
             type="button"
-            className="btn btn-outline w-full shrink-0 gap-2 lg:ml-auto lg:w-auto"
+            className="btn btn-ghost w-full shrink-0 gap-2 lg:ml-auto lg:w-auto"
             onClick={handleAboutClick}
           >
             <Info className="size-4" />
