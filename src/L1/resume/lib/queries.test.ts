@@ -18,6 +18,9 @@ describe("survey queries", () => {
     );
 
     expect(print(request.query)).toContain("surveylist: STATLIST");
+    expect(print(request.query)).toContain(
+      "discontinuedSurvey: DISCONTINUED_SURVEY",
+    );
     expect(print(request.query)).toContain("TABLELISTs_aggregate");
     expect(request.variables).toEqual({
       where: {

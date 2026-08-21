@@ -1,15 +1,26 @@
 import { FaGithub } from "react-icons/fa";
 
-export function GitHubLink() {
+
+interface GitHubLinkProps {
+  name: string,
+  url: string;
+}
+
+
+export function GitHubLink({
+  name,
+  url,
+}: GitHubLinkProps) {
   return (
     <a
-      href="https://github.com/tsutomu-nagano/resume"
+      href={url}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="GitHubでソースコードを表示"
-      className="flex items-center gap-2 text-gray-700 hover:text-black"
+      className="flex badge px-4 py-4 badge-outline items-center gap-2 text-gray-700 hover:text-white hover:bg-black"
     >
       <FaGithub />
+      <span className="text-sm">{name}</span>
     </a>
   );
 }

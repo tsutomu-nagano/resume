@@ -6,6 +6,7 @@ export type SurveyResult = {
   govlist: {
     govname: string;
   };
+  discontinuedSurvey?: { statcode?: string | null } | null;
   table_count?: { aggregate?: { count?: number } };
   attributes?: SurveyAttribute[];
 };
@@ -30,6 +31,7 @@ export function toSurveyCardProps(survey: SurveyResult) {
     statname: survey.statname,
     govname: survey.govlist.govname,
     tableCount: Number(survey.table_count?.aggregate?.count ?? 0),
+    isDiscontinued: Boolean(survey.discontinuedSurvey),
     attributes: survey.attributes ?? [],
   };
 }

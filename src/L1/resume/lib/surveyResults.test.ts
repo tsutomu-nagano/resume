@@ -21,6 +21,7 @@ describe("toSurveyCardProps", () => {
         statcode: "00020111",
         statname: "サンプル調査",
         govlist: { govname: "テスト府省" },
+        discontinuedSurvey: { statcode: "00020111" },
         table_count: { aggregate: { count: 12 } },
         attributes,
       }),
@@ -29,6 +30,7 @@ describe("toSurveyCardProps", () => {
       statname: "サンプル調査",
       govname: "テスト府省",
       tableCount: 12,
+      isDiscontinued: true,
       attributes,
     });
   });
@@ -40,7 +42,7 @@ describe("toSurveyCardProps", () => {
         statname: "サンプル調査",
         govlist: { govname: "テスト府省" },
       }),
-    ).toMatchObject({ tableCount: 0, attributes: [] });
+    ).toMatchObject({ tableCount: 0, isDiscontinued: false, attributes: [] });
   });
 
   it("rejects non-survey rows", () => {
