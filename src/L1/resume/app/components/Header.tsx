@@ -10,8 +10,16 @@ import { TimeSelectorContainer as TimeSelector } from "./TimeSelector.container"
 import { SearchCountResultContainer as SearchCountResult } from "./SearchCountResult.container";
 import { GitHubLink } from "./GithubButton";
 import { NaturalLanguageSearch } from "./NaturalLanguageSearch";
+import { Info } from "lucide-react";
 
 export function Header() {
+  const handleAboutClick = () => {
+    const modal = document.getElementById("about_service");
+    if (modal) {
+      (modal as HTMLDialogElement).showModal();
+    }
+  };
+
   return (
     <header className="flex min-w-0 flex-col gap-3">
       <div className="navbar min-h-0 flex-col items-stretch gap-3 rounded-md border border-base-300 bg-base-100 p-3 shadow-sm lg:flex-row lg:items-center">
@@ -68,19 +76,38 @@ export function Header() {
             />
             <TimeSelector />
           </div>
-          <div className="flex min-w-0 items-start gap-3 lg:ml-auto lg:items-center">
-            <span className="min-w-0 flex-1 text-xs leading-5 text-base-content/70 lg:max-w-xs">
-              このサービスは、政府統計総合窓口(e-Stat)のAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。
-            </span>
-            <div
-              className="shrink-0 text-3xl tooltip tooltip-left"
-              data-tip="githubのリポジトリを表示します"
-            >
+          <button
+            type="button"
+            className="btn btn-outline w-full shrink-0 gap-2 lg:ml-auto lg:w-auto"
+            onClick={handleAboutClick}
+          >
+            <Info className="size-4" />
+            このサービスについて
+          </button>
+        </div>
+      </div>
+      <dialog id="about_service" className="modal">
+        <div className="modal-box max-w-lg">
+          <h2 className="text-lg font-bold">このサービスについて</h2>
+          <p className="mt-4 text-sm leading-6 text-base-content/80">
+            このサービスは、政府統計総合窓口(e-Stat)のAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。
+          </p>
+          <div className="mt-6">
+            <div className="text-sm font-semibold">ソースコード</div>
+            <div className="mt-2 inline-flex text-2xl">
               <GitHubLink />
             </div>
           </div>
+          <div className="modal-action">
+            <form method="dialog">
+              <button className="btn">閉じる</button>
+            </form>
+          </div>
         </div>
-      </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
       <div className="px-1 sm:px-4">
         <SearchCountResult />
       </div>
