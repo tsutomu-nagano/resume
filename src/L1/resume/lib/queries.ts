@@ -34,6 +34,9 @@ const tableListFields = gql`
     statdispid: STATDISPID
     cycle: CYCLE
     statcode: STATCODE
+    survey: STATLIST {
+      statname: STATNAME
+    }
     survey_date: SURVEY_DATE
     title: TITLE
     year_s: YEAR_S
@@ -92,6 +95,9 @@ const surveyListFields = gql`
     statname: STATNAME
     govlist: GOVLIST {
       govname: GOVNAME
+    }
+    discontinuedSurvey: DISCONTINUED_SURVEY {
+      statcode: STATCODE
     }
     table_count: TABLELISTs_aggregate(where: $where) {
       aggregate {

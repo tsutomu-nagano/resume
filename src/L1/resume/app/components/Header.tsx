@@ -78,7 +78,7 @@ export function Header() {
           </div>
           <button
             type="button"
-            className="btn btn-ghost w-full shrink-0 gap-2 lg:ml-auto lg:w-auto"
+            className="btn btn-ghost underline underline-offset-4 w-full shrink-0 gap-2 lg:ml-auto lg:w-auto"
             onClick={handleAboutClick}
           >
             <Info className="size-4" />
@@ -93,9 +93,11 @@ export function Header() {
             このサービスは、政府統計総合窓口(e-Stat)のAPI機能を使用していますが、サービスの内容は国によって保証されたものではありません。
           </p>
           <div className="mt-6">
-            <div className="text-sm font-semibold">ソースコード</div>
-            <div className="mt-2 inline-flex text-2xl">
-              <GitHubLink />
+            <div className="text-sm font-semibold">github リポジトリ</div>
+            <div className="mt-2 gap-2 inline-flex text-2xl">
+              <GitHubLink name="ReSUME" url="https://github.com/tsutomu-nagano/resume"/>
+              <GitHubLink name="ReSUME-data" url="https://github.com/tsutomu-nagano/resume-data"/>
+              <GitHubLink name="ReSUME-mcp" url="https://github.com/tsutomu-nagano/resume-mcp"/>
             </div>
           </div>
           <div className="modal-action">

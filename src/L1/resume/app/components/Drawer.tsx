@@ -1,7 +1,6 @@
 "use client";
 
 // Drawer.tsx
-import { setupListeners } from "@reduxjs/toolkit/query";
 import React, { ReactNode, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -12,6 +11,7 @@ interface DrawerProps {
   sidebarContent?: ReactNode; // サイドバーのコンテンツ
   isOpen: boolean; // Drawerの開閉状態
   onToggle: () => void; // Drawerの開閉をトグルする関数
+  side?: "left" | "right";
 }
 
 export function Drawer({
@@ -21,6 +21,7 @@ export function Drawer({
   sidebarContent,
   isOpen,
   onToggle,
+  side = "right",
 }: DrawerProps) {
   // ポータルのためにドキュメントのルートにレンダリング
 
@@ -34,7 +35,7 @@ export function Drawer({
   if (!container) return null;
 
   return createPortal(
-    <div className="drawer drawer-end">
+    <div className={`drawer ${side === "right" ? "drawer-end" : ""}`}>
       <input
         id={`my-drawer-${id}`}
         type="checkbox"
@@ -49,20 +50,20 @@ export function Drawer({
           className="drawer-overlay"
           onClick={() => {onToggle()}}
         ></label>
-        <ul className="menu min-h-full w-[min(24rem,90vw)] bg-base-200 p-4 text-base-content sm:w-2/5">
-          <h1 className="text-3xl font-bold">{title}</h1>
+        <div className="min-h-full w-[min(28rem,92vw)] overflow-y-auto bg-base-200 p-4 text-base-content shadow-xl">
+          <h1 className="text-2xl font-bold">{title}</h1>
           <div className="divider divider-primary" />
           {children || sidebarContent || (
-            <>
+            <ul className="menu">
               <li>
                 <a>Sidebar Item 1</a>
               </li>
               <li>
                 <a>Sidebar Item 2</a>
               </li>
-            </>
+            </ul>
           )}
-        </ul>
+        </div>
       </div>
     </div>,
     container // ポータルのターゲットをドキュメントのボディに設定

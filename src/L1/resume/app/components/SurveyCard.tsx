@@ -1,11 +1,12 @@
 "use client";
 
-import { Landmark, MousePointerClick } from "lucide-react";
+import { Landmark, MousePointerClick, OctagonAlert } from "lucide-react";
 import { BiHash, BiAward } from "react-icons/bi";
 import { RiLoopLeftFill } from "react-icons/ri";
 import { TbTable } from "react-icons/tb";
 import { SurveyUnitIcon } from "../../lib/surveyUnitIcons";
 import { SearchConditionBadge } from "./SearchConditionBadge";
+import { LuTriangleAlert } from "react-icons/lu";
 
 type SurveyAttribute = {
   value: string;
@@ -20,6 +21,7 @@ interface SurveyCardProps {
   statname: string;
   govname: string;
   tableCount: number;
+  isDiscontinued?: boolean;
   attributes?: SurveyAttribute[];
   isSelected: boolean;
   onToggle: () => void;
@@ -35,6 +37,7 @@ export function SurveyCard({
   statname,
   govname,
   tableCount,
+  isDiscontinued = false,
   attributes = [],
   isSelected,
   onToggle,
@@ -90,11 +93,12 @@ export function SurveyCard({
               調査周期: {surveyCycles.join("、")}
             </span>
           )}
-          {isSelected && <span className="badge badge-primary">選択中</span>}
-          <span className="hidden items-center gap-1 rounded border border-primary/40 bg-base-100/90 px-2 py-1 text-xs text-primary opacity-0 transition group-hover:opacity-100 group-focus:opacity-100 sm:ml-auto sm:inline-flex">
-            <MousePointerClick className="size-3" />
-            {isSelected ? "クリックで選択解除" : "クリックで検索条件に追加"}
-          </span>
+          {isDiscontinued && (
+            <span className="badge bg-neutral text-white py-4 px-4 gap-1 sm:ml-auto sm:inline-flex">
+              <OctagonAlert className="size-3.5" />
+              既に廃止されています
+            </span>
+          )}
         </div>
         <h2 className="card-title text-base leading-7 sm:text-xl">{statname}</h2>
 
@@ -144,8 +148,13 @@ export function SurveyCard({
             <TbTable />
             統計表 {tableCount} 件
           </span>
+          {/* {isSelected && <span className="badge badge-primary">選択中</span>}
+          <span className="hidden items-center gap-1 rounded border border-primary/40 bg-base-100/90 px-2 py-1 text-xs text-primary opacity-0 transition group-hover:opacity-100 group-focus:opacity-100 sm:ml-auto sm:inline-flex">
+            <MousePointerClick className="size-3" />
+            {isSelected ? "クリックで選択解除" : "クリックで検索条件に追加"}
+          </span> */}
           <div className="flex flex-wrap justify-end gap-2">
-            {isSelected && (
+            {isSelected ? (
               <button
                 type="button"
                 className="btn btn-outline btn-primary w-full sm:w-auto"
@@ -153,6 +162,11 @@ export function SurveyCard({
               >
                 選択解除
               </button>
+            ) : (
+            <span className="hidden items-center gap-1 rounded border border-primary/40 bg-base-100/90 px-2 py-1 text-xs text-primary opacity-0 transition group-hover:opacity-100 group-focus:opacity-100 sm:ml-auto sm:inline-flex">
+              <MousePointerClick className="size-3" />
+              クリックで検索条件に追加
+            </span> 
             )}
           </div>
         </div>

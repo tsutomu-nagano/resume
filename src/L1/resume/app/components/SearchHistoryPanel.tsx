@@ -180,7 +180,7 @@ export function SearchHistoryPanel() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <GitBranch size={18} />
-          <h2 className="text-sm font-semibold">検索履歴</h2>
+          <h2 className="text-sm font-semibold">履歴ツリー</h2>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <button
