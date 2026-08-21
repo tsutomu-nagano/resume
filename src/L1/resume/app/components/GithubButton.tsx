@@ -6,6 +6,7 @@ export function GitHubLink() {
       href="https://github.com/tsutomu-nagano/resume"
       target="_blank"
       rel="noopener noreferrer"
+      aria-label="GitHubでソースコードを表示"
       className="flex items-center gap-2 text-gray-700 hover:text-black"
     >
       <FaGithub />
