@@ -50,7 +50,11 @@ export function Drawer({
           className="drawer-overlay"
           onClick={() => {onToggle()}}
         ></label>
-        <div className="min-h-full w-[min(28rem,92vw)] overflow-y-auto bg-base-200 p-4 text-base-content shadow-xl">
+        <div
+          className={`min-h-full w-[min(28rem,92vw)] overflow-y-auto bg-base-200 p-4 text-base-content ${
+            isOpen ? "shadow-xl" : "shadow-none"
+          }`}
+        >
           <h1 className="text-2xl font-bold">{title}</h1>
           <div className="divider divider-primary" />
           {children || sidebarContent || (

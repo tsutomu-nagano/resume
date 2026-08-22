@@ -49,6 +49,7 @@ export default function MetadataList() {
     setMetadataSearchTerm,
     dimensionSearchMode,
     setDimensionSearchMode,
+    countResult,
   } = useSearchItem();
   const didFetch = useRef(false);
   const [hiddenKinds, setHiddenKinds] = useState<Set<string>>(() => new Set());
@@ -79,6 +80,21 @@ export default function MetadataList() {
   }, [searchResult]);
 
   const metadataKinds = useMemo(() => {
+    const metadataCounts = countResult?.metadataCounts;
+
+    if (metadataCounts && typeof metadataCounts === "object") {
+      return Object.entries(metadataCounts)
+        .filter(
+          ([kind, count]) =>
+            !hiddenMetadataKinds.has(kind) && Number(count) > 0,
+        )
+        .map(([kind, count]) => [kind, Number(count)] as const)
+        .sort(
+          ([leftKind], [rightKind]) =>
+            getMetadataKindOrder(leftKind) - getMetadataKindOrder(rightKind),
+        );
+    }
+
     const counts = new Map<string, number>();
 
     metadataResults.forEach((item) => {
@@ -95,7 +111,7 @@ export default function MetadataList() {
         ([leftKind], [rightKind]) =>
           getMetadataKindOrder(leftKind) - getMetadataKindOrder(rightKind),
       );
-  }, [metadataResults]);
+  }, [countResult?.metadataCounts, metadataResults]);
 
   const visibleResults = useMemo(
     () => metadataResults.filter((item) => !hiddenKinds.has(item.kind)),
@@ -152,22 +168,45 @@ export default function MetadataList() {
             </button>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <fieldset className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <span className="text-sm text-base-content/70">
             分類事項の検索対象
           </span>
-          {dimensionSearchOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              aria-pressed={dimensionSearchMode === option.value}
-              className={`btn btn-sm ${dimensionSearchMode === option.value ? "btn-primary" : "btn-outline"}`}
-              onClick={() => setDimensionSearchMode(option.value)}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+          <label className="label cursor-pointer justify-start gap-2 p-0">
+            <input
+              type="checkbox"
+              className="checkbox checkbox-sm"
+              checked={dimensionSearchMode !== "item"}
+              onChange={(event) =>
+                setDimensionSearchMode(
+                  getNextDimensionSearchMode(
+                    dimensionSearchMode,
+                    "class",
+                    event.target.checked,
+                  ),
+                )
+              }
+            />
+            <span className="label-text">事項名</span>
+          </label>
+          <label className="label cursor-pointer justify-start gap-2 p-0">
+            <input
+              type="checkbox"
+              className="checkbox checkbox-sm"
+              checked={dimensionSearchMode !== "class"}
+              onChange={(event) =>
+                setDimensionSearchMode(
+                  getNextDimensionSearchMode(
+                    dimensionSearchMode,
+                    "item",
+                    event.target.checked,
+                  ),
+                )
+              }
+            />
+            <span className="label-text">項目名</span>
+          </label>
+        </fieldset>
         {metadataKinds.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
             {metadataKinds.map(([kind, count]) => {
@@ -234,12 +273,37 @@ function getMetadataKindOrder(kind: string) {
   return index === -1 ? metadataKindOrder.length : index;
 }
 
-const dimensionSearchOptions: { value: DimensionSearchMode; label: string }[] =
-  [
-    { value: "both", label: "事項名と項目名" },
-    { value: "class", label: "事項名" },
-    { value: "item", label: "項目名" },
-  ];
+function getNextDimensionSearchMode(
+  currentMode: DimensionSearchMode,
+  target: "class" | "item",
+  checked: boolean,
+): DimensionSearchMode {
+  const nextTargets = new Set<"class" | "item">();
+
+  if (currentMode !== "item") {
+    nextTargets.add("class");
+  }
+
+  if (currentMode !== "class") {
+    nextTargets.add("item");
+  }
+
+  if (checked) {
+    nextTargets.add(target);
+  } else {
+    nextTargets.delete(target);
+  }
+
+  if (nextTargets.size === 0) {
+    nextTargets.add(target === "class" ? "item" : "class");
+  }
+
+  if (nextTargets.size === 2) {
+    return "both";
+  }
+
+  return nextTargets.has("class") ? "class" : "item";
+}
 
 function getDimensionMatchReason(
   item: MetadataResult,

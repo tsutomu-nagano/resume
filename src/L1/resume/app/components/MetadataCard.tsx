@@ -81,15 +81,17 @@ export function MetadataCard({
                   項目名に一致
                 </span>
               ) : null}
-              {matchReason.matchedItemNames.slice(0, 3).map((itemName) => (
-                <span
-                  key={itemName}
-                  className="badge badge-ghost max-w-full truncate"
-                  title={itemName}
-                >
-                  {itemName}
-                </span>
-              ))}
+              {matchReason.matchedByItem
+                ? matchReason.matchedItemNames.slice(0, 3).map((itemName) => (
+                    <span
+                      key={itemName}
+                      className="badge badge-ghost max-w-full truncate"
+                      title={itemName}
+                    >
+                      {itemName}
+                    </span>
+                  ))
+                : null}
             </div>
           ) : null}
           <MetadataCardCounts kind={kind} name={name} />
