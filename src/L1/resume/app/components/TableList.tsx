@@ -60,7 +60,7 @@ export default function TableList() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-start">
         <div className="join" role="tablist" aria-label="統計データの表示方法">
           <button
             type="button"
