@@ -51,7 +51,7 @@ export function DimensionItemInfo({
 
   return (
     <Drawer
-      id="example"
+      id={id}
       title={title}
       isOpen={isOpen}
       onToggle={onToggle}
@@ -75,7 +75,12 @@ export function DimensionItemInfo({
           ) : (
             <p>No items found.</p>
           )}
-          <MetadataSurveyList kind={kind} name={name} isOpen={isOpen} />
+          <MetadataSurveyList
+            kind={kind}
+            name={name}
+            isOpen={isOpen}
+            detailDrawerId={id}
+          />
         </>
       }
     />

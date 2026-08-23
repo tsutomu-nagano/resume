@@ -498,6 +498,9 @@ export const GET_METADATA_SURVEYS = (
               govlist: GOVLIST {
                 govname: GOVNAME
               }
+              discontinuedSurvey: DISCONTINUED_SURVEY {
+                statcode: STATCODE
+              }
               table_count: TABLELISTs_aggregate {
                 aggregate {
                   count
@@ -531,6 +534,9 @@ export const GET_METADATA_SURVEYS = (
           statname: STATNAME
           govlist: GOVLIST {
             govname: GOVNAME
+          }
+          discontinuedSurvey: DISCONTINUED_SURVEY {
+            statcode: STATCODE
           }
           table_count: TABLELISTs_aggregate(where: $tableWhere) {
             aggregate {

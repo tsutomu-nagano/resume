@@ -7,6 +7,8 @@ import { TbTable } from "react-icons/tb";
 import { SurveyUnitIcon } from "../../lib/surveyUnitIcons";
 import { SearchConditionBadge } from "./SearchConditionBadge";
 import { LuTriangleAlert } from "react-icons/lu";
+import { DiscontinuedBadge } from "./DiscontinudBadge";
+
 
 type SurveyAttribute = {
   value: string;
@@ -94,10 +96,9 @@ export function SurveyCard({
             </span>
           )}
           {isDiscontinued && (
-            <span className="badge bg-neutral text-white py-4 px-4 gap-1 sm:ml-auto sm:inline-flex">
-              <OctagonAlert className="size-3.5" />
-              既に廃止されています
-            </span>
+            <div  className="sm:ml-auto sm:inline-flex">
+              <DiscontinuedBadge />
+            </div>
           )}
         </div>
         <h2 className="card-title text-base leading-7 sm:text-xl">{statname}</h2>

@@ -51,6 +51,7 @@ export function Drawer({
           onClick={() => {onToggle()}}
         ></label>
         <div
+          data-drawer-content-id={id}
           className={`min-h-full w-[min(28rem,92vw)] overflow-y-auto bg-base-200 p-4 text-base-content ${
             isOpen ? "shadow-xl" : "shadow-none"
           }`}

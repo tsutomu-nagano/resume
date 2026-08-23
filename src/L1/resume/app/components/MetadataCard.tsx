@@ -140,6 +140,7 @@ export function MetadataCard({
                 kind={kind}
                 name={name}
                 isOpen={isDrawerOpen}
+                detailDrawerId={drawerId}
               />
             </>
           }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@apollo/client";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { BiAward } from "react-icons/bi";
@@ -11,11 +11,13 @@ import { RiLoopLeftFill } from "react-icons/ri";
 import { GET_METADATA_SURVEYS, GET_SURVEY_ATTRIBUTES } from "@/lib/queries";
 import type { SurveyAttribute } from "@/lib/queries";
 import { SurveyUnitIcon } from "@/lib/surveyUnitIcons";
+import { DiscontinuedBadge } from "./DiscontinudBadge";
 
 interface MetadataSurveyListProps {
   kind: string;
   name: string;
   isOpen: boolean;
+  detailDrawerId?: string;
 }
 
 type MetadataSurvey = {
@@ -23,6 +25,7 @@ type MetadataSurvey = {
   statname: string;
   govname?: string;
   tableCount?: number;
+  isDiscontinued?: boolean;
 };
 
 type MetadataSurveyValue = {
@@ -36,6 +39,9 @@ type MetadataSurveyValue = {
       aggregate?: {
         count?: number;
       } | null;
+    } | null;
+    discontinuedSurvey?: {
+      statcode?: string | null;
     } | null;
   } | null;
 };
@@ -51,12 +57,16 @@ type MetadataSurveyRow = {
       count?: number;
     } | null;
   } | null;
+  discontinuedSurvey?: {
+    statcode?: string | null;
+  } | null;
 };
 
 export function MetadataSurveyList({
   kind,
   name,
   isOpen,
+  detailDrawerId,
 }: MetadataSurveyListProps) {
   const [selectedSurvey, setSelectedSurvey] = useState<MetadataSurvey | null>(
     null,
@@ -105,6 +115,9 @@ export function MetadataSurveyList({
                     {survey.govname}
                   </span>
                 ) : null}
+                {survey.isDiscontinued ? (
+                  <DiscontinuedBadge />
+                ) : null}
               </div>
               <button
                 type="button"
@@ -123,6 +136,7 @@ export function MetadataSurveyList({
       {selectedSurvey ? (
         <SurveyDetailSideDrawer
           survey={selectedSurvey}
+          detailDrawerId={detailDrawerId}
           onClose={() => setSelectedSurvey(null)}
         />
       ) : null}
@@ -156,6 +170,7 @@ function getMetadataSurveys(data: unknown): MetadataSurvey[] {
       statname: survey.statname,
       govname: survey.govlist?.govname,
       tableCount: Number(survey.table_count?.aggregate?.count ?? 0),
+      isDiscontinued: Boolean(survey.discontinuedSurvey),
     }));
   }
 
@@ -164,17 +179,21 @@ function getMetadataSurveys(data: unknown): MetadataSurvey[] {
     statname: item.survey?.statname || item.statcode,
     govname: item.survey?.govlist?.govname,
     tableCount: Number(item.survey?.table_count?.aggregate?.count ?? 0),
+    isDiscontinued: Boolean(item.survey?.discontinuedSurvey),
   }));
 }
 
 function SurveyDetailSideDrawer({
   survey,
+  detailDrawerId,
   onClose,
 }: {
   survey: MetadataSurvey;
+  detailDrawerId?: string;
   onClose: () => void;
 }) {
   const [container, setContainer] = useState<HTMLElement | null>(null);
+  const [detailDrawerWidth, setDetailDrawerWidth] = useState(0);
   const attributeRequest = GET_SURVEY_ATTRIBUTES([survey.statcode]);
   const { data, loading, error } = useQuery(attributeRequest.query, {
     variables: attributeRequest.variables,
@@ -194,12 +213,53 @@ function SurveyDetailSideDrawer({
     setContainer(document.body);
   }, []);
 
+  useEffect(() => {
+    if (!detailDrawerId || !container) {
+      setDetailDrawerWidth(0);
+      return;
+    }
+
+    const drawerContent = document.querySelector<HTMLElement>(
+      `[data-drawer-content-id="${detailDrawerId}"]`,
+    );
+
+    if (!drawerContent) {
+      setDetailDrawerWidth(0);
+      return;
+    }
+
+    const updateWidth = () => {
+      setDetailDrawerWidth(drawerContent.getBoundingClientRect().width);
+    };
+    const resizeObserver = new ResizeObserver(updateWidth);
+
+    updateWidth();
+    resizeObserver.observe(drawerContent);
+    window.addEventListener("resize", updateWidth);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateWidth);
+    };
+  }, [container, detailDrawerId]);
+
   if (!container) {
     return null;
   }
 
+  const sideDrawerStyle =
+    detailDrawerWidth > 0
+      ? ({
+          "--metadata-detail-drawer-width": `${detailDrawerWidth}px`,
+        } as CSSProperties)
+      : undefined;
+
   return createPortal(
-    <aside className="fixed inset-y-0 left-0 z-50 flex w-[min(34rem,92vw)] flex-col overflow-y-auto border-r border-base-300 bg-base-100 p-4 text-base-content shadow-2xl sm:p-5 lg:left-auto lg:right-[40%] lg:w-[min(34rem,45vw)]">
+    <aside
+      className="fixed inset-y-0 left-0 z-50 flex w-[min(34rem,92vw)] flex-col overflow-y-auto border-r border-base-300 bg-base-100 p-4 text-base-content shadow-2xl sm:p-5 lg:left-auto lg:right-[var(--metadata-detail-drawer-width,28rem)] lg:w-[min(34rem,calc(100vw_-_var(--metadata-detail-drawer-width,28rem)))]"
+      style={sideDrawerStyle}
+    >
+
       <div className="flex items-start gap-3">
         <LuClipboardList className="mt-1 size-5 shrink-0 text-primary" />
         <div className="min-w-0 flex-1">
@@ -218,7 +278,11 @@ function SurveyDetailSideDrawer({
 
       <div className="divider divider-primary" />
 
+
       <dl className="grid gap-3 text-sm">
+        {survey.isDiscontinued ? (
+          <DiscontinuedBadge />
+        ) : null}
         <div>
           <dt className="text-base-content/60">府省</dt>
           <dd className="font-medium">{survey.govname || "不明"}</dd>
