@@ -18,12 +18,14 @@ import {
   GET_SURVEY_LIST,
   GET_TABLE_LIST,
   GET_TABLE_LIST_COUNT,
+  GET_TABLE_THEME_LIST,
 } from "@lib/queries";
 import {
   SearchHistoryItem,
   SearchHistoryNode,
   SearchItemContext,
   SearchResultView,
+  TableResultMode,
 } from "./SearchItemsContext";
 
 interface SearchItemProviderProps {
@@ -233,6 +235,7 @@ function getResultCacheKey(
   items: Map<string, Set<string>>,
   metadataSearchTerm = "",
   dimensionSearchMode: DimensionSearchMode = "both",
+  tableResultMode: TableResultMode = "cards",
 ) {
   const itemKey = Array.from(items.entries())
     .flatMap(([kind, values]) =>
@@ -242,11 +245,17 @@ function getResultCacheKey(
     .join("&");
 
   const metadataSearchKey =
-    view === "metadata" ? `:q=${metadataSearchTerm.trim()}` : "";
+    view === "metadata" && metadataSearchTerm.trim()
+      ? `:q=${metadataSearchTerm.trim()}`
+      : "";
   const dimensionSearchModeKey =
-    view === "metadata" ? `:dimension=${dimensionSearchMode}` : "";
+    view === "metadata" && metadataSearchTerm.trim()
+      ? `:dimension=${dimensionSearchMode}`
+      : "";
+  const tableResultModeKey =
+    view === "tables" ? `:tableMode=${tableResultMode}` : "";
 
-  return `${view}:${itemKey}${metadataSearchKey}${dimensionSearchModeKey}`;
+  return `${view}:${itemKey}${metadataSearchKey}${dimensionSearchModeKey}${tableResultModeKey}`;
 }
 
 function getItemsWithoutKinds(
@@ -278,6 +287,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const [metadataSearchTerm, setMetadataSearchTermState] = useState("");
   const [dimensionSearchMode, setDimensionSearchModeState] =
     useState<DimensionSearchMode>("both");
+  const [tableResultMode, setTableResultMode] =
+    useState<TableResultMode>("cards");
   const [items, setItemSet] = useState<Map<string, Set<string>>>(() =>
     getItemsFromSearchParams(searchParams),
   );
@@ -296,10 +307,11 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       getResultCacheKey(
         view,
         view === "surveys" ? getItemsWithoutKinds(items, ["stat"]) : items,
-        metadataSearchTerm,
-        dimensionSearchMode,
+        view === "metadata" ? metadataSearchTerm : "",
+        view === "metadata" ? dimensionSearchMode : "both",
+        tableResultMode,
       ),
-    [dimensionSearchMode, items, metadataSearchTerm, view],
+    [dimensionSearchMode, items, metadataSearchTerm, tableResultMode, view],
   );
   const activeResultCacheKey = useRef(resultCacheKey);
   const pendingResultCache = useRef<PendingResultCacheEntry | null>(null);
@@ -340,15 +352,34 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   useEffect(() => {
     activeResultCacheKey.current = resultCacheKey;
 
-    if (pendingResultCache.current?.key !== resultCacheKey) {
+    const cachedResult = resultCache.current.get(resultCacheKey);
+
+    if (cachedResult) {
+      pendingResultCache.current = null;
+      setSearchResult(cachedResult.searchResult);
+      setOffset(cachedResult.offset);
+      setIsLast(cachedResult.isLast);
+      setError(null);
+      setLoading(false);
+      setIsFetchingMore(false);
       return;
     }
 
-    const cachedResult = pendingResultCache.current;
+    if (pendingResultCache.current?.key !== resultCacheKey) {
+      setSearchResult([]);
+      setOffset(0);
+      setIsLast(false);
+      setError(null);
+      setLoading(true);
+      setIsFetchingMore(false);
+      return;
+    }
+
+    const pendingResult = pendingResultCache.current;
     pendingResultCache.current = null;
-    setSearchResult(cachedResult.searchResult);
-    setOffset(cachedResult.offset);
-    setIsLast(cachedResult.isLast);
+    setSearchResult(pendingResult.searchResult);
+    setOffset(pendingResult.offset);
+    setIsLast(pendingResult.isLast);
     setError(null);
     setLoading(false);
     setIsFetchingMore(false);
@@ -657,7 +688,13 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
     rememberCurrentResults();
 
-    const nextResultCacheKey = getResultCacheKey(nextView, items);
+    const nextResultCacheKey = getResultCacheKey(
+      nextView,
+      nextView === "surveys" ? getItemsWithoutKinds(items, ["stat"]) : items,
+      nextView === "metadata" ? metadataSearchTerm : "",
+      nextView === "metadata" ? dimensionSearchMode : "both",
+      tableResultMode,
+    );
     const cachedResult = resultCache.current.get(nextResultCacheKey);
 
     if (cachedResult) {
@@ -757,10 +794,11 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       return GET_METADATA_LIST(items, metadataSearchTerm, dimensionSearchMode);
     }
 
-    return GET_TABLE_LIST(items);
-  }, [dimensionSearchMode, items, metadataSearchTerm, view]);
-  const activeMetadataSearchTerm =
-    view === "metadata" ? metadataSearchTerm : "";
+    return tableResultMode === "themes"
+      ? GET_TABLE_THEME_LIST(items)
+      : GET_TABLE_LIST(items);
+  }, [dimensionSearchMode, items, metadataSearchTerm, tableResultMode, view]);
+  const activeMetadataSearchTerm = view === "metadata" ? metadataSearchTerm : "";
   const activeDimensionSearchMode =
     view === "metadata" ? dimensionSearchMode : "both";
   const resolveSurveyAttributeItems = async () => {
@@ -858,7 +896,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         return;
       }
 
-      setError(err as Error);
+      setCountResult(null);
+      console.warn("Failed to fetch search result counts.", err);
     }
   };
 
@@ -887,7 +926,9 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
                 metadataSearchTerm,
                 dimensionSearchMode,
               )
-            : GET_TABLE_LIST(resolvedItems);
+            : tableResultMode === "themes"
+              ? GET_TABLE_THEME_LIST(resolvedItems)
+              : GET_TABLE_LIST(resolvedItems);
       const result = await client.query({
         ...query,
         variables: {
@@ -926,15 +967,37 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
               ),
             ]
           : [];
-      const resultKey = view === "surveys" ? "surveylist" : "tablelist";
+      const resultKey =
+        view === "surveys"
+          ? "surveylist"
+          : view === "metadata"
+            ? "metadata"
+            : tableResultMode === "themes"
+              ? "themeSurveys"
+              : "tablelist";
       const idKey =
         view === "surveys"
           ? "statcode"
           : view === "metadata"
             ? "metadataId"
-            : "statdispid";
+            : tableResultMode === "themes"
+              ? "metadataId"
+              : "statdispid";
       const nextResults =
-        view === "metadata" ? metadataResults : result.data[resultKey] || [];
+        view === "metadata"
+          ? metadataResults
+          : view === "tables" && tableResultMode === "themes"
+            ? (
+                (result.data[resultKey] || []) as {
+                  statcode: string;
+                  statname: string;
+                }[]
+              ).map((item) => ({
+                  ...item,
+                  kind: "themeSurvey",
+                  metadataId: `themeSurvey:${item.statcode}`,
+                }))
+            : result.data[resultKey] || [];
 
       if (nextResults.length === 0) {
         setIsLast(true);
@@ -1044,6 +1107,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         selectSurvey,
         view,
         setView,
+        tableResultMode,
+        setTableResultMode,
         metadataSearchTerm,
         setMetadataSearchTerm,
         dimensionSearchMode,

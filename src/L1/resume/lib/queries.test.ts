@@ -9,6 +9,8 @@ import {
   GET_SURVEY_ATTRIBUTES,
   GET_SURVEY_LIST,
   GET_SURVEY_STATCODES,
+  GET_TABLE_LIST,
+  GET_TABLE_THEME_LIST,
 } from "./queries";
 
 describe("survey queries", () => {
@@ -122,6 +124,40 @@ describe("survey queries", () => {
         DIMENSION_ITEMs: { NAME: { _like: "%人口%" } },
       },
     });
+  });
+
+  it("keeps table counts stable while filtering metadata counts by text", () => {
+    const request = GET_TABLE_LIST_COUNT(new Map(), "人口", "both");
+
+    expect(request.variables?.where).toEqual({});
+    expect(request.variables).toMatchObject({
+      measureWhere: {
+        TABLE_MEASUREs: { TABLELIST: {} },
+        NAME: { _like: "%人口%" },
+      },
+      dimensionWhere: {
+        TABLE_DIMENSIONs: { TABLELIST: {} },
+        CLASS_NAME: { _like: "%人口%" },
+      },
+      themeWhere: {
+        TABLE_TAGs: { TABLELIST: {} },
+        TAG_NAME: { _like: "%人口%" },
+      },
+      regionWhere: {
+        TABLE_REGIONs: { TABLELIST: {} },
+        NAME: { _like: "%人口%" },
+      },
+    });
+  });
+
+  it("does not push metadata text filters into survey and table list queries", () => {
+    const surveysRequest = GET_SURVEY_LIST(new Map());
+    const tablesRequest = GET_TABLE_LIST(new Map());
+    const themeRequest = GET_TABLE_THEME_LIST(new Map());
+
+    expect(surveysRequest.variables?.where).toEqual({});
+    expect(tablesRequest.variables?.where).toEqual({});
+    expect(themeRequest.variables?.tableWhere).toEqual({});
   });
 
   it("filters dimension metadata by class name only", () => {

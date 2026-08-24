@@ -1,23 +1,17 @@
-"use client"; // このファイルはクライアントサイドでのみ実行される
+"use client";
 
-import { LayoutList, FolderTree } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
+import { FolderTree, LayoutList } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
-import { TableCard } from "./TableCard";
 import { InfiniteScrollContainer } from "./InfiniteScrollContainer";
 import { ResultSkeletons } from "./ResultSkeletons";
-import { TableExplorer } from "./TableExplorer";
+import { TableCard } from "./TableCard";
+import { TableExplorer, type TableThemeSurveyResult } from "./TableExplorer";
 
 type TableResult = {
   statdispid: string;
   cycle: string;
   statcode: string;
-  survey?: {
-    statname?: string;
-  };
-  statlist?: {
-    statname?: string;
-  };
   survey_date: string;
   title: string;
   year_s: string;
@@ -40,23 +34,51 @@ function isTableResult(value: unknown): value is TableResult {
   );
 }
 
+function isTableThemeSurveyResult(
+  value: unknown,
+): value is TableThemeSurveyResult {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const themeSurvey = value as Partial<TableThemeSurveyResult>;
+
+  return (
+    themeSurvey.kind === "themeSurvey" &&
+    typeof themeSurvey.statcode === "string" &&
+    typeof themeSurvey.statname === "string"
+  );
+}
+
 export default function TableList() {
-  const { loading, error, fetchMore, searchResult, isLast, isFetchingMore } =
-    useSearchItem();
-  const [displayMode, setDisplayMode] = useState<"cards" | "explorer">("cards");
+  const {
+    loading,
+    error,
+    fetchMore,
+    searchResult,
+    isLast,
+    isFetchingMore,
+    tableResultMode,
+    setTableResultMode,
+  } = useSearchItem();
 
   const didEffect = useRef(false);
+  useEffect(() => {
+    didEffect.current = false;
+  }, [tableResultMode]);
+
   useEffect(() => {
     if (!didEffect.current && searchResult.length === 0 && !isLast) {
       didEffect.current = true;
       fetchMore();
     }
-  }, [fetchMore, isLast, searchResult.length]);
+  }, [fetchMore, isLast, searchResult.length, tableResultMode]);
 
   if (loading) return <ResultSkeletons view="tables" />;
   if (error) return <p>Error: {error.message}</p>;
 
   const tables = searchResult.filter(isTableResult);
+  const themeSurveys = searchResult.filter(isTableThemeSurveyResult);
 
   return (
     <div className="space-y-4">
@@ -65,9 +87,9 @@ export default function TableList() {
           <button
             type="button"
             role="tab"
-            aria-selected={displayMode === "cards"}
-            className={`btn btn-sm join-item ${displayMode === "cards" ? "btn-primary" : "btn-outline"}`}
-            onClick={() => setDisplayMode("cards")}
+            aria-selected={tableResultMode === "cards"}
+            className={`btn btn-sm join-item ${tableResultMode === "cards" ? "btn-primary" : "btn-outline"}`}
+            onClick={() => setTableResultMode("cards")}
           >
             <LayoutList className="size-4" />
             カード
@@ -75,23 +97,24 @@ export default function TableList() {
           <button
             type="button"
             role="tab"
-            aria-selected={displayMode === "explorer"}
-            className={`btn btn-sm join-item ${displayMode === "explorer" ? "btn-primary" : "btn-outline"}`}
-            onClick={() => setDisplayMode("explorer")}
+            aria-selected={tableResultMode === "themes"}
+            className={`btn btn-sm join-item ${tableResultMode === "themes" ? "btn-primary" : "btn-outline"}`}
+            onClick={() => setTableResultMode("themes")}
           >
             <FolderTree className="size-4" />
             フォルダ
           </button>
         </div>
       </div>
+
       <InfiniteScrollContainer
         fetchMore={fetchMore}
         isLast={isLast}
         isFetchingMore={isFetchingMore}
       >
         <div className="transition-opacity duration-150">
-          {displayMode === "explorer" ? (
-            <TableExplorer tables={tables} />
+          {tableResultMode === "themes" ? (
+            <TableExplorer surveys={themeSurveys} />
           ) : (
             <div className="flex flex-col gap-y-10">
               {tables.map((tbl) => (

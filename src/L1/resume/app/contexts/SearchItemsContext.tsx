@@ -5,6 +5,7 @@ import type { DimensionSearchMode } from "@/lib/queries";
 import { createContext } from "react";
 
 export type SearchResultView = "tables" | "surveys" | "metadata";
+export type TableResultMode = "cards" | "themes";
 
 export type SearchHistoryItem = { kind: string; itemName: string };
 
@@ -32,6 +33,8 @@ interface SearchItemContextType {
 
   view: SearchResultView;
   setView: (view: SearchResultView) => void;
+  tableResultMode: TableResultMode;
+  setTableResultMode: (mode: TableResultMode) => void;
   metadataSearchTerm: string;
   setMetadataSearchTerm: (searchTerm: string) => void;
   dimensionSearchMode: DimensionSearchMode;

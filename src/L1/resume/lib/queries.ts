@@ -89,6 +89,56 @@ export const GET_TABLE_LIST = (
   },
 });
 
+export const GET_TABLE_THEME_LIST = (
+  items: Map<string, Set<string>>,
+): GraphQLRequest => {
+  const tableWhere = BuilderCondition(items);
+
+  return {
+    query: gql`
+      query GetTableThemeList(
+        $tableWhere: TABLELIST_bool_exp!
+        $limit_number: Int
+        $offset_number: Int
+      ) {
+        themeSurveys: STATLIST(
+          where: { TABLELISTs: $tableWhere }
+          limit: $limit_number
+          offset: $offset_number
+          order_by: { STATNAME: asc }
+        ) {
+          statcode: STATCODE
+          statname: STATNAME
+          table_count: TABLELISTs_aggregate(where: $tableWhere) {
+            aggregate {
+              count
+            }
+          }
+          tables: TABLELISTs(where: $tableWhere) {
+            year_s: YEAR_S
+            year_e: YEAR_E
+            table_tags: TABLE_TAGs {
+              tag_name: TAG_NAME
+            }
+            table_measures: TABLE_MEASUREs {
+              name: NAME
+            }
+            table_dimensions: TABLE_DIMENSIONs {
+              class_name: CLASS_NAME
+            }
+            table_regions: TABLE_REGIONTYPEs {
+              regiontype: REGIONTYPE
+            }
+          }
+        }
+      }
+    `,
+    variables: {
+      tableWhere,
+    },
+  };
+};
+
 const surveyListFields = gql`
   fragment SurveyListFields on STATLIST {
     statcode: STATCODE
@@ -137,6 +187,7 @@ export const GET_TABLE_LIST_COUNT = (
   metadataSearchTerm = "",
   dimensionSearchMode: DimensionSearchMode = "both",
 ): GraphQLRequest => {
+  const tableWhere = BuilderCondition(items);
   const usesSplitDimensionSearch =
     metadataSearchTerm.trim() && dimensionSearchMode === "both";
 
@@ -194,12 +245,12 @@ export const GET_TABLE_LIST_COUNT = (
     }
   `,
     variables: {
-      where: BuilderCondition(items),
       ...buildMetadataWhereVariables(
         items,
         metadataSearchTerm,
         dimensionSearchMode,
       ),
+      where: tableWhere,
     },
   };
 };
