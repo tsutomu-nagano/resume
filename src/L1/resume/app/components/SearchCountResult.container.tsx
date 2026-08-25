@@ -11,9 +11,10 @@ type DisplayCountResult = {
 };
 
 export function SearchCountResultContainer() {
-  const { loading, error, countResult, setView, view } = useSearchItem();
+  const { error, countResult, setView, view } = useSearchItem();
   const [displayCountResult, setDisplayCountResult] =
     useState<DisplayCountResult | null>(null);
+  const isCountLoading = countResult == null;
 
   useEffect(() => {
     if (!countResult) {
@@ -36,7 +37,7 @@ export function SearchCountResultContainer() {
       stat={displayCountResult?.stat ?? 0}
       db={displayCountResult?.db ?? 0}
       metadata={displayCountResult?.metadata ?? 0}
-      isCountLoading={loading && !countResult}
+      isCountLoading={isCountLoading}
       view={view}
       onViewChange={setView}
     />
