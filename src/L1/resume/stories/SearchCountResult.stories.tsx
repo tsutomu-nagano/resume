@@ -16,6 +16,16 @@ type Story = StoryObj<typeof SearchCountResult>;
 export const Default: Story = {
   args: {
     stat: 200,
-    db: 100
+    db: 100,
+    metadata: 50,
+  },
+};
+
+export const LoadingCounts: Story = {
+  args: {
+    stat: 200,
+    db: 0,
+    metadata: 50,
+    isCountLoading: true,
   },
 };

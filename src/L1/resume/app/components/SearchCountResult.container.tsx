@@ -6,10 +6,6 @@ import { SearchCountResult } from "./SearchCountResult";
 export function SearchCountResultContainer() {
   const { loading, error, countResult, setView, view } = useSearchItem();
 
-  if (loading && !countResult) {
-    return <span className="loading loading-spinner text-primary" />;
-  }
-
   if (error) {
     return <p>Error: {error.message}</p>;
   }
@@ -19,6 +15,7 @@ export function SearchCountResultContainer() {
       stat={Number(countResult?.stat ?? 0)}
       db={Number(countResult?.db ?? 0)}
       metadata={Number(countResult?.metadata ?? 0)}
+      isCountLoading={loading && !countResult}
       view={view}
       onViewChange={setView}
     />

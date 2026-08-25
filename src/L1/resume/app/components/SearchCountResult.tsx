@@ -7,6 +7,7 @@ interface SearchCountResultProps {
   stat: number;
   db: number;
   metadata: number;
+  isCountLoading?: boolean;
   view: SearchResultView;
   onViewChange: (view: SearchResultView) => void;
 }
@@ -15,9 +16,17 @@ export function SearchCountResult({
   stat,
   db,
   metadata,
+  isCountLoading = false,
   view,
   onViewChange,
 }: SearchCountResultProps) {
+  const renderCount = (count: number) =>
+    isCountLoading ? (
+      <span className="loading loading-spinner loading-xs" />
+    ) : (
+      count
+    );
+
   return (
     <div
       className="join join-vertical w-full sm:join-horizontal sm:w-auto"
@@ -35,7 +44,9 @@ export function SearchCountResult({
           {renderIconByKind("stat")}
           <span className="truncate">統計調査</span>
         </span>
-        <span className="badge badge-outline badge-sm">{stat}</span>
+        <span className="badge badge-outline badge-sm">
+          {renderCount(stat)}
+        </span>
       </button>
       <button
         type="button"
@@ -48,7 +59,7 @@ export function SearchCountResult({
           {renderIconByKind("db")}
           <span className="truncate">統計データ</span>
         </span>
-        <span className="badge badge-outline badge-sm">{db}</span>
+        <span className="badge badge-outline badge-sm">{renderCount(db)}</span>
       </button>
       <button
         type="button"
@@ -61,7 +72,9 @@ export function SearchCountResult({
           {renderIconByKind("dimension")}
           <span className="truncate">メタデータ</span>
         </span>
-        <span className="badge badge-outline badge-sm">{metadata}</span>
+        <span className="badge badge-outline badge-sm">
+          {renderCount(metadata)}
+        </span>
       </button>
     </div>
   );
