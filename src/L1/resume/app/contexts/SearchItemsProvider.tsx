@@ -271,6 +271,16 @@ function getItemsWithoutKinds(
   );
 }
 
+function removeKindsFromItems(items: Map<string, Set<string>>, kinds: string[]) {
+  const excludedKinds = new Set(kinds);
+
+  return new Map(
+    Array.from(items.entries())
+      .filter(([kind]) => !excludedKinds.has(kind))
+      .map(([kind, values]) => [kind, new Set(values)] as const),
+  );
+}
+
 export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -837,11 +847,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         remainingSets.every((set) => set.has(statcode)),
       ),
     );
-    const resolvedItems: Map<string, Set<string>> = new Map(
-      Array.from(items.entries())
-        .filter(([kind]) => !excludedKinds.includes(kind))
-        .map(([kind, values]) => [kind, new Set(values)] as const),
-    );
+    const resolvedItems = removeKindsFromItems(items, excludedKinds);
 
     resolvedItems.set(
       "statcode",

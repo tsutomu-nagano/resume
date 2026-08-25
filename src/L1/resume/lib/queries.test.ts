@@ -1,6 +1,7 @@
 import { print } from "graphql";
 import { describe, expect, it } from "vitest";
 import {
+  GET_METADATA_COUNTS,
   GET_METADATA_LIST,
   GET_METADATA_SURVEYS,
   GET_SEARCH_TAG_LIST,
@@ -21,7 +22,7 @@ describe("survey queries", () => {
 
     expect(print(request.query)).toContain("surveylist: STATLIST");
     expect(print(request.query)).toContain(
-      "discontinuedSurvey: DISCONTINUED_SURVEY",
+      "discontinuedSurvey: DISCONTINUED_SURVEYs",
     );
     expect(print(request.query)).toContain("TABLELISTs_aggregate");
     expect(request.variables).toEqual({
@@ -57,7 +58,7 @@ describe("survey queries", () => {
       dimensionWhere: { TABLE_DIMENSIONs: { TABLELIST: {} } },
       dimensionItemWhere: {},
       themeWhere: { TABLE_TAGs: { TABLELIST: {} } },
-      regionWhere: { TABLE_REGIONs: { TABLELIST: {} } },
+      regionWhere: {},
     });
   });
 
@@ -96,10 +97,7 @@ describe("survey queries", () => {
         TABLE_TAGs: { TABLELIST: {} },
         TAG_NAME: { _like: "%人口%" },
       },
-      regionWhere: {
-        TABLE_REGIONs: { TABLELIST: {} },
-        NAME: { _like: "%人口%" },
-      },
+      regionWhere: { NAME: { _like: "%人口%" } },
     });
   });
 
@@ -143,10 +141,7 @@ describe("survey queries", () => {
         TABLE_TAGs: { TABLELIST: {} },
         TAG_NAME: { _like: "%人口%" },
       },
-      regionWhere: {
-        TABLE_REGIONs: { TABLELIST: {} },
-        NAME: { _like: "%人口%" },
-      },
+      regionWhere: { NAME: { _like: "%人口%" } },
     });
   });
 
@@ -209,6 +204,30 @@ describe("survey queries", () => {
       tableWhere: {
         TABLE_DIMENSIONs: {
           CLASS_NAME: { _eq: "男" },
+        },
+      },
+    });
+  });
+
+  it("filters region metadata surveys through linked region names", () => {
+    const surveysRequest = GET_METADATA_SURVEYS("region", "深谷市");
+    const countsRequest = GET_METADATA_COUNTS("region", "深谷市");
+
+    expect(surveysRequest.variables).toEqual({
+      tableWhere: {
+        TABLE_REGIONs: {
+          REGIONLIST: {
+            NAME: { _eq: "深谷市" },
+          },
+        },
+      },
+    });
+    expect(countsRequest.variables).toEqual({
+      tableWhere: {
+        TABLE_REGIONs: {
+          REGIONLIST: {
+            NAME: { _eq: "深谷市" },
+          },
         },
       },
     });

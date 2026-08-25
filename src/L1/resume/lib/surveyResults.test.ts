@@ -21,7 +21,7 @@ describe("toSurveyCardProps", () => {
         statcode: "00020111",
         statname: "サンプル調査",
         govlist: { govname: "テスト府省" },
-        discontinuedSurvey: { statcode: "00020111" },
+        discontinuedSurvey: [{ statcode: "00020111" }],
         table_count: { aggregate: { count: 12 } },
         attributes,
       }),

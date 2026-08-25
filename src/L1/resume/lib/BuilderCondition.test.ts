@@ -50,6 +50,22 @@ describe("BuilderCondition", () => {
     });
   });
 
+  it("filters regions by linked region names", () => {
+    const items = new Map([["region", new Set(["深谷市"])]]);
+
+    expect(BuilderCondition(items)).toEqual({
+      _and: [
+        {
+          TABLE_REGIONs: {
+            REGIONLIST: {
+              NAME: { _eq: "深谷市" },
+            },
+          },
+        },
+      ],
+    });
+  });
+
   it("builds a bounded year range", () => {
     const items = new Map([["time", new Set(["2020-2022"])]]);
 

@@ -8,7 +8,10 @@ import { BiAward } from "react-icons/bi";
 import { FiInfo, FiX } from "react-icons/fi";
 import { LuClipboardList } from "react-icons/lu";
 import { RiLoopLeftFill } from "react-icons/ri";
-import { GET_METADATA_SURVEYS, GET_SURVEY_ATTRIBUTES } from "@/lib/queries";
+import {
+  GET_METADATA_SURVEYS,
+  GET_SURVEY_ATTRIBUTES,
+} from "@/lib/queries";
 import type { SurveyAttribute } from "@/lib/queries";
 import { SurveyUnitIcon } from "@/lib/surveyUnitIcons";
 import { DiscontinuedBadge } from "./DiscontinudBadge";
@@ -42,7 +45,7 @@ type MetadataSurveyValue = {
     } | null;
     discontinuedSurvey?: {
       statcode?: string | null;
-    } | null;
+    }[] | null;
   } | null;
 };
 
@@ -59,7 +62,7 @@ type MetadataSurveyRow = {
   } | null;
   discontinuedSurvey?: {
     statcode?: string | null;
-  } | null;
+  }[] | null;
 };
 
 export function MetadataSurveyList({
@@ -170,7 +173,7 @@ function getMetadataSurveys(data: unknown): MetadataSurvey[] {
       statname: survey.statname,
       govname: survey.govlist?.govname,
       tableCount: Number(survey.table_count?.aggregate?.count ?? 0),
-      isDiscontinued: Boolean(survey.discontinuedSurvey),
+      isDiscontinued: (survey.discontinuedSurvey?.length || 0) > 0,
     }));
   }
 
@@ -179,7 +182,7 @@ function getMetadataSurveys(data: unknown): MetadataSurvey[] {
     statname: item.survey?.statname || item.statcode,
     govname: item.survey?.govlist?.govname,
     tableCount: Number(item.survey?.table_count?.aggregate?.count ?? 0),
-    isDiscontinued: Boolean(item.survey?.discontinuedSurvey),
+    isDiscontinued: (item.survey?.discontinuedSurvey?.length || 0) > 0,
   }));
 }
 

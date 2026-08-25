@@ -146,7 +146,7 @@ const surveyListFields = gql`
     govlist: GOVLIST {
       govname: GOVNAME
     }
-    discontinuedSurvey: DISCONTINUED_SURVEY {
+    discontinuedSurvey: DISCONTINUED_SURVEYs {
       statcode: STATCODE
     }
     table_count: TABLELISTs_aggregate(where: $where) {
@@ -384,7 +384,6 @@ function buildMetadataWhereVariables(
       ...(searchPattern ? { TAG_NAME: { _like: searchPattern } } : {}),
     },
     regionWhere: {
-      TABLE_REGIONs: { TABLELIST: tableWhere },
       ...(searchPattern ? { NAME: { _like: searchPattern } } : {}),
     },
   };
@@ -525,7 +524,7 @@ export const GET_METADATA_SURVEYS = (
     measure: { TABLE_MEASUREs: { NAME: { _eq: name } } },
     dimension: buildDimensionTableWhere(name),
     thema: { TABLE_TAGs: { TAG_NAME: { _eq: name } } },
-    region: { TABLE_REGIONs: { NAME: { _eq: name } } },
+    region: { TABLE_REGIONs: { REGIONLIST: { NAME: { _eq: name } } } },
   };
 
   if (kind === "survey_unit" || kind === "stat_kind") {
@@ -549,7 +548,7 @@ export const GET_METADATA_SURVEYS = (
               govlist: GOVLIST {
                 govname: GOVNAME
               }
-              discontinuedSurvey: DISCONTINUED_SURVEY {
+              discontinuedSurvey: DISCONTINUED_SURVEYs {
                 statcode: STATCODE
               }
               table_count: TABLELISTs_aggregate {
@@ -586,7 +585,7 @@ export const GET_METADATA_SURVEYS = (
           govlist: GOVLIST {
             govname: GOVNAME
           }
-          discontinuedSurvey: DISCONTINUED_SURVEY {
+          discontinuedSurvey: DISCONTINUED_SURVEYs {
             statcode: STATCODE
           }
           table_count: TABLELISTs_aggregate(where: $tableWhere) {
@@ -612,7 +611,7 @@ export const GET_METADATA_COUNTS = (
     measure: { TABLE_MEASUREs: { NAME: { _eq: name } } },
     dimension: buildDimensionTableWhere(name),
     thema: { TABLE_TAGs: { TAG_NAME: { _eq: name } } },
-    region: { TABLE_REGIONs: { NAME: { _eq: name } } },
+    region: { TABLE_REGIONs: { REGIONLIST: { NAME: { _eq: name } } } },
   };
 
   if (kind === "survey_unit" || kind === "stat_kind") {
@@ -724,12 +723,10 @@ const searchTagListQueries: Record<string, DocumentNode> = {
   `,
   "REGIONLIST:NAME:TABLE_REGIONs.TABLELIST": gql`
     query SearchRegionList(
-      $tableWhere: TABLELIST_bool_exp!
       $searchPattern: String!
     ) {
       items: REGIONLIST(
         where: {
-          TABLE_REGIONs: { TABLELIST: $tableWhere }
           NAME: { _like: $searchPattern }
         }
       ) {
