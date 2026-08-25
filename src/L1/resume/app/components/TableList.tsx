@@ -12,6 +12,9 @@ type TableResult = {
   statdispid: string;
   cycle: string;
   statcode: string;
+  survey?: {
+    statname?: string;
+  };
   survey_date: string;
   title: string;
   year_s: string;
@@ -126,6 +129,7 @@ export default function TableList() {
                   year_e={tbl.year_e}
                   cycle={tbl.cycle}
                   statcode={tbl.statcode}
+                  statname={tbl.survey?.statname}
                   survey_date={tbl.survey_date}
                   tags={tbl.table_tags}
                   measures={tbl.table_measures}

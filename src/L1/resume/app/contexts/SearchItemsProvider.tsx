@@ -271,7 +271,10 @@ function getItemsWithoutKinds(
   );
 }
 
-function removeKindsFromItems(items: Map<string, Set<string>>, kinds: string[]) {
+function removeKindsFromItems(
+  items: Map<string, Set<string>>,
+  kinds: string[],
+) {
   const excludedKinds = new Set(kinds);
 
   return new Map(
@@ -808,7 +811,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       ? GET_TABLE_THEME_LIST(items)
       : GET_TABLE_LIST(items);
   }, [dimensionSearchMode, items, metadataSearchTerm, tableResultMode, view]);
-  const activeMetadataSearchTerm = view === "metadata" ? metadataSearchTerm : "";
+  const activeMetadataSearchTerm =
+    view === "metadata" ? metadataSearchTerm : "";
   const activeDimensionSearchMode =
     view === "metadata" ? dimensionSearchMode : "both";
   const resolveSurveyAttributeItems = async () => {
@@ -950,9 +954,16 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
       const metadataResults =
         view === "metadata"
           ? [
-              ...((result.data.measures || []) as { name: string }[]).map(
-                (item) => ({ ...item, kind: "measure" }),
-              ),
+              ...(
+                (result.data.measures || []) as {
+                  name: string;
+                  attributes?: MeasureAttributeResult[];
+                }[]
+              ).map((item) => ({
+                ...item,
+                attributes: normalizeMeasureAttributes(item.attributes),
+                kind: "measure",
+              })),
               ...(
                 (result.data.dimensions || []) as {
                   name: string;
@@ -999,10 +1010,10 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
                   statname: string;
                 }[]
               ).map((item) => ({
-                  ...item,
-                  kind: "themeSurvey",
-                  metadataId: `themeSurvey:${item.statcode}`,
-                }))
+                ...item,
+                kind: "themeSurvey",
+                metadataId: `themeSurvey:${item.statcode}`,
+              }))
             : result.data[resultKey] || [];
 
       if (nextResults.length === 0) {
@@ -1143,6 +1154,22 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     </SearchItemContext.Provider>
   );
 };
+
+type MeasureAttributeResult = {
+  attribute?: string;
+  value?: string;
+  ATTRIBUTE?: string;
+  VALUE?: string;
+};
+
+function normalizeMeasureAttributes(attributes?: MeasureAttributeResult[]) {
+  return (attributes || [])
+    .map((attribute) => ({
+      attribute: attribute.attribute || attribute.ATTRIBUTE || "",
+      value: attribute.value || attribute.VALUE || "",
+    }))
+    .filter((attribute) => attribute.attribute && attribute.value);
+}
 
 export const useSearchItem = () => {
   const context = useContext(SearchItemContext);

@@ -13,6 +13,7 @@ type MetadataResult = {
   metadataId: string;
   kind: string;
   name: string;
+  attributes?: { attribute: string; value: string }[];
   matching_items?: { name: string }[];
 };
 
@@ -101,9 +102,7 @@ export default function MetadataList() {
       counts.set(item.kind, (counts.get(item.kind) || 0) + 1);
     });
 
-    const kinds = new Set([
-      ...Array.from(counts.keys()),
-    ]);
+    const kinds = new Set([...Array.from(counts.keys())]);
 
     return Array.from(kinds)
       .map((kind) => [kind, Number(counts.get(kind) ?? 0)] as const)
@@ -238,6 +237,7 @@ export default function MetadataList() {
             key={item.metadataId}
             kind={item.kind}
             name={item.name}
+            attributes={item.attributes}
             matchReason={getDimensionMatchReason(
               item,
               metadataSearchTerm,

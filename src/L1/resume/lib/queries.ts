@@ -282,6 +282,10 @@ export const GET_METADATA_LIST = (
         order_by: { NAME: asc }
       ) {
         name: NAME
+        attributes: MEASURE_ATTRIBUTEs {
+          attribute: ATTRIBUTE
+          value: VALUE
+        }
       }
       dimensions: DIMENSIONLIST(
         where: $dimensionWhere
@@ -350,7 +354,6 @@ function buildMetadataWhereVariables(
       : null;
   const usesSplitDimensionSearch =
     Boolean(searchPattern) && dimensionSearchMode === "both";
-
   return {
     measureWhere: {
       TABLE_MEASUREs: { TABLELIST: tableWhere },
@@ -397,6 +400,55 @@ export type SurveyAttribute = {
     label: string;
   };
 };
+
+export const GET_MEASURE_ATTRIBUTES = (name: string): GraphQLRequest => ({
+  query: gql`
+    query GetMeasureAttributes($name: String!) {
+      measures: MEASURELIST(where: { NAME: { _eq: $name } }, limit: 1) {
+        attributes: MEASURE_ATTRIBUTEs {
+          attribute: ATTRIBUTE
+          value: VALUE
+        }
+      }
+    }
+  `,
+  variables: {
+    name,
+  },
+});
+
+export const GET_TABLE_THEME_DETAIL = (
+  statcode: string,
+  tagName: string,
+): GraphQLRequest => ({
+  query: gql`
+    query GetTableThemeDetail($statcode: String!, $tagName: String!) {
+      themeSurveys: STATLIST(where: { STATCODE: { _eq: $statcode } }) {
+        statcode: STATCODE
+        statname: STATNAME
+        tables: TABLELISTs(
+          where: { TABLE_TAGs: { TAG_NAME: { _eq: $tagName } } }
+        ) {
+          year_s: YEAR_S
+          year_e: YEAR_E
+          table_measures: TABLE_MEASUREs {
+            name: NAME
+          }
+          table_dimensions: TABLE_DIMENSIONs {
+            class_name: CLASS_NAME
+          }
+          table_regions: TABLE_REGIONTYPEs {
+            regiontype: REGIONTYPE
+          }
+        }
+      }
+    }
+  `,
+  variables: {
+    statcode,
+    tagName,
+  },
+});
 
 export const GET_SURVEY_ATTRIBUTES = (statcodes: string[]): GraphQLRequest => ({
   query: gql`
@@ -722,14 +774,8 @@ const searchTagListQueries: Record<string, DocumentNode> = {
     }
   `,
   "REGIONLIST:NAME:TABLE_REGIONs.TABLELIST": gql`
-    query SearchRegionList(
-      $searchPattern: String!
-    ) {
-      items: REGIONLIST(
-        where: {
-          NAME: { _like: $searchPattern }
-        }
-      ) {
+    query SearchRegionList($searchPattern: String!) {
+      items: REGIONLIST(where: { NAME: { _like: $searchPattern } }) {
         name: NAME
       }
     }

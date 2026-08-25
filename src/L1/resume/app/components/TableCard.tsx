@@ -4,13 +4,13 @@
 import { BiHash } from "react-icons/bi";
 import { RiLoopLeftFill } from "react-icons/ri";
 import { TbDatabaseShare } from "react-icons/tb";
-import { DropdownContainer as Tag } from './Dropdown.container';
+import { DropdownContainer as Tag } from "./Dropdown.container";
 import { renderIconByKind } from "../common/convertor";
-
 
 interface TableCardProps {
   statdispid: string;
   statcode: string;
+  statname?: string;
   cycle: string;
   survey_date: string;
   title: string;
@@ -22,21 +22,34 @@ interface TableCardProps {
   regions?: { regiontype: string }[];
 }
 
-export function TableCard({ statdispid, statcode, cycle, survey_date, title, year_s, year_e, tags, measures, dimensions, regions }: TableCardProps) {
-
-
+export function TableCard({
+  statdispid,
+  statcode,
+  statname,
+  cycle,
+  survey_date,
+  title,
+  year_s,
+  year_e,
+  tags,
+  measures,
+  dimensions,
+  regions,
+}: TableCardProps) {
   const regionLabel = new Map<string, string>([
     ["ken", "都道府県"],
     ["city", "市区町村"],
   ]);
 
-  const year_view: string = year_s === year_e
-    ? (year_s === "0" ? "-" : year_s)
-    : `${year_s} - ${year_e}`
-
+  const year_view: string =
+    year_s === year_e
+      ? year_s === "0"
+        ? "-"
+        : year_s
+      : `${year_s} - ${year_e}`;
 
   const handleClick = () => {
-    window.open(`https://www.e-stat.go.jp/dbview?sid=${statdispid}`, '_blank');
+    window.open(`https://www.e-stat.go.jp/dbview?sid=${statdispid}`, "_blank");
   };
 
   return (
@@ -59,22 +72,37 @@ export function TableCard({ statdispid, statcode, cycle, survey_date, title, yea
             {renderIconByKind("time")}
             <span>{year_view}</span>
           </div>
-          {regions?.map((region: { regiontype: string;}) => (
-            <div key={region.regiontype} className="flex flex-row items-center gap-2">
+          {regions?.map((region: { regiontype: string }) => (
+            <div
+              key={region.regiontype}
+              className="flex flex-row items-center gap-2"
+            >
               {renderIconByKind("region")}
               <span>{regionLabel.get(region.regiontype)}</span>
             </div>
           ))}
         </div>
-        <h2 className="card-title mb-2 text-base leading-7 sm:text-xl">{title}</h2>
+        <h2 className="card-title mb-2 text-base leading-7 sm:text-xl">
+          {title}
+        </h2>
         <div className="flex flex-wrap flex-row gap-3">
-          {tags?.map((tag: { tag_name: string; }) => (
-            <Tag key={tag.tag_name} name={tag.tag_name} kind="thema" />
+          {tags?.map((tag: { tag_name: string }) => (
+            <Tag
+              key={tag.tag_name}
+              name={tag.tag_name}
+              kind="thema"
+              statcode={statcode}
+              statname={statname}
+            />
           ))}
-          {dimensions?.map((dimension: { class_name: string; }) => (
-            <Tag key={dimension.class_name} name={dimension.class_name} kind="dimension" />
+          {dimensions?.map((dimension: { class_name: string }) => (
+            <Tag
+              key={dimension.class_name}
+              name={dimension.class_name}
+              kind="dimension"
+            />
           ))}
-          {measures?.map((measure: { name: string; }) => (
+          {measures?.map((measure: { name: string }) => (
             <Tag key={measure.name} name={measure.name} kind="measure" />
           ))}
           {/* {regions?.map((region: { class_name: string;}) => (
@@ -83,7 +111,13 @@ export function TableCard({ statdispid, statcode, cycle, survey_date, title, yea
         </div>
 
         <div className="card-actions mt-3 justify-end">
-          <button className="btn btn-primary btn-outline w-full sm:ml-auto sm:w-auto" onClick={handleClick}><TbDatabaseShare />e-Statで表示する</button>
+          <button
+            className="btn btn-primary btn-outline w-full sm:ml-auto sm:w-auto"
+            onClick={handleClick}
+          >
+            <TbDatabaseShare />
+            e-Statで表示する
+          </button>
         </div>
       </div>
     </div>

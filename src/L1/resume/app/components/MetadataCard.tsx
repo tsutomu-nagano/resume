@@ -7,14 +7,16 @@ import {
   kind_en2ja,
   renderIconByKind,
 } from "../common/convertor";
-import { DimensionItemInfo } from "./DimensionItemInfo";
-import { Drawer } from "./Drawer";
+import {
+  formatMeasureAttribute,
+  MetadataDetailDrawer,
+} from "./MetadataDetailDrawer";
 import { MetadataCardCounts } from "./MetadataCardCounts";
-import { MetadataSurveyList } from "./MetadataSurveyList";
 
 interface MetadataCardProps {
   kind: string;
   name: string;
+  attributes?: { attribute: string; value: string }[];
   matchReason?: {
     matchedByClass: boolean;
     matchedByItem: boolean;
@@ -27,6 +29,7 @@ interface MetadataCardProps {
 export function MetadataCard({
   kind,
   name,
+  attributes = [],
   matchReason,
   isSelected,
   onToggle,
@@ -40,7 +43,10 @@ export function MetadataCard({
     </div>
   );
   const toggleDrawer = () => setDrawerOpen((previousState) => !previousState);
-  const showDimensionItems = kind === "dimension" || kind === "region";
+  const visibleAttributes = attributes.filter(
+    (attribute) => attribute.attribute && attribute.value,
+  );
+  const hasInfoBadges = visibleAttributes.length > 0 || Boolean(matchReason);
 
   return (
     <>
@@ -69,19 +75,27 @@ export function MetadataCard({
             {isSelected && <span className="badge badge-primary">選択中</span>}
           </div>
           <h2 className="card-title text-base leading-relaxed">{name}</h2>
-          {matchReason ? (
+          {hasInfoBadges ? (
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              {matchReason.matchedByClass ? (
+              {visibleAttributes.map((attribute) => (
+                <span
+                  key={`${attribute.attribute}:${attribute.value}`}
+                  className="badge badge-outline"
+                >
+                  {formatMeasureAttribute(attribute.attribute, attribute.value)}
+                </span>
+              ))}
+              {matchReason?.matchedByClass ? (
                 <span className="badge badge-info badge-outline">
                   事項名に一致
                 </span>
               ) : null}
-              {matchReason.matchedByItem ? (
+              {matchReason?.matchedByItem ? (
                 <span className="badge badge-secondary badge-outline">
                   項目名に一致
                 </span>
               ) : null}
-              {matchReason.matchedByItem
+              {matchReason?.matchedByItem
                 ? matchReason.matchedItemNames.slice(0, 3).map((itemName) => (
                     <span
                       key={itemName}
@@ -111,41 +125,15 @@ export function MetadataCard({
           </div>
         </div>
       </article>
-      {showDimensionItems ? (
-        <DimensionItemInfo
-          id={drawerId}
-          kind={kind}
-          title={title}
-          name={name}
-          isOpen={isDrawerOpen}
-          onToggle={toggleDrawer}
-        />
-      ) : (
-        <Drawer
-          id={drawerId}
-          title={title}
-          isOpen={isDrawerOpen}
-          onToggle={toggleDrawer}
-          sidebarContent={
-            <>
-              <span className="text-xl">Overview</span>
-              <span className="text-base">hogehoge</span>
-              <li>
-                <a>Custom Sidebar Item 1</a>
-              </li>
-              <li>
-                <a>Custom Sidebar Item 2</a>
-              </li>
-              <MetadataSurveyList
-                kind={kind}
-                name={name}
-                isOpen={isDrawerOpen}
-                detailDrawerId={drawerId}
-              />
-            </>
-          }
-        />
-      )}
+      <MetadataDetailDrawer
+        id={drawerId}
+        kind={kind}
+        title={title}
+        name={name}
+        attributes={attributes}
+        isOpen={isDrawerOpen}
+        onToggle={toggleDrawer}
+      />
     </>
   );
 }
