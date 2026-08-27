@@ -869,9 +869,13 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
     try {
       const resolvedItems = await resolveSurveyAttributeItems();
+      const countItems =
+        view === "surveys"
+          ? getItemsWithoutKinds(resolvedItems, ["stat"])
+          : resolvedItems;
       const result = await client.query(
         GET_TABLE_LIST_COUNT(
-          resolvedItems,
+          countItems,
           activeMetadataSearchTerm,
           activeDimensionSearchMode,
         ),
@@ -927,9 +931,13 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
 
     try {
       const resolvedItems = await resolveSurveyAttributeItems();
+      const resultItems =
+        view === "surveys"
+          ? getItemsWithoutKinds(resolvedItems, ["stat"])
+          : resolvedItems;
       const query =
         view === "surveys"
-          ? GET_SURVEY_LIST(getItemsWithoutKinds(resolvedItems, ["stat"]))
+          ? GET_SURVEY_LIST(resultItems)
           : view === "metadata"
             ? GET_METADATA_LIST(
                 resolvedItems,

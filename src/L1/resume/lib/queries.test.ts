@@ -8,6 +8,7 @@ import {
   GET_TABLE_LIST_COUNT,
   GET_SURVEY_ATTRIBUTE_STATCODES,
   GET_SURVEY_ATTRIBUTES,
+  GET_SURVEY_COMPARISON_LIST,
   GET_SURVEY_LIST,
   GET_SURVEY_STATCODES,
   GET_TABLE_LIST,
@@ -189,6 +190,18 @@ describe("survey queries", () => {
     expect(request.variables).toEqual({ statcodes: ["00020111"] });
   });
 
+  it("requests selected surveys for comparison", () => {
+    const request = GET_SURVEY_COMPARISON_LIST(["国勢調査", "人口動態調査"]);
+    const query = print(request.query);
+
+    expect(query).toContain("GetSurveyComparisonList");
+    expect(query).toContain("where: {STATNAME: {_in: $names}}");
+    expect(query).toContain("table_count: TABLELISTs_aggregate");
+    expect(request.variables).toEqual({
+      names: ["国勢調査", "人口動態調査"],
+    });
+  });
+
   it("requests survey detail fields for metadata survey lists", () => {
     const request = GET_METADATA_SURVEYS("measure", "人口");
     const query = print(request.query);
@@ -198,6 +211,18 @@ describe("survey queries", () => {
     expect(request.variables).toEqual({
       tableWhere: { TABLE_MEASUREs: { NAME: { _eq: "人口" } } },
     });
+  });
+
+  it("opens selected survey details without treating surveys as metadata", () => {
+    const surveysRequest = GET_METADATA_SURVEYS("stat", "国勢調査");
+    const countsRequest = GET_METADATA_COUNTS("stat", "国勢調査");
+
+    expect(print(surveysRequest.query)).toContain("GetMetadataSurveyByName");
+    expect(surveysRequest.variables).toEqual({ name: "国勢調査" });
+    expect(print(countsRequest.query)).toContain(
+      "GetMetadataCountsBySurveyName",
+    );
+    expect(countsRequest.variables).toEqual({ name: "国勢調査" });
   });
 
   it("requests dimension metadata surveys by class name", () => {
@@ -269,6 +294,29 @@ describe("survey queries", () => {
       tableWhere: {},
       attributeCode: "stat_kind",
       searchPattern: "%基幹%",
+    });
+  });
+
+  it("searches other surveys while a survey is already selected", () => {
+    const request = GET_SEARCH_TAG_LIST(
+      "STATLIST",
+      "STATNAME",
+      ["TABLELISTs"],
+      "人口",
+      new Map([
+        ["stat", new Set(["国勢調査"])],
+        ["time", new Set(["2020-"])],
+      ]),
+      "stat",
+    );
+
+    expect(print(request.query)).toContain("SearchStatList");
+    expect(request.variables).toEqual({
+      tableWhere: {
+        _and: [{ TABLE_TIMEs: { YEAR: { _gte: 2020 } } }],
+      },
+      attributeCode: "survey_units",
+      searchPattern: "%人口%",
     });
   });
 

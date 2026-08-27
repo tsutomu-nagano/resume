@@ -3,6 +3,7 @@
 // Drawer.tsx
 import React, { ReactNode, useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 
 interface DrawerProps {
   id: string; // Drawerの一意なID
@@ -108,7 +109,18 @@ export function Drawer({
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
         >
-          <h1 className="text-2xl font-bold">{title}</h1>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="min-w-0 flex-1 text-2xl font-bold">{title}</h1>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm btn-square shrink-0"
+              aria-label="ドロワーを閉じる"
+              title="ドロワーを閉じる"
+              onClick={onToggle}
+            >
+              <X size={20} aria-hidden="true" />
+            </button>
+          </div>
           <div className="divider divider-primary" />
           {children || sidebarContent || (
             <ul className="menu">

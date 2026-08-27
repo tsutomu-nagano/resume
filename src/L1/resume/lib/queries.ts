@@ -477,6 +477,36 @@ export const GET_SURVEY_ATTRIBUTES = (statcodes: string[]): GraphQLRequest => ({
   },
 });
 
+export const GET_SURVEY_COMPARISON_LIST = (
+  names: string[],
+): GraphQLRequest => ({
+  query: gql`
+    query GetSurveyComparisonList($names: [String!]!) {
+      surveylist: STATLIST(
+        where: { STATNAME: { _in: $names } }
+        order_by: { STATNAME: asc }
+      ) {
+        statcode: STATCODE
+        statname: STATNAME
+        govlist: GOVLIST {
+          govname: GOVNAME
+        }
+        discontinuedSurvey: DISCONTINUED_SURVEYs {
+          statcode: STATCODE
+        }
+        table_count: TABLELISTs_aggregate {
+          aggregate {
+            count
+          }
+        }
+      }
+    }
+  `,
+  variables: {
+    names,
+  },
+});
+
 export const GET_SURVEY_STATCODES = (
   items: Map<string, Set<string>>,
 ): GraphQLRequest => ({
@@ -619,6 +649,36 @@ export const GET_METADATA_SURVEYS = (
     };
   }
 
+  if (kind === "stat") {
+    return {
+      query: gql`
+        query GetMetadataSurveyByName($name: String!) {
+          surveys: STATLIST(
+            where: { STATNAME: { _eq: $name } }
+            order_by: { STATNAME: asc }
+          ) {
+            statcode: STATCODE
+            statname: STATNAME
+            govlist: GOVLIST {
+              govname: GOVNAME
+            }
+            discontinuedSurvey: DISCONTINUED_SURVEYs {
+              statcode: STATCODE
+            }
+            table_count: TABLELISTs_aggregate {
+              aggregate {
+                count
+              }
+            }
+          }
+        }
+      `,
+      variables: {
+        name,
+      },
+    };
+  }
+
   const tableWhere = tableWhereByKind[kind];
 
   if (!tableWhere) {
@@ -695,6 +755,31 @@ export const GET_METADATA_COUNTS = (
       variables: {
         attributeCode,
         value: name,
+      },
+    };
+  }
+
+  if (kind === "stat") {
+    return {
+      query: gql`
+        query GetMetadataCountsBySurveyName($name: String!) {
+          tables: TABLELIST_aggregate(
+            where: { STATLIST: { STATNAME: { _eq: $name } } }
+          ) {
+            aggregate {
+              count
+            }
+          }
+          surveys: STATLIST(
+            where: { STATNAME: { _eq: $name } }
+            order_by: { STATNAME: asc }
+          ) {
+            statcode: STATCODE
+          }
+        }
+      `,
+      variables: {
+        name,
       },
     };
   }
@@ -810,6 +895,11 @@ export const GET_SEARCH_TAG_LIST = (
 ): GraphQLRequest => {
   const queryKey = `${name}:${field}:${refNames.join(".")}`;
   const query = searchTagListQueries[queryKey];
+  const excludedFilterKinds = [
+    "survey_unit",
+    "stat_kind",
+    ...(kind === "stat" ? ["stat"] : []),
+  ];
 
   if (!query) {
     throw new Error(`Unsupported search tag resource: ${queryKey}`);
@@ -819,7 +909,7 @@ export const GET_SEARCH_TAG_LIST = (
     query,
     variables: {
       tableWhere: BuilderCondition(
-        getItemsWithoutKinds(items, ["survey_unit", "stat_kind"]),
+        getItemsWithoutKinds(items, excludedFilterKinds),
       ),
       attributeCode: kind === "stat_kind" ? "stat_kind" : "survey_units",
       searchPattern: `%${searchTerm}%`,
