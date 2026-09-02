@@ -9,6 +9,13 @@ export type SurveyResult = {
   discontinuedSurvey?: { statcode?: string | null }[] | null;
   table_count?: { aggregate?: { count?: number } };
   attributes?: SurveyAttribute[];
+  tables?: {
+    year_s?: string;
+    year_e?: string;
+    table_measures?: { name: string }[];
+    table_dimensions?: { class_name: string }[];
+    table_regions?: { regiontype: string }[];
+  }[];
 };
 
 export function isSurveyResult(value: unknown): value is SurveyResult {

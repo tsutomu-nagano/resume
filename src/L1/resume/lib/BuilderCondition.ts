@@ -64,6 +64,10 @@ function buildTimeConditions(
   const conditions: GraphQLCondition[] = [];
 
   for (const item of itemsOfKind) {
+    if (item === "latest") {
+      continue;
+    }
+
     const [from, to] = item.split("-");
     const yearCondition: Record<string, number> = {};
 

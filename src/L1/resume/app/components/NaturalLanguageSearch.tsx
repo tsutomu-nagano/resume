@@ -87,6 +87,9 @@ export function NaturalLanguageSearch() {
   const [selectedValues, setSelectedValues] = useState<Record<string, string>>(
     {},
   );
+  const [enabledValues, setEnabledValues] = useState<Record<string, boolean>>(
+    {},
+  );
   const [showAnalysisResult, setShowAnalysisResult] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -197,9 +200,16 @@ export function NaturalLanguageSearch() {
             `${entity.candidates[0].kind}:${entity.candidates[0].name}`,
           ]),
       );
+      const nextEnabledValues = Object.fromEntries(
+        nextResolvedEntities.map((entity) => [
+          entity.id,
+          Boolean(entity.candidates[0]),
+        ]),
+      );
 
       setResolvedEntities(nextResolvedEntities);
       setSelectedValues(nextSelections);
+      setEnabledValues(nextEnabledValues);
       setShowAnalysisResult(true);
     } catch (err) {
       setError(err as Error);
@@ -210,6 +220,10 @@ export function NaturalLanguageSearch() {
 
   const handleApply = () => {
     const nextItems = resolvedEntities.flatMap((entity) => {
+      if (!enabledValues[entity.id]) {
+        return [];
+      }
+
       const selectedValue = selectedValues[entity.id];
       if (!selectedValue) {
         return [];
@@ -276,6 +290,7 @@ export function NaturalLanguageSearch() {
               <table className="table table-sm">
                 <thead>
                   <tr>
+                    <th>使用</th>
                     <th>文章中の語</th>
                     <th>抽出種別</th>
                     <th>検索条件</th>
@@ -285,6 +300,21 @@ export function NaturalLanguageSearch() {
                 <tbody>
                   {resolvedEntities.map((entity) => (
                     <tr key={entity.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          className="checkbox checkbox-primary checkbox-sm"
+                          aria-label={`${entity.spanText}を検索条件に使用する`}
+                          checked={enabledValues[entity.id] || false}
+                          disabled={entity.candidates.length === 0}
+                          onChange={(event) =>
+                            setEnabledValues((previous) => ({
+                              ...previous,
+                              [entity.id]: event.target.checked,
+                            }))
+                          }
+                        />
+                      </td>
                       <td className="font-medium">{entity.spanText}</td>
                       <td>
                         {entity.candidates[0]
@@ -298,6 +328,7 @@ export function NaturalLanguageSearch() {
                           <select
                             className="select select-bordered select-sm w-full max-w-xs"
                             value={selectedValues[entity.id] || ""}
+                            disabled={!enabledValues[entity.id]}
                             onChange={(event) =>
                               setSelectedValues((previous) => ({
                                 ...previous,

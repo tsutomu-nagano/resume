@@ -37,6 +37,28 @@ describe("extractNaturalLanguageEntities", () => {
     );
   });
 
+  it("extracts survey names and latest time requests", () => {
+    const entities = extractNaturalLanguageEntities("国勢調査の最新の人口");
+
+    expect(entities).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          spanText: "国勢調査",
+          kinds: expect.arrayContaining(["stat"]),
+        }),
+        expect.objectContaining({
+          spanText: "最新",
+          kinds: ["time"],
+          normalizedValue: "latest",
+        }),
+        expect.objectContaining({
+          spanText: "人口",
+          kinds: expect.arrayContaining(["measure"]),
+        }),
+      ]),
+    );
+  });
+
   it("normalizes Japanese era years", () => {
     const entities = extractNaturalLanguageEntities("令和2年の世帯数");
 

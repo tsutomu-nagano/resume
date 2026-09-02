@@ -85,6 +85,7 @@ function normalizeYear(value: string): number | undefined {
 
 function extractTimeEntities(text: string): NaturalLanguageEntity[] {
   const entities: NaturalLanguageEntity[] = [];
+  const latestPattern = /最新|直近|新しい(?:年|年度)?/g;
   const yearExpression =
     String.raw`(?:[0-9０-９]{4}|令和\s*(?:元|[0-9０-９]+)|平成\s*(?:元|[0-9０-９]+)|[0-9０-９]+\s*年前|去年|昨年|一昨年)`;
   const rangePattern =
@@ -138,6 +139,27 @@ function extractTimeEntities(text: string): NaturalLanguageEntity[] {
         normalizedValue: `${year}-${year}`,
       });
     }
+  }
+
+  for (const match of text.matchAll(latestPattern)) {
+    const start = match.index ?? 0;
+    const end = start + match[0].length;
+    const overlapsExistingTime = entities.some(
+      (entity) => start >= entity.start && end <= entity.end,
+    );
+
+    if (overlapsExistingTime) {
+      continue;
+    }
+
+    entities.push({
+      id: `time:${start}:${end}`,
+      spanText: match[0],
+      start,
+      end,
+      kinds: ["time"],
+      normalizedValue: "latest",
+    });
   }
 
   return entities;
