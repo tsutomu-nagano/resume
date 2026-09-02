@@ -64,10 +64,19 @@ function buildDimensionTableWhere(name: string) {
   };
 }
 
+function hasLatestTime(items: Map<string, Set<string>>) {
+  return items.get("time")?.has("latest") || false;
+}
+
 export const GET_TABLE_LIST = (
   items: Map<string, Set<string>>,
-): GraphQLRequest => ({
-  query: gql`
+): GraphQLRequest => {
+  const orderBy = hasLatestTime(items)
+    ? "{ YEAR_E: desc_nulls_last, YEAR_S: desc_nulls_last, STATDISPID: asc }"
+    : "{ STATDISPID: asc }";
+
+  return {
+    query: gql`
     ${tableListFields}
     query GetTableList(
       $where: TABLELIST_bool_exp!
@@ -78,21 +87,25 @@ export const GET_TABLE_LIST = (
         where: $where
         limit: $limit_number
         offset: $offset_number
-        order_by: { STATDISPID: asc }
+        order_by: ${orderBy}
       ) {
         ...TableListFields
       }
     }
   `,
-  variables: {
-    where: BuilderCondition(items),
-  },
-});
+    variables: {
+      where: BuilderCondition(items),
+    },
+  };
+};
 
 export const GET_TABLE_THEME_LIST = (
   items: Map<string, Set<string>>,
 ): GraphQLRequest => {
   const tableWhere = BuilderCondition(items);
+  const tableOrderBy = hasLatestTime(items)
+    ? "{ YEAR_E: desc_nulls_last, YEAR_S: desc_nulls_last, STATDISPID: asc }"
+    : "{ STATDISPID: asc }";
 
   return {
     query: gql`
@@ -114,7 +127,7 @@ export const GET_TABLE_THEME_LIST = (
               count
             }
           }
-          tables: TABLELISTs(where: $tableWhere) {
+          tables: TABLELISTs(where: $tableWhere, order_by: ${tableOrderBy}) {
             year_s: YEAR_S
             year_e: YEAR_E
             table_tags: TABLE_TAGs {
@@ -497,6 +510,19 @@ export const GET_SURVEY_COMPARISON_LIST = (
         table_count: TABLELISTs_aggregate {
           aggregate {
             count
+          }
+        }
+        tables: TABLELISTs {
+          year_s: YEAR_S
+          year_e: YEAR_E
+          table_measures: TABLE_MEASUREs {
+            name: NAME
+          }
+          table_dimensions: TABLE_DIMENSIONs {
+            class_name: CLASS_NAME
+          }
+          table_regions: TABLE_REGIONTYPEs {
+            regiontype: REGIONTYPE
           }
         }
       }

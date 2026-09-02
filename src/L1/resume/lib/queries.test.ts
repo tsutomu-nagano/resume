@@ -197,6 +197,10 @@ describe("survey queries", () => {
     expect(query).toContain("GetSurveyComparisonList");
     expect(query).toContain("where: {STATNAME: {_in: $names}}");
     expect(query).toContain("table_count: TABLELISTs_aggregate");
+    expect(query).toContain("tables: TABLELISTs");
+    expect(query).toContain("table_measures: TABLE_MEASUREs");
+    expect(query).toContain("table_dimensions: TABLE_DIMENSIONs");
+    expect(query).toContain("table_regions: TABLE_REGIONTYPEs");
     expect(request.variables).toEqual({
       names: ["国勢調査", "人口動態調査"],
     });
@@ -317,6 +321,28 @@ describe("survey queries", () => {
       },
       attributeCode: "survey_units",
       searchPattern: "%人口%",
+    });
+  });
+
+  it("sorts table results by latest years when latest time is selected", () => {
+    const request = GET_TABLE_LIST(
+      new Map([
+        ["stat", new Set(["国勢調査"])],
+        ["time", new Set(["latest"])],
+        ["measure", new Set(["人口"])],
+      ]),
+    );
+    const query = print(request.query);
+
+    expect(query).toContain("YEAR_E: desc_nulls_last");
+    expect(query).toContain("YEAR_S: desc_nulls_last");
+    expect(request.variables).toEqual({
+      where: {
+        _and: [
+          { STATLIST: { STATNAME: { _eq: "国勢調査" } } },
+          { TABLE_MEASUREs: { NAME: { _eq: "人口" } } },
+        ],
+      },
     });
   });
 

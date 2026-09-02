@@ -22,6 +22,7 @@ export function DropdownContainer({
   const { items, findItem, addItem, removeItem } = useSearchItem();
   const drawerId = useId();
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const canShowDetail = kind !== "time";
 
   const toggleDrawer = () => {
     setDrawerOpen((prev) => !prev);
@@ -54,15 +55,17 @@ export function DropdownContainer({
         onClick={searchConditionClick}
         showDetaile={showDetaile}
       />
-      <MetadataDetailDrawer
-        id={drawerId}
-        kind={kind}
-        name={name}
-        statcode={statcode}
-        statname={statname}
-        isOpen={isDrawerOpen}
-        onToggle={toggleDrawer}
-      />
+      {canShowDetail ? (
+        <MetadataDetailDrawer
+          id={drawerId}
+          kind={kind}
+          name={name}
+          statcode={statcode}
+          statname={statname}
+          isOpen={isDrawerOpen}
+          onToggle={toggleDrawer}
+        />
+      ) : null}
     </>
   );
 }

@@ -5,6 +5,7 @@ import { BarChart3, Check, Scale, X } from "lucide-react";
 import { BiAward } from "react-icons/bi";
 import { RiLoopLeftFill } from "react-icons/ri";
 import { TbTable, TbTargetArrow } from "react-icons/tb";
+import { kind_en2ja, renderIconByKind } from "../common/convertor";
 import {
   GET_SURVEY_COMPARISON_LIST,
   GET_SURVEY_ATTRIBUTES,
@@ -16,6 +17,7 @@ import {
   type SurveyResult,
 } from "@/lib/surveyResults";
 import { DiscontinuedBadge } from "./DiscontinudBadge";
+import { buildThemeMetadataSummary } from "./ThemeMetadataSummary";
 
 interface SurveyComparisonTableProps {
   selectedSurveyNames: string[];
@@ -40,10 +42,6 @@ function getFirstAttributeValue(
   code: string,
 ) {
   return getAttributeValues(attributes, code)[0] || "";
-}
-
-function truncate(value: string, length = 180) {
-  return value.length > length ? `${value.slice(0, length)}...` : value;
 }
 
 const comparisonRows: ComparisonRow[] = [
@@ -105,9 +103,83 @@ const comparisonRows: ComparisonRow[] = [
     label: "概要",
     icon: <Scale className="size-4" />,
     render: (survey) =>
-      truncate(getFirstAttributeValue(survey.attributes, "description")) || "-",
+      getFirstAttributeValue(survey.attributes, "description") || "-",
+  },
+  {
+    label: kind_en2ja("measure"),
+    icon: renderIconByKind("measure"),
+    render: (survey) => (
+      <MetadataSummaryValues
+        values={getSurveyMetadataSummary(survey).measures}
+      />
+    ),
+  },
+  {
+    label: kind_en2ja("dimension"),
+    icon: renderIconByKind("dimension"),
+    render: (survey) => (
+      <MetadataSummaryValues
+        values={getSurveyMetadataSummary(survey).dimensions}
+      />
+    ),
+  },
+  {
+    label: kind_en2ja("region"),
+    icon: renderIconByKind("region"),
+    render: (survey) => (
+      <MetadataSummaryValues
+        values={getSurveyMetadataSummary(survey).regions}
+      />
+    ),
+  },
+  {
+    label: kind_en2ja("time"),
+    icon: renderIconByKind("time"),
+    render: (survey) => (
+      <MetadataSummaryValues
+        values={getSurveyMetadataSummary(survey).years}
+        maxVisible={6}
+      />
+    ),
   },
 ];
+
+function getSurveyMetadataSummary(survey: SurveyResult) {
+  return buildThemeMetadataSummary(
+    Number(survey.table_count?.aggregate?.count ?? 0),
+    survey.tables || [],
+  );
+}
+
+function MetadataSummaryValues({
+  values,
+  maxVisible = 8,
+}: {
+  values: string[];
+  maxVisible?: number;
+}) {
+  const visibleValues = values.slice(0, maxVisible);
+  const hiddenCount = values.length - visibleValues.length;
+
+  return visibleValues.length > 0 ? (
+    <div className="flex flex-wrap gap-1.5">
+      {visibleValues.map((value) => (
+        <span
+          key={value}
+          className="badge badge-ghost badge-sm max-w-full truncate"
+          title={value}
+        >
+          {value}
+        </span>
+      ))}
+      {hiddenCount > 0 ? (
+        <span className="badge badge-outline badge-sm">+{hiddenCount}</span>
+      ) : null}
+    </div>
+  ) : (
+    <span className="text-base-content/60">該当なし</span>
+  );
+}
 
 export function SurveyComparisonTable({
   selectedSurveyNames,
