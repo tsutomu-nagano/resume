@@ -22,6 +22,8 @@ export type SearchHistoryNode = {
   memo: string;
 };
 
+export type CommitSearchNodeResult = "saved" | "existing" | "unchanged";
+
 interface SearchItemContextType {
   items: Map<string, Set<string>>;
   getItemsArray: (kind?: string) => { kind: string; itemName: string }[];
@@ -42,7 +44,7 @@ interface SearchItemContextType {
   searchQuery: GraphQLRequest;
   searchHistoryNodes: SearchHistoryNode[];
   activeSearchNodeId: string | null;
-  commitSearchNode: () => void;
+  commitSearchNode: () => CommitSearchNodeResult;
   updateSearchNodeConditions: (nodeId: string) => void;
   checkoutSearchNode: (nodeId: string) => void;
   renameSearchNode: (nodeId: string, name: string) => void;

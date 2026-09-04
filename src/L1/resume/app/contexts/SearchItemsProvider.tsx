@@ -480,44 +480,43 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     );
   }, [activeSearchNodeId, countResult, items, view]);
 
-  const commitSearchNode = () => {
+  const commitSearchNode = (): "saved" | "existing" | "unchanged" => {
     const itemsArray = getItemsArrayFromMap(items);
     const activeNode = getActiveSearchNode();
 
     if (
       activeNode &&
+      activeNode.view === view &&
       areItemsEqual(getItemsMapFromArray(activeNode.items), items)
     ) {
-      return;
+      return "unchanged";
     }
 
     const parentId = activeNode?.id || null;
     const parentItems = activeNode?.items || [];
+    const duplicateNode = searchHistoryNodes.find(
+      (node) =>
+        node.parentId === parentId &&
+        getResultCacheKey(node.view, getItemsMapFromArray(node.items)) ===
+          getResultCacheKey(view, items),
+    );
 
-    setSearchHistoryNodes((previousNodes) => {
-      const duplicateNode = previousNodes.find(
-        (node) =>
-          node.parentId === parentId &&
-          getResultCacheKey(node.view, getItemsMapFromArray(node.items)) ===
-            getResultCacheKey(view, items),
-      );
+    if (duplicateNode) {
+      setActiveSearchNodeId(duplicateNode.id);
+      return "existing";
+    }
 
-      if (duplicateNode) {
-        setActiveSearchNodeId(duplicateNode.id);
-        return previousNodes;
-      }
-
-      const nextNode = createSearchNode({
-        parentId,
-        parentItems,
-        items: itemsArray,
-        resultCount: getCurrentResultCount(),
-        view,
-      });
-
-      setActiveSearchNodeId(nextNode.id);
-      return [...previousNodes, nextNode];
+    const nextNode = createSearchNode({
+      parentId,
+      parentItems,
+      items: itemsArray,
+      resultCount: getCurrentResultCount(),
+      view,
     });
+
+    setSearchHistoryNodes((previousNodes) => [...previousNodes, nextNode]);
+    setActiveSearchNodeId(nextNode.id);
+    return "saved";
   };
 
   const updateSearchNodeConditions = (nodeId: string) => {
