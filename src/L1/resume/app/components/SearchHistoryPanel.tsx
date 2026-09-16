@@ -17,7 +17,10 @@ import {
   SearchResultView,
 } from "../contexts/SearchItemsContext";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
-import { isSearchOperatorKind } from "@/lib/searchOperators";
+import {
+  DIMENSION_OPERATOR_KIND,
+  isSearchOperatorKind,
+} from "@/lib/searchOperators";
 
 function getItemLabel(item: SearchHistoryItem) {
   return `${item.kind}: ${item.itemName}`;
@@ -245,6 +248,9 @@ export function SearchHistoryPanel() {
   const {
     searchHistoryNodes,
     activeSearchNodeId,
+    autoSearchHistoryEnabled,
+    setAutoSearchHistoryEnabled,
+    dimensionOperator,
     getItemsArray,
     view,
     commitSearchNode,
@@ -255,7 +261,12 @@ export function SearchHistoryPanel() {
   } = useSearchItem();
   const [notification, setNotification] = useState("");
   const rootNodes = searchHistoryNodes.filter((node) => node.parentId === null);
-  const currentItems = getItemsArray();
+  const currentItems = [
+    ...getItemsArray(),
+    ...(dimensionOperator === "and"
+      ? [{ kind: DIMENSION_OPERATOR_KIND, itemName: "and" }]
+      : []),
+  ];
   const activeNode = searchHistoryNodes.find(
     (node) => node.id === activeSearchNodeId,
   );
@@ -304,6 +315,18 @@ export function SearchHistoryPanel() {
           <h2 className="text-sm font-semibold">履歴ツリー</h2>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <label className="label cursor-pointer gap-2 py-0">
+            <span className="label-text text-xs">自動保存</span>
+            <input
+              type="checkbox"
+              className="toggle toggle-primary toggle-sm"
+              checked={autoSearchHistoryEnabled}
+              aria-label="検索条件追加時の履歴自動保存"
+              onChange={(event) =>
+                setAutoSearchHistoryEnabled(event.target.checked)
+              }
+            />
+          </label>
           <button
             type="button"
             className="btn btn-primary btn-sm"

@@ -40,6 +40,7 @@ interface SearchItemProviderProps {
 const RESULT_VIEW_PARAM = "view";
 const SEARCH_HISTORY_STORAGE_KEY = "resume:git-style-search-history";
 const ACTIVE_SEARCH_NODE_STORAGE_KEY = "resume:active-search-history-node";
+const AUTO_SEARCH_HISTORY_STORAGE_KEY = "resume:auto-search-history-enabled";
 const PAGE_SIZE = 5;
 const NO_ATTRIBUTE_FILTER_MATCH = "__NO_ATTRIBUTE_FILTER_MATCH__";
 const ATTRIBUTE_FILTERS = [
@@ -333,6 +334,16 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     null,
   );
   const [hasLoadedSearchHistory, setHasLoadedSearchHistory] = useState(false);
+  const [autoSearchHistoryEnabled, setAutoSearchHistoryEnabledState] =
+    useState(false);
+  const previousVisibleItemKeys = useRef(
+    new Set(
+      getItemsArrayFromMap(items)
+        .filter(({ kind }) => !isSearchOperatorKind(kind))
+        .map(getItemKey),
+    ),
+  );
+  const skipNextAutoCommit = useRef(false);
   const resultCache = useRef(new Map<string, ResultCacheEntry>());
 
   const client = createApolloClient();
@@ -354,8 +365,19 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     const { nodes, activeNodeId } = loadSearchHistory();
     setSearchHistoryNodes(nodes);
     setActiveSearchNodeId(activeNodeId);
+    setAutoSearchHistoryEnabledState(
+      window.localStorage.getItem(AUTO_SEARCH_HISTORY_STORAGE_KEY) === "true",
+    );
     setHasLoadedSearchHistory(true);
   }, []);
+
+  const setAutoSearchHistoryEnabled = (enabled: boolean) => {
+    setAutoSearchHistoryEnabledState(enabled);
+    window.localStorage.setItem(
+      AUTO_SEARCH_HISTORY_STORAGE_KEY,
+      String(enabled),
+    );
+  };
 
   useEffect(() => {
     if (!hasLoadedSearchHistory) {
@@ -540,6 +562,28 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     return "saved";
   };
 
+  useEffect(() => {
+    const currentVisibleItemKeys = new Set(
+      getItemsArrayFromMap(items)
+        .filter(({ kind }) => !isSearchOperatorKind(kind))
+        .map(getItemKey),
+    );
+    const hasAddedItem = Array.from(currentVisibleItemKeys).some(
+      (itemKey) => !previousVisibleItemKeys.current.has(itemKey),
+    );
+
+    previousVisibleItemKeys.current = currentVisibleItemKeys;
+
+    if (skipNextAutoCommit.current) {
+      skipNextAutoCommit.current = false;
+      return;
+    }
+
+    if (hasLoadedSearchHistory && autoSearchHistoryEnabled && hasAddedItem) {
+      commitSearchNode();
+    }
+  }, [autoSearchHistoryEnabled, hasLoadedSearchHistory, items]);
+
   const updateSearchNodeConditions = (nodeId: string) => {
     const targetNode = searchHistoryNodes.find((node) => node.id === nodeId);
 
@@ -585,6 +629,12 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     }
 
     const nextItems = getItemsMapFromArray(node.items);
+    skipNextAutoCommit.current = true;
+    previousVisibleItemKeys.current = new Set(
+      getItemsArrayFromMap(nextItems)
+        .filter(({ kind }) => !isSearchOperatorKind(kind))
+        .map(getItemKey),
+    );
     rememberCurrentResults();
     resetSearch();
     setItemSet(nextItems);
@@ -1193,6 +1243,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         searchQuery,
         searchHistoryNodes,
         activeSearchNodeId,
+        autoSearchHistoryEnabled,
+        setAutoSearchHistoryEnabled,
         commitSearchNode,
         updateSearchNodeConditions,
         checkoutSearchNode,
