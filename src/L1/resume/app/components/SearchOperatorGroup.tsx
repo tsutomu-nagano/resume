@@ -42,7 +42,14 @@ export function SearchOperatorGroup({
                 aria-label={tooltip}
                 onClick={onToggleOperator}
               >
-                {isOr ? "＋" : "×"}
+                <span
+                  className={`inline-block transition-transform duration-300 ease-out motion-reduce:transition-none ${
+                    isOr ? "rotate-0" : "rotate-90"
+                  }`}
+                  aria-hidden="true"
+                >
+                  {isOr ? "＋" : "×"}
+                </span>
               </button>
             </>
           ) : null}
