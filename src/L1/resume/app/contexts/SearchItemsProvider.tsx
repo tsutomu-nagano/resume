@@ -21,6 +21,11 @@ import {
   GET_TABLE_THEME_LIST,
 } from "@lib/queries";
 import {
+  DIMENSION_OPERATOR_KIND,
+  getDimensionOperator,
+  isSearchOperatorKind,
+} from "@lib/searchOperators";
+import {
   SearchHistoryItem,
   SearchHistoryNode,
   SearchItemContext,
@@ -140,27 +145,42 @@ function getAddedItems(
 }
 
 function getSearchNodeName(items: SearchHistoryItem[]) {
-  if (items.length === 0) {
+  const visibleItems = items.filter(({ kind }) => !isSearchOperatorKind(kind));
+
+  if (visibleItems.length === 0) {
     return "条件なし";
   }
 
-  return items
+  return visibleItems
     .slice(0, 3)
     .map(({ itemName }) => itemName)
     .join(" AND ");
 }
 
 function getSearchExpression(items: SearchHistoryItem[]) {
+  const dimensionOperator = items.some(
+    ({ kind, itemName }) =>
+      kind === DIMENSION_OPERATOR_KIND && itemName === "and",
+  )
+    ? " AND "
+    : " OR ";
   const itemsByKind = items.reduce<Record<string, string[]>>(
     (previousItems, { kind, itemName }) => {
+      if (isSearchOperatorKind(kind)) {
+        return previousItems;
+      }
+
       previousItems[kind] = [...(previousItems[kind] || []), itemName];
       return previousItems;
     },
     {},
   );
 
-  return Object.values(itemsByKind)
-    .map((values) => `(${values.join(" OR ")})`)
+  return Object.entries(itemsByKind)
+    .map(
+      ([kind, values]) =>
+        `(${values.join(kind === "dimension" ? dimensionOperator : " OR ")})`,
+    )
     .join(" AND ");
 }
 
@@ -305,6 +325,7 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
   const [items, setItemSet] = useState<Map<string, Set<string>>>(() =>
     getItemsFromSearchParams(searchParams),
   );
+  const dimensionOperator = getDimensionOperator(items);
   const [searchHistoryNodes, setSearchHistoryNodes] = useState<
     SearchHistoryNode[]
   >([]);
@@ -693,6 +714,31 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     navigate(params);
   };
 
+  const toggleDimensionOperator = () => {
+    const nextOperator = dimensionOperator === "or" ? "and" : "or";
+    resetSearch();
+
+    setItemSet((previousItems) => {
+      const newItems = cloneItems(previousItems);
+
+      if (nextOperator === "and") {
+        newItems.set(DIMENSION_OPERATOR_KIND, new Set(["and"]));
+      } else {
+        newItems.delete(DIMENSION_OPERATOR_KIND);
+      }
+
+      return newItems;
+    });
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (nextOperator === "and") {
+      params.set(DIMENSION_OPERATOR_KIND, "and");
+    } else {
+      params.delete(DIMENSION_OPERATOR_KIND);
+    }
+    navigate(params);
+  };
+
   const setView = (nextView: SearchResultView) => {
     if (nextView === view) {
       return;
@@ -793,7 +839,12 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
     }
 
     return Array.from(items.entries()).flatMap(([itemKind, names]) =>
-      Array.from(names).map((itemName) => ({ kind: itemKind, itemName })),
+      isSearchOperatorKind(itemKind)
+        ? []
+        : Array.from(names).map((itemName) => ({
+            kind: itemKind,
+            itemName,
+          })),
     );
   };
 
@@ -1128,6 +1179,8 @@ export const SearchItemProvider = ({ children }: SearchItemProviderProps) => {
         addItem,
         addItems,
         removeItem,
+        dimensionOperator,
+        toggleDimensionOperator,
         selectSurvey,
         view,
         setView,

@@ -1,3 +1,5 @@
+import { getDimensionOperator } from "./searchOperators";
+
 type GraphQLCondition = Record<string, unknown>;
 
 type EqualityConditionConfig = {
@@ -111,13 +113,28 @@ function groupOrConditions(
   return { _or: conditions };
 }
 
+function groupDimensionConditions(
+  items: Map<string, Set<string>>,
+  conditions: GraphQLCondition[],
+): GraphQLCondition | undefined {
+  if (conditions.length <= 1 || getDimensionOperator(items) === "or") {
+    return groupOrConditions(conditions);
+  }
+
+  return { _and: conditions };
+}
+
 export function BuilderCondition(
   items: Map<string, Set<string>>,
 ): GraphQLCondition {
   const conditions = [
-    ...equalityConditionConfigs.map((config) =>
-      groupOrConditions(buildEqualityConditions(items, config)),
-    ),
+    ...equalityConditionConfigs.map((config) => {
+      const equalityConditions = buildEqualityConditions(items, config);
+
+      return config.kind === "dimension"
+        ? groupDimensionConditions(items, equalityConditions)
+        : groupOrConditions(equalityConditions);
+    }),
     groupOrConditions(
       buildTimeConditions(items, "time", "TABLE_TIMEs", "YEAR"),
     ),

@@ -17,6 +17,7 @@ import {
   SearchResultView,
 } from "../contexts/SearchItemsContext";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
+import { isSearchOperatorKind } from "@/lib/searchOperators";
 
 function getItemLabel(item: SearchHistoryItem) {
   return `${item.kind}: ${item.itemName}`;
@@ -203,16 +204,16 @@ function SearchHistoryNodeRow({
               </span>
             </div>
             <div className="mt-1 flex flex-wrap gap-1">
-              {(node.addedItems.length > 0 ? node.addedItems : node.items).map(
-                (item) => (
+              {(node.addedItems.length > 0 ? node.addedItems : node.items)
+                .filter(({ kind }) => !isSearchOperatorKind(kind))
+                .map((item) => (
                   <span
                     key={`${node.id}:${item.kind}:${item.itemName}`}
                     className="badge badge-ghost max-w-full truncate"
                   >
                     + {getItemLabel(item)}
                   </span>
-                ),
-              )}
+                ))}
             </div>
             {node.memo ? (
               <p className="mt-1 truncate text-xs text-base-content/60">
