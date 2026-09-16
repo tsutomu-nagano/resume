@@ -7,6 +7,7 @@ import { GET_SEARCH_TAG_LIST } from "../../lib/queries";
 
 import { FaChevronDown } from "react-icons/fa6";
 import { TagContainer as Tag } from "./Tag.container";
+import { OrItemGroup } from "./OrItemGroup";
 
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 
@@ -43,28 +44,11 @@ function SelectedItems({
   }
 
   return (
-    <div
-      className="flex flex-wrap items-center gap-1 rounded-2xl border-2 border-primary/40 bg-primary/5 p-2"
-      role="group"
-      aria-label="いずれかに一致する分類事項"
-    >
-      {items.map(({ kind, itemName }, index) => (
-        <div key={itemName} className="flex items-center gap-1">
-          {index > 0 ? (
-            <>
-              <span className="sr-only">または</span>
-              <span
-                className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-base font-bold leading-none text-primary-content shadow-sm"
-                aria-hidden="true"
-              >
-                ＋
-              </span>
-            </>
-          ) : null}
-          <Tag name={itemName} kind={kind} simple={true} />
-        </div>
+    <OrItemGroup ariaLabel="いずれかに一致する分類事項">
+      {items.map(({ kind, itemName }) => (
+        <Tag key={itemName} name={itemName} kind={kind} simple={true} />
       ))}
-    </div>
+    </OrItemGroup>
   );
 }
 

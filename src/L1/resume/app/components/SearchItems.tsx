@@ -9,6 +9,7 @@ import { GitBranch } from "lucide-react";
 import { useState } from "react";
 import { Drawer } from "./Drawer";
 import { SearchHistoryPanel } from "./SearchHistoryPanel";
+import { OrItemGroup } from "./OrItemGroup";
 
 interface SearchItemsProps {
   names: string[];
@@ -42,11 +43,20 @@ export default function SearchItems({ names }: SearchItemsProps) {
         <span className="font-medium">検索条件</span>
       </div>
       <div className="flex min-w-0 flex-1 flex-wrap gap-2">
-        {Array.from(items.entries()).map(([kind, names]) =>
-          Array.from(names).map((name) => (
+        {Array.from(items.entries()).map(([kind, names]) => {
+          const itemNames = Array.from(names);
+          const tags = itemNames.map((name) => (
             <Tag key={name} name={name} kind={kind} />
-          )),
-        )}
+          ));
+
+          return kind === "dimension" && itemNames.length > 1 ? (
+            <OrItemGroup key={kind} ariaLabel="いずれかに一致する分類事項">
+              {tags}
+            </OrItemGroup>
+          ) : (
+            tags
+          );
+        })}
       </div>
       {/* Open the modal using document.getElementById('ID').showModal() method */}
       <button
