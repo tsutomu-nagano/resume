@@ -43,7 +43,7 @@ export function SearchOperatorGroup({
                 onClick={onToggleOperator}
               >
                 <span
-                  className={`inline-block transition-transform duration-300 ease-out motion-reduce:transition-none ${
+                  className={`inline-block transition-transform duration-500 ease-out motion-reduce:transition-none ${
                     isOr ? "rotate-0" : "rotate-90"
                   }`}
                   aria-hidden="true"
