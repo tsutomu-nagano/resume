@@ -66,7 +66,7 @@ export function SearchOperatorGroup({
               <span className="sr-only">{isOr ? "または" : "かつ"}</span>
               <button
                 type="button"
-                className={`tooltip flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-[oklch(var(--p))] text-base font-bold leading-none text-[oklch(var(--p))] shadow-sm transition-colors duration-500 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                className={`tooltip flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-[oklch(var(--p))] text-base font-bold leading-none text-[oklch(var(--p))] shadow-sm transition-colors duration-500 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                   isAnimating ? "!border-black !bg-black !text-white" : ""
                 }`}
                 data-tip={tooltip}
