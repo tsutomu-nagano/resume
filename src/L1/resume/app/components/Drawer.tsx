@@ -13,6 +13,7 @@ interface DrawerProps {
   isOpen: boolean; // Drawerの開閉状態
   onToggle: () => void; // Drawerの開閉をトグルする関数
   side?: "left" | "right";
+  widthClassName?: string;
 }
 
 const SWIPE_CLOSE_DISTANCE = 64;
@@ -26,6 +27,7 @@ export function Drawer({
   isOpen,
   onToggle,
   side = "right",
+  widthClassName = "w-[min(28rem,92vw)]",
 }: DrawerProps) {
   // ポータルのためにドキュメントのルートにレンダリング
 
@@ -102,7 +104,7 @@ export function Drawer({
         ></label>
         <div
           data-drawer-content-id={id}
-          className={`min-h-full w-[min(28rem,92vw)] touch-pan-y overflow-y-auto bg-base-200 p-4 text-base-content ${
+          className={`min-h-full ${widthClassName} touch-pan-y overflow-y-auto bg-base-200 p-4 text-base-content ${
             isOpen ? "shadow-xl" : "shadow-none"
           }`}
           onPointerDown={handlePointerDown}
