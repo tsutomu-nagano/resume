@@ -44,7 +44,7 @@ export default function SearchItems({ names }: SearchItemsProps) {
         </button>
         <span className="font-medium">検索条件</span>
       </div>
-      <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+      <div className="flex min-w-0 flex-1 flex-wrap gap-2 items-center">
         {Array.from(items.entries()).map(([kind, names]) => {
           if (isSearchOperatorKind(kind)) {
             return null;
