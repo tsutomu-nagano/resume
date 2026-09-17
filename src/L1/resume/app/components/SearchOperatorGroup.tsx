@@ -52,7 +52,7 @@ export function SearchOperatorGroup({
 
   return (
     <div
-      className="inline-flex w-fit max-w-full flex-wrap items-center gap-1 rounded-2xl border-2 border-primary bg-primary/5 p-2"
+      className="inline-flex w-fit max-w-full flex-wrap items-center gap-1 rounded-2xl border-2 border-[oklch(var(--p))] bg-primary/5 p-2"
       role="group"
       aria-label={ariaLabel}
     >
@@ -66,7 +66,7 @@ export function SearchOperatorGroup({
               <span className="sr-only">{isOr ? "または" : "かつ"}</span>
               <button
                 type="button"
-                className={`tooltip flex size-7 shrink-0 items-center justify-center rounded-full border border-[oklch(var(--p))] bg-[oklch(var(--p))] text-base font-bold leading-none text-[oklch(var(--pc))] shadow-sm transition-colors duration-500 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                className={`tooltip flex size-7 shrink-0 items-center justify-center rounded-full border-2 border-[oklch(var(--p))] text-base font-bold leading-none text-[oklch(var(--p))] shadow-sm transition-colors duration-500 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
                   isAnimating ? "!border-black !bg-black !text-white" : ""
                 }`}
                 data-tip={tooltip}
