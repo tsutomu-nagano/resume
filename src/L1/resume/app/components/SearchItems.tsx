@@ -17,12 +17,8 @@ interface SearchItemsProps {
 }
 
 export default function SearchItems({ names }: SearchItemsProps) {
-<<<<<<< HEAD
-  const { items, searchQuery } = useSearchItem();
-=======
   const { items, searchQuery, dimensionOperator, toggleDimensionOperator } =
     useSearchItem();
->>>>>>> 947c98d4cac8cd92c6c5e0888475771f250d2957
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const handleClick = () => {
