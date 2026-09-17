@@ -7,6 +7,7 @@ import { GET_SEARCH_TAG_LIST } from "../../lib/queries";
 
 import { FaChevronDown } from "react-icons/fa6";
 import { TagContainer as Tag } from "./Tag.container";
+import { SearchOperatorGroup } from "./SearchOperatorGroup";
 
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 
@@ -25,6 +26,44 @@ interface SearchItemSelectorProps {
   kind: string;
 }
 
+function SelectedItems({
+  items,
+  grouped,
+  operator,
+  onToggleOperator,
+}: {
+  items: { kind: string; itemName: string }[];
+  grouped: boolean;
+  operator: "or" | "and";
+  onToggleOperator: () => void;
+}) {
+  if (!grouped) {
+    return (
+      <div className="flex flex-row flex-wrap">
+        {items.map(({ kind, itemName }) => (
+          <Tag key={itemName} name={itemName} kind={kind} simple={true} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <SearchOperatorGroup
+      ariaLabel={
+        operator === "or"
+          ? "いずれかに一致する分類事項"
+          : "すべてに一致する分類事項"
+      }
+      operator={operator}
+      onToggleOperator={onToggleOperator}
+    >
+      {items.map(({ kind, itemName }) => (
+        <Tag key={itemName} name={itemName} kind={kind} simple={true} />
+      ))}
+    </SearchOperatorGroup>
+  );
+}
+
 export default function SearchItemSelector({
   labelja,
   labelen = "",
@@ -33,7 +72,8 @@ export default function SearchItemSelector({
   resource_field,
   kind,
 }: SearchItemSelectorProps) {
-  const { items, getItemsArray } = useSearchItem();
+  const { items, getItemsArray, dimensionOperator, toggleDimensionOperator } =
+    useSearchItem();
 
   const itemsArray = getItemsArray(kind);
 
@@ -102,16 +142,12 @@ export default function SearchItemSelector({
               <div className="divider divider-start divider-primary">
                 現在選択している{labelja}
               </div>
-              <div className="flex flex-row flex-wrap">
-                {itemsArray.map(({ kind, itemName }) => (
-                  <Tag
-                    key={itemName}
-                    name={itemName}
-                    kind={kind}
-                    simple={true}
-                  />
-                ))}
-              </div>
+              <SelectedItems
+                items={itemsArray}
+                grouped={kind === "dimension" && itemsArray.length > 1}
+                operator={dimensionOperator}
+                onToggleOperator={toggleDimensionOperator}
+              />
             </>
           )}
 

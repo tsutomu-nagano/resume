@@ -9,13 +9,20 @@ import { GitBranch } from "lucide-react";
 import { useState } from "react";
 import { Drawer } from "./Drawer";
 import { SearchHistoryPanel } from "./SearchHistoryPanel";
+import { SearchOperatorGroup } from "./SearchOperatorGroup";
+import { isSearchOperatorKind } from "@/lib/searchOperators";
 
 interface SearchItemsProps {
   names: string[];
 }
 
 export default function SearchItems({ names }: SearchItemsProps) {
+<<<<<<< HEAD
   const { items, searchQuery } = useSearchItem();
+=======
+  const { items, searchQuery, dimensionOperator, toggleDimensionOperator } =
+    useSearchItem();
+>>>>>>> 947c98d4cac8cd92c6c5e0888475771f250d2957
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const handleClick = () => {
@@ -41,12 +48,34 @@ export default function SearchItems({ names }: SearchItemsProps) {
         </button>
         <span className="font-medium">検索条件</span>
       </div>
-      <div className="flex min-w-0 flex-1 flex-wrap gap-2">
-        {Array.from(items.entries()).map(([kind, names]) =>
-          Array.from(names).map((name) => (
+      <div className="flex min-w-0 flex-1 flex-wrap gap-2 items-center">
+        {Array.from(items.entries()).map(([kind, names]) => {
+          if (isSearchOperatorKind(kind)) {
+            return null;
+          }
+
+          const itemNames = Array.from(names);
+          const tags = itemNames.map((name) => (
             <Tag key={name} name={name} kind={kind} />
-          )),
-        )}
+          ));
+
+          return kind === "dimension" && itemNames.length > 1 ? (
+            <SearchOperatorGroup
+              key={kind}
+              ariaLabel={
+                dimensionOperator === "or"
+                  ? "いずれかに一致する分類事項"
+                  : "すべてに一致する分類事項"
+              }
+              operator={dimensionOperator}
+              onToggleOperator={toggleDimensionOperator}
+            >
+              {tags}
+            </SearchOperatorGroup>
+          ) : (
+            tags
+          );
+        })}
       </div>
       {/* Open the modal using document.getElementById('ID').showModal() method */}
       <button

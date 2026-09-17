@@ -2,6 +2,7 @@
 
 import type { GraphQLRequest } from "@/lib/queries";
 import type { DimensionSearchMode } from "@/lib/queries";
+import type { SearchOperator } from "@/lib/searchOperators";
 import { createContext } from "react";
 
 export type SearchResultView = "tables" | "surveys" | "metadata";
@@ -31,6 +32,8 @@ interface SearchItemContextType {
   addItem: (kind: string, itemName: string) => void;
   addItems: (nextItems: { kind: string; itemName: string }[]) => void;
   removeItem: (kind: string, itemName: string) => void;
+  dimensionOperator: SearchOperator;
+  toggleDimensionOperator: () => void;
   selectSurvey: (surveyName: string) => void;
 
   view: SearchResultView;
@@ -44,6 +47,11 @@ interface SearchItemContextType {
   searchQuery: GraphQLRequest;
   searchHistoryNodes: SearchHistoryNode[];
   activeSearchNodeId: string | null;
+<<<<<<< HEAD
+=======
+  autoSearchHistoryEnabled: boolean;
+  setAutoSearchHistoryEnabled: (enabled: boolean) => void;
+>>>>>>> 947c98d4cac8cd92c6c5e0888475771f250d2957
   commitSearchNode: () => CommitSearchNodeResult;
   updateSearchNodeConditions: (nodeId: string) => void;
   checkoutSearchNode: (nodeId: string) => void;

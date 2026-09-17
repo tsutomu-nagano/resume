@@ -1,7 +1,7 @@
 "use client";
 
 import { FolderTree, LayoutList } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
 import { InfiniteScrollContainer } from "./InfiniteScrollContainer";
 import { ResultSkeletons } from "./ResultSkeletons";
@@ -65,17 +65,11 @@ export default function TableList() {
     setTableResultMode,
   } = useSearchItem();
 
-  const didEffect = useRef(false);
   useEffect(() => {
-    didEffect.current = false;
-  }, [tableResultMode]);
-
-  useEffect(() => {
-    if (!didEffect.current && searchResult.length === 0 && !isLast) {
-      didEffect.current = true;
-      fetchMore();
+    if (searchResult.length === 0 && !isLast && !isFetchingMore && !error) {
+      void fetchMore();
     }
-  }, [fetchMore, isLast, searchResult.length, tableResultMode]);
+  }, [error, fetchMore, isFetchingMore, isLast, searchResult.length]);
 
   if (loading) return <ResultSkeletons view="tables" />;
   if (error) return <p>Error: {error.message}</p>;

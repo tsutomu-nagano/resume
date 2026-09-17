@@ -17,6 +17,10 @@ import {
   SearchResultView,
 } from "../contexts/SearchItemsContext";
 import { useSearchItem } from "../contexts/SearchItemsProvider";
+import {
+  DIMENSION_OPERATOR_KIND,
+  isSearchOperatorKind,
+} from "@/lib/searchOperators";
 
 function getItemLabel(item: SearchHistoryItem) {
   return `${item.kind}: ${item.itemName}`;
@@ -114,112 +118,69 @@ function SearchHistoryNodeRow({
         title="この検索条件を復元"
         onClick={handleRowClick}
       >
-        <div className="flex items-start gap-2">
-          <button
-            type="button"
-            className="btn btn-ghost btn-xs btn-square shrink-0"
-            title="この検索条件を復元"
-            aria-label={`${node.name}の検索条件を復元`}
-            onClick={checkout}
-          >
-            <GitCommitHorizontal size={16} />
-          </button>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              {isEditing ? (
-                <>
-                  <input
-                    className="input input-bordered input-xs min-w-40 max-w-full"
-                    value={editingName}
-                    aria-label="検索履歴名"
-                    autoFocus
-                    onChange={(event) => setEditingName(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter") {
-                        saveName();
-                      } else if (event.key === "Escape") {
-                        cancelEditing();
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-xs btn-square"
-                    title="履歴名を保存"
-                    aria-label="履歴名を保存"
-                    disabled={!editingName.trim()}
-                    onClick={saveName}
-                  >
-                    <Save size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-xs btn-square"
-                    title="編集を取り消す"
-                    aria-label="編集を取り消す"
-                    onClick={cancelEditing}
-                  >
-                    <X size={14} />
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span className="min-w-0 max-w-full truncate text-sm font-medium">
-                    {node.name}
-                  </span>
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-xs btn-square"
-                    title="履歴名を編集"
-                    aria-label={`${node.name}の名前を編集`}
-                    onClick={startEditing}
-                  >
-                    <Pencil size={14} />
-                  </button>
-                </>
-              )}
-              {canUpdateConditions ? (
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-xs"
-                  title="現在の検索条件をこの履歴に追加"
-                  onClick={() => onUpdateConditions(node.id)}
-                >
-                  <GitMerge size={14} />
-                  現在条件を追加
-                </button>
-              ) : null}
-              {isCurrent ? (
-                <span className="badge badge-primary">表示中</span>
-              ) : null}
-              {isModified ? (
-                <span className="badge badge-warning">変更あり</span>
-              ) : null}
-              <span className="badge badge-outline">
-                {node.resultCount ?? "-"}件
-              </span>
-              <span className="text-xs text-base-content/60">
-                {formatDateTime(node.createdAt)}
-              </span>
-            </div>
-            <div className="mt-1 flex flex-wrap gap-1">
-              {(node.addedItems.length > 0 ? node.addedItems : node.items).map(
-                (item) => (
-                  <span
-                    key={`${node.id}:${item.kind}:${item.itemName}`}
-                    className="badge badge-ghost max-w-full truncate"
-                  >
-                    + {getItemLabel(item)}
-                  </span>
-                ),
-              )}
-            </div>
-            {node.memo ? (
-              <p className="mt-1 truncate text-xs text-base-content/60">
-                {node.memo}
-              </p>
+        <button
+          type="button"
+          className="btn btn-ghost btn-xs"
+          title="この検索ノードへ移動"
+          aria-label="この検索ノードへ移動"
+          onClick={() => onCheckout(node.id)}
+        >
+          <GitCommitHorizontal size={16} />
+        </button>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              className="input input-bordered input-xs min-w-40 max-w-full"
+              value={editingName}
+              onChange={(event) => setEditingName(event.target.value)}
+            />
+            <button
+              type="button"
+              className="btn btn-ghost btn-xs"
+              title="検索ノード名を保存"
+              aria-label="検索ノード名を保存"
+              onClick={() => onRename(node.id, editingName)}
+            >
+              <Save size={14} />
+            </button>
+            {canUpdateConditions ? (
+              <button
+                type="button"
+                className="btn btn-secondary btn-xs"
+                title="現在の検索条件をこの履歴に追加"
+                onClick={() => onUpdateConditions(node.id)}
+              >
+                <GitMerge size={14} />
+                現在条件を追加
+              </button>
             ) : null}
+            {isActive ? (
+              <span className="badge badge-primary">表示中</span>
+            ) : null}
+            <span className="badge badge-outline">
+              {node.resultCount ?? "-"}件
+            </span>
+            <span className="text-xs text-base-content/60">
+              {formatDateTime(node.createdAt)}
+            </span>
           </div>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {(node.addedItems.length > 0 ? node.addedItems : node.items).map(
+              (item) => (
+                <span
+                  key={`${node.id}:${item.kind}:${item.itemName}`}
+                  className="badge badge-ghost max-w-full truncate"
+                >
+                  + {getItemLabel(item)}
+                </span>
+              ),
+            )}
+          </div>
+          {node.memo ? (
+            <p className="mt-1 truncate text-xs text-base-content/60">
+              {node.memo}
+            </p>
+          ) : null}
         </div>
       </div>
       {children.map((childNode) => (
@@ -244,6 +205,9 @@ export function SearchHistoryPanel() {
   const {
     searchHistoryNodes,
     activeSearchNodeId,
+    autoSearchHistoryEnabled,
+    setAutoSearchHistoryEnabled,
+    dimensionOperator,
     getItemsArray,
     view,
     commitSearchNode,
@@ -255,35 +219,6 @@ export function SearchHistoryPanel() {
   const [notification, setNotification] = useState("");
   const rootNodes = searchHistoryNodes.filter((node) => node.parentId === null);
   const currentItems = getItemsArray();
-  const activeNode = searchHistoryNodes.find(
-    (node) => node.id === activeSearchNodeId,
-  );
-  const isCurrentSaved = Boolean(
-    activeNode &&
-    activeNode.view === view &&
-    getItemsKey(activeNode.items) === getItemsKey(currentItems),
-  );
-
-  useEffect(() => {
-    if (!notification) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => setNotification(""), 3000);
-    return () => window.clearTimeout(timeoutId);
-  }, [notification]);
-
-  const handleCommit = () => {
-    const result = commitSearchNode();
-
-    setNotification(
-      result === "saved"
-        ? "検索条件を履歴に保存しました。"
-        : result === "existing"
-          ? "同じ条件の履歴を表示しました。"
-          : "この検索条件は保存済みです。",
-    );
-  };
   const handleClearHistory = () => {
     if (
       window.confirm(
@@ -303,6 +238,18 @@ export function SearchHistoryPanel() {
           <h2 className="text-sm font-semibold">履歴ツリー</h2>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <label className="label cursor-pointer gap-2 py-0">
+            <span className="label-text text-xs">自動保存</span>
+            <input
+              type="checkbox"
+              className="toggle toggle-primary toggle-sm"
+              checked={autoSearchHistoryEnabled}
+              aria-label="検索条件追加時の履歴自動保存"
+              onChange={(event) =>
+                setAutoSearchHistoryEnabled(event.target.checked)
+              }
+            />
+          </label>
           <button
             type="button"
             className="btn btn-primary btn-sm"

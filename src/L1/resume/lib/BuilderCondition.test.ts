@@ -50,6 +50,24 @@ describe("BuilderCondition", () => {
     });
   });
 
+  it("groups multiple dimensions with _and when the operator is changed", () => {
+    const items = new Map([
+      ["dimension", new Set(["性別", "年齢"])],
+      ["dimension_operator", new Set(["and"])],
+    ]);
+
+    expect(BuilderCondition(items)).toEqual({
+      _and: [
+        {
+          _and: [
+            { TABLE_DIMENSIONs: { CLASS_NAME: { _eq: "性別" } } },
+            { TABLE_DIMENSIONs: { CLASS_NAME: { _eq: "年齢" } } },
+          ],
+        },
+      ],
+    });
+  });
+
   it("filters regions by linked region names", () => {
     const items = new Map([["region", new Set(["深谷市"])]]);
 
