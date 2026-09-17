@@ -47,11 +47,8 @@ interface SearchItemContextType {
   searchQuery: GraphQLRequest;
   searchHistoryNodes: SearchHistoryNode[];
   activeSearchNodeId: string | null;
-<<<<<<< HEAD
-=======
   autoSearchHistoryEnabled: boolean;
   setAutoSearchHistoryEnabled: (enabled: boolean) => void;
->>>>>>> 947c98d4cac8cd92c6c5e0888475771f250d2957
   commitSearchNode: () => CommitSearchNodeResult;
   updateSearchNodeConditions: (nodeId: string) => void;
   checkoutSearchNode: (nodeId: string) => void;
